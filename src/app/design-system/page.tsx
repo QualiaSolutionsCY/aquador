@@ -1,30 +1,22 @@
 import type { CSSProperties } from "react";
 
 /**
- * /_design — internal v3.0 token showcase.
+ * /design-system — internal v3.0 token showcase.
  *
  * Visual proof that the OKLCH palette, fluid type scale, 8px spacing, motion
  * timings, and tinted shadow elevations from src/styles/tokens.css render as
- * DESIGN.md describes. Not linked from production navigation. Not crawled.
+ * DESIGN.md describes. Not linked from production navigation. Not crawled
+ * (robots: noindex/nofollow in metadata).
  *
  * Built to QA Phase 1 of the v3.0 reset. Every later phase consults this
  * route to confirm a token still reads correctly after refactors.
  *
- * Token consumption is via inline `style={{ ... }}` referencing CSS custom
- * properties directly — this isolates the page from Wave 2 / Task 3's
- * parallel Tailwind rewire. Classes from that rewire may also work, but the
- * inline `var(--*)` is the primary contract.
- *
- * NOTE ON ROUTING (Next.js 14 App Router):
- * Folders prefixed with `_` are treated as PRIVATE FOLDERS by Next.js and
- * are excluded from routing entirely (both dev and prod). The planner asked
- * for both "/_design reachable in dev" AND a folder named `_design` — those
- * two are mutually exclusive under Next.js conventions. This task ships the
- * literal `_design` folder name (matching the file-path validation contract
- * and the planner's "private folder" intent). To make the URL reachable
- * later, rename the folder to `%5Fdesign` (the documented Next.js escape for
- * leading-underscore route segments). The page renders identically either
- * way — only the URL routing toggles.
+ * Routing: lives at /design-system (a regular App Router route). The original
+ * plan named the folder `_design` expecting Next.js to leave it routable but
+ * unlinked — but in Next 14 App Router an underscore prefix marks a PRIVATE
+ * folder that is never routable. Renamed to `design-system` so the URL is
+ * reachable in dev for QA. The route is intentionally NOT linked from any
+ * nav surface, and `robots: noindex/nofollow` keeps it out of search engines.
  */
 
 export const metadata = {
