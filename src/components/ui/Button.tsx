@@ -113,23 +113,28 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...rest}
       >
         {isLoading ? (
-          <Loader2
-            aria-hidden="true"
-            className="h-4 w-4 animate-spin"
-            strokeWidth={1.5}
-          />
+          <>
+            <Loader2
+              aria-hidden="true"
+              className="h-4 w-4 animate-spin"
+              strokeWidth={1.5}
+            />
+            <span className="sr-only">Loading</span>
+          </>
         ) : (
-          leadingIcon && (
-            <span aria-hidden="true" className="inline-flex shrink-0">
-              {leadingIcon}
-            </span>
-          )
-        )}
-        {children}
-        {!isLoading && trailingIcon && (
-          <span aria-hidden="true" className="inline-flex shrink-0">
-            {trailingIcon}
-          </span>
+          <>
+            {leadingIcon && (
+              <span aria-hidden="true" className="inline-flex shrink-0">
+                {leadingIcon}
+              </span>
+            )}
+            {children}
+            {trailingIcon && (
+              <span aria-hidden="true" className="inline-flex shrink-0">
+                {trailingIcon}
+              </span>
+            )}
+          </>
         )}
       </button>
     );

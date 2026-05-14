@@ -1,15 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import Button from '../Button';
-
-// Mock framer-motion to avoid animation issues in tests
-jest.mock('framer-motion', () => ({
-  motion: {
-    button: ({ children, whileHover: _whileHover, whileTap: _whileTap, ...props }: React.ComponentProps<'button'> & { whileHover?: unknown; whileTap?: unknown }) => (
-      <button {...props}>{children}</button>
-    ),
-  },
-  HTMLMotionProps: {},
-}));
+import { Button } from '../Button';
 
 describe('Button Component', () => {
   describe('rendering', () => {
@@ -28,13 +18,13 @@ describe('Button Component', () => {
     it('should apply primary variant styles by default', () => {
       render(<Button>Primary</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-gold');
+      expect(button).toHaveClass('bg-accent');
     });
 
-    it('should apply outline variant styles', () => {
-      render(<Button variant="outline">Outline</Button>);
+    it('should apply secondary variant styles', () => {
+      render(<Button variant="secondary">Secondary</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('border-gold/40');
+      expect(button).toHaveClass('bg-bg-alt');
     });
 
     it('should apply ghost variant styles', () => {
@@ -42,25 +32,31 @@ describe('Button Component', () => {
       const button = screen.getByRole('button');
       expect(button).toHaveClass('bg-transparent');
     });
+
+    it('should apply destructive variant styles', () => {
+      render(<Button variant="destructive">Delete</Button>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('bg-critical');
+    });
   });
 
   describe('sizes', () => {
     it('should apply medium size by default', () => {
       render(<Button>Medium</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('px-7', 'py-3');
+      expect(button).toHaveClass('px-6', 'py-3');
     });
 
     it('should apply small size', () => {
       render(<Button size="sm">Small</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('px-5', 'py-2.5');
+      expect(button).toHaveClass('px-4', 'py-2');
     });
 
     it('should apply large size', () => {
       render(<Button size="lg">Large</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('px-9', 'py-4');
+      expect(button).toHaveClass('px-8', 'py-4');
     });
   });
 
@@ -74,12 +70,12 @@ describe('Button Component', () => {
     it('should apply disabled styles', () => {
       render(<Button disabled>Disabled</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('opacity-50', 'cursor-not-allowed');
+      expect(button).toHaveClass('disabled:opacity-50', 'disabled:cursor-not-allowed');
     });
   });
 
   describe('loading state', () => {
-    it('should show loading text when isLoading is true', () => {
+    it('should show loading sr-only text when isLoading is true', () => {
       render(<Button isLoading>Submit</Button>);
       expect(screen.getByText('Loading')).toBeInTheDocument();
     });
@@ -90,7 +86,13 @@ describe('Button Component', () => {
       expect(button).toBeDisabled();
     });
 
-    it('should not show children when loading', () => {
+    it('should set aria-busy when loading', () => {
+      render(<Button isLoading>Submit</Button>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('aria-busy', 'true');
+    });
+
+    it('should not show children when loading (slot-replaced by spinner)', () => {
       render(<Button isLoading>Submit</Button>);
       expect(screen.queryByText('Submit')).not.toBeInTheDocument();
     });
