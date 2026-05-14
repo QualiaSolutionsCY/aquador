@@ -1,13 +1,11 @@
 {
-  "mode": "interactive",
-  "depth": "standard",
-  "project_type": "full",
-  "template_type": "ecommerce",
+  "mode": "yolo",
+  "depth": "quick",
   "parallelization": true,
   "commit_docs": true,
   "model_profile": "balanced",
   "workflow": {
-    "research": true,
+    "research": false,
     "plan_check": true,
     "verifier": true
   }

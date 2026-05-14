@@ -1,189 +1,154 @@
-# Requirements: Aquad'or v2.0 Immersive Luxury Experience
+# Requirements — Aquad'or v3.0
 
-**Defined:** 2026-03-09
-**Core Value:** A customer completes a purchase and knows it worked — they see their order details on screen, receive a confirmation email, and the store is notified. No silent failures, no misleading messages, no security holes.
+User-centric, atomic, testable. One REQ-ID per requirement. Grouped by milestone.
 
-## v1.2 Requirements (Completed)
+---
 
-Previously shipped in v1.2 Design Overhaul & Premium UX milestone.
+## Milestone 1 · Design Foundation
 
-### Visual Foundation
-- ✓ **VISUAL-01**: Site uses premium typography system with luxury brand hierarchy — v1.2
-- ✓ **VISUAL-02**: Site implements sophisticated color palette with gold accents and refined gradients — v1.2
-- ✓ **VISUAL-03**: Site has perfect spacing system with consistent margins, padding, and gaps — v1.2
-- ✓ **VISUAL-04**: Site uses optimized image pipeline for high-quality product photos with fast loading — v1.2
+### Design system (DESIGN-)
+- **DESIGN-01** — `.planning/DESIGN.md` commits to one aesthetic direction (single word from the design-laws list), one color strategy, one scene sentence, one differentiation sentence. No hedging.
+- **DESIGN-02** — `src/styles/tokens.css` exposes the OKLCH palette as CSS variables. No raw `#000`, `#fff`, or named hex anywhere in tokens.css.
+- **DESIGN-03** — Display + body type pair loaded via `next/font`. Neither is Inter, Playfair, Poppins, Arial, Helvetica, Roboto, or system-ui. Falls back gracefully.
+- **DESIGN-04** — Motion tokens (durations, easing curves) defined; `@media (prefers-reduced-motion: reduce)` zeros animation duration globally.
 
-### Product Experience
-- ✓ **PRODUCT-01**: Product pages display enhanced photography with multi-angle views — v1.2
-- ✓ **PRODUCT-02**: Product images include zoom functionality for detailed viewing — v1.2
-- ✓ **PRODUCT-03**: Product presentation follows luxury e-commerce standards — v1.2
+### Stack upgrade (STACK-)
+- **STACK-01** — `next@^16`, `react@^19`, `react-dom@^19`, `eslint-config-next@^16` installed; `npm run build` exits 0 and `npm run lint` exits 0.
+- **STACK-02** — `eslint@^9`, `@react-three/fiber@^9`, `@react-three/drei@^10` aligned (or three.js removed entirely if unused after M1.3).
+- **STACK-03** — All 24 currently-failing Jest tests pass. `npm test` exits 0.
 
-### Interactive Design
-- ✓ **INTERACT-01**: Site features scroll-triggered animations that are mobile-safe — v1.2
-- ✓ **INTERACT-02**: Site includes smooth page transitions between navigation — v1.2
-- ✓ **INTERACT-03**: Animations maintain 60fps performance on all devices — v1.2
+### Type unification (TYPE-)
+- **TYPE-01** — `LegacyProduct` type and its `Product` re-export deleted from `src/types/index.ts`. No file in `src/` imports `LegacyProduct`.
+- **TYPE-02** — `ProductCard` (`src/components/ui/ProductCard.tsx`) accepts a single product shape; no branching on `snake_case` vs `camelCase`. The shape used is the Supabase `Product` from `src/lib/supabase/types.ts`.
 
-## v2.0 Requirements
+### Primitives (PRIM-)
+- **PRIM-01** — `Button`, `IconButton`, `Link` primitives in `src/components/ui/` use tokens only (no raw hex, no magic-string Tailwind colors). Support 7 states.
+- **PRIM-02** — `Input`, `Textarea`, `Select`, `Checkbox`, `Radio`, `Switch` form primitives use tokens and support labels + helper text + error state + required indicator.
+- **PRIM-03** — `Card`, `Badge`, `Tag`, `Avatar`, `Tooltip` display primitives use tokens.
+- **PRIM-04** — `Drawer`, `Dialog`, `Tabs`, `Toast` overlay primitives use tokens. Drawer and Dialog respect focus trap + escape-to-close + scrim click.
+- **PRIM-05** — `Table` primitive with column definitions, sort, header sticky. Used in at least one admin page to prove integration.
 
-Requirements for immersive luxury experience transformation. Each maps to roadmap phases.
+---
 
-### Visual Effects & Animation
+## Milestone 2 · Storefront That Sells
 
-- [ ] **VFX-01**: User experiences smooth parallax scrolling throughout entire site
-- [ ] **VFX-02**: User sees cinematic page transitions between sections
-- [ ] **VFX-03**: User encounters scroll-triggered animations that reveal content progressively
-- [ ] **VFX-04**: User experiences 60fps performance during all animations and effects
-- [ ] **VFX-05**: User sees sophisticated micro-interactions on hover and touch
-- [ ] **VFX-06**: User experiences seamless mobile parallax effects (performance optimized)
+### Homepage (HOME-)
+- **HOME-01** — Hero clearly states the value prop in ≤ 12 words and has a primary CTA in the first viewport.
+- **HOME-02** — Editorial sections (notes story, brand story, journal teaser) replace the current generic feature blocks.
+- **HOME-03** — Top picks / featured products grid uses the new ProductCard primitive.
+- **HOME-04** — AI concierge entry point is present (button + drawer or sidebar) without being a chatbot blob.
+- **HOME-05** — Email capture present with editorial copy; submits to Supabase or Resend audience.
 
-### 3D Product Experience
+### Product detail page (PDP-)
+- **PDP-01** — Imagery is at least 800px wide on desktop; supports zoom or lightbox on click.
+- **PDP-02** — Notes / composition / family / brand story rendered as editorial copy, not a feature list.
+- **PDP-03** — Social proof present (review count, rating, or "X bought this month" if data supports).
+- **PDP-04** — Add-to-Cart is sticky on mobile (≤ 768px).
+- **PDP-05** — Related / cross-sell carousel uses `getRelatedProducts`.
+- **PDP-06** — Sample / discovery CTA where the product allows; clear callout for the custom-perfume builder where relevant.
 
-- [ ] **3D-01**: User can rotate product bottles in 3D space with mouse/touch
-- [ ] **3D-02**: User can zoom into product details with smooth 3D transitions
-- [ ] **3D-03**: User sees realistic lighting and shadows on 3D product models
-- [ ] **3D-04**: User experiences 3D product showcase in custom perfume builder
-- [ ] **3D-05**: User can view multiple product angles with smooth interpolation
-- [ ] **3D-06**: User experiences optimized 3D performance on mobile devices
+### Shop / category (SHOP-)
+- **SHOP-01** — Filters: notes family, brand, gender, price band. Filter state in URL so it's shareable.
+- **SHOP-02** — Sort: featured, price asc/desc, newest. Default sort matches business priority.
+- **SHOP-03** — Skeleton loading state for the grid; ISR or RSC streaming so perceived TTFB is sub-second.
+- **SHOP-04** — Hover or focus micro-interaction on each card (reveal secondary CTA, slight scale, etc.) using motion tokens.
 
-### Immersive Navigation
+### Cart drawer + checkout (CART-)
+- **CART-01** — Cart drawer opens from any add-to-cart with item summary, qty controls, remove, subtotal.
+- **CART-02** — Checkout uses Stripe Payment Element with Apple Pay / Google Pay enabled.
+- **CART-03** — Sticky order summary on mobile checkout.
+- **CART-04** — Trust signals (shipping, returns, secure-payment badge) visible on cart + checkout.
+- **CART-05** — Server-side cart price re-validation (`src/lib/validation/cart.ts`) preserved; no regression.
 
-- [ ] **NAV-01**: User experiences smooth product filtering with animated transitions
-- [ ] **NAV-02**: User discovers products through immersive browsing patterns
-- [ ] **NAV-03**: User encounters progressive disclosure of product information
-- [ ] **NAV-04**: User experiences contextual hover states that enhance discovery
-- [ ] **NAV-05**: User navigates with touch-optimized gestures on mobile
-- [ ] **NAV-06**: User experiences seamless category transitions with visual continuity
+### Custom perfume builder (CREATE-)
+- **CREATE-01** — Builder rebuilt from one 979-LOC file into clearly-separated steps; max single-file size ≤ 300 LOC.
+- **CREATE-02** — Three-layer composition UI uses the new primitives; preserves existing `fragranceDatabase` + composition validators.
+- **CREATE-03** — Persistent summary panel shows current selection, volume choice, total price; updates without page jumps.
+- **CREATE-04** — Stripe PaymentIntent flow preserved via `/api/create-perfume/payment` with no regression in metadata handling.
 
-### Performance & Optimization
+### AI concierge (AI-)
+- **AI-01** — Concierge feels like a concierge: editorial voice, asks about scent preferences in natural language, ends responses with concrete product picks linked.
+- **AI-02** — Uses the build-time AI catalogue (`src/lib/ai/catalogue-data.ts` — kept fresh via prebuild script) plus current cart context.
+- **AI-03** — Available from a persistent entry point (drawer or floating action); accessible keyboard nav.
 
-- [ ] **PERF-01**: User experiences all animations at consistent 60fps performance
-- [ ] **PERF-02**: User sees fast initial page loads despite rich visual content
-- [ ] **PERF-03**: User experiences optimized mobile performance with reduced effects
-- [ ] **PERF-04**: User benefits from progressive loading of heavy 3D assets
-- [ ] **PERF-05**: User experiences minimal layout shifts during content loading
-- [ ] **PERF-06**: User sees smooth performance across all device capabilities
+### Trust + capture (TRUST-)
+- **TRUST-01** — Shipping policy / returns / authenticity microcopy on PDP, cart, checkout, footer.
+- **TRUST-02** — Secure-payment indicator with Stripe badge on checkout.
+- **TRUST-03** — Welcome email capture with one-off code/incentive editorial; submits without leaving the page.
 
-### Analytics & Tracking
+---
 
-- [ ] **TRACK-01**: User interactions with 3D elements are tracked for engagement analysis
-- [ ] **TRACK-02**: User scroll depth and parallax engagement is measured
-- [ ] **TRACK-03**: User time spent in immersive product views is captured
-- [ ] **TRACK-04**: User navigation patterns through new discovery flows are tracked
-- [ ] **TRACK-05**: User engagement with cinematic elements is analyzed
-- [ ] **TRACK-06**: User device performance impact is monitored and optimized
+## Milestone 3 · Admin Rebuild
 
-### Advanced Loading States
+### Admin security (SEC-)
+- **SEC-01** — `/api/admin/setup` either removed (preferred — bootstrap admin via Supabase dashboard) or gated by a per-request server-only secret with single-use semantics. Env-flag-only model is unacceptable.
+- **SEC-02** — `/api/heartbeat` moved off public service-role POST. The DELETE-stale logic moves to a Supabase cron (`pg_cron` or scheduled edge function); heartbeat ping becomes a lightweight `INSERT` via RLS-respecting anon client.
+- **SEC-03** — `src/app/sitemap.ts` imports through `lib/supabase/public.ts`, not directly from `@supabase/supabase-js`.
+- **SEC-04** — Live-chat session routes (`/api/live-chat/*`) audited for RLS coverage; policies confirmed or added.
 
-- [ ] **LOAD-01**: User sees elegant skeleton screens during content loading
-- [ ] **LOAD-02**: User experiences progressive image loading with luxury placeholders
-- [ ] **LOAD-03**: User sees sophisticated preloaders for 3D asset initialization
-- [ ] **LOAD-04**: User experiences smooth transitions from loading to interactive states
-- [ ] **LOAD-05**: User sees contextual loading indicators that match luxury aesthetic
-- [ ] **LOAD-06**: User experiences intelligent preloading of likely next content
+### Admin dashboard (DASH-)
+- **DASH-01** — Revenue (this period vs last) rendered from `orders` table.
+- **DASH-02** — Order count, AOV, conversion rate (orders / sessions via Vercel Analytics) rendered.
+- **DASH-03** — Customer count + LTV rendered from `customers` + `orders` joins.
+- **DASH-04** — Top 5 products by revenue + by units sold (selectable period: 7d / 30d / 90d).
+- **DASH-05** — Recent orders table with status, amount, customer; click-through to order detail.
 
-### Accessibility Enhancements
+### Admin tables + editors (ADMIN-)
+- **ADMIN-01** — Products table supports column sort, multi-filter (category, brand, in-stock, active), bulk activate/deactivate.
+- **ADMIN-02** — Orders table supports sort by date/amount, filter by status, customer search.
+- **ADMIN-03** — Customers table supports sort by created/spend, filter by repeat vs first-time.
+- **ADMIN-04** — Product editor sectioned (basics / pricing / variants / images / description / SEO); validates with Zod; single file ≤ 350 LOC (current ProductForm is 568).
+- **ADMIN-05** — Order detail unifies payment + customer + line items + fulfillment notes in one view.
+- **ADMIN-06** — Manual order creation flow present (operator inputs customer + items + amount → creates Stripe-less order record).
+- **ADMIN-07** — Blog editor (Tiptap) has working save, autosave draft, image upload to Supabase storage.
+- **ADMIN-08** — Settings page persists at least: store contact, shipping copy, free-shipping threshold (when introduced), payment-method visibility flags.
 
-- [ ] **A11Y-01**: User can disable motion effects through accessibility preferences
-- [ ] **A11Y-02**: User can navigate 3D elements using keyboard controls
-- [ ] **A11Y-03**: User with vestibular disorders experiences safe motion alternatives
-- [ ] **A11Y-04**: User using screen readers receives appropriate 3D element descriptions
-- [ ] **A11Y-05**: User can access all functionality without relying on motion
-- [ ] **A11Y-06**: User experiences high contrast mode compatibility with new effects
+---
 
-## v2.1 Requirements
+## Milestone 4 · Handoff
 
-Deferred to future release. Tracked but not in current roadmap.
+### Polish (POLISH-)
+- **POLISH-01** — Visual pass across mobile (375px) / tablet (768px) / desktop (1280px+) on the 8 key routes (home, PDP, shop, category, cart, checkout, create-perfume, blog).
+- **POLISH-02** — Empty / loading / error / offline states verified on all data-fetching routes.
+- **POLISH-03** — Copy pass: every visible string reviewed; brand voice consistent; no lorem ipsum or stub strings remain.
+- **POLISH-04** — Edge cases: sold-out, out-of-stock, blocked country, abandoned cart all behave gracefully.
 
-### Advanced Features
+### SEO (SEO-)
+- **SEO-01** — Per-page `metadata` (title, description, OG, Twitter card) on every public route.
+- **SEO-02** — JSON-LD product schema on PDP; article schema on blog posts; organization schema on root layout.
+- **SEO-03** — Sitemap.xml regenerated from Supabase; robots.txt explicit; canonical URLs.
+- **SEO-04** — Image alt audit; descriptive (not "image of perfume").
 
-- **ADV-01**: Real-time personalization based on browsing behavior
-- **ADV-02**: AI-powered product recommendations with visual integration
-- **ADV-03**: Social sharing of 3D product views
-- **ADV-04**: Virtual try-on experience integration
+### QA (QA-)
+- **QA-01** — Full Playwright pass on chromium / firefox / webkit + mobile chrome/safari exits 0.
+- **QA-02** — Lighthouse ≥ 90 on perf + a11y for home / PDP / shop / checkout on mobile and desktop.
+- **QA-03** — Stripe test-mode dry run: cart checkout + custom perfume both complete end-to-end with confirmation email arriving.
 
-### Extended Interactions
+### Handoff (HAND-)
+- **HAND-01** — Vercel / Supabase / Stripe / Sentry / Resend / OpenRouter / Upstash credentials verified accessible to Aquad'or operator.
+- **HAND-02** — `docs/RUNBOOK.md` covers: deploying, rolling back, refunding an order, resetting admin password, restoring DB backup, common Sentry alerts.
+- **HAND-03** — 30-minute admin walkthrough recorded or scheduled.
+- **HAND-04** — Custom domain (aquadorcy.com) confirmed pointing at Vercel; SSL valid; no broken redirects.
 
-- **EXT-01**: Voice navigation for hands-free browsing
-- **EXT-02**: Gesture-based product interaction
-- **EXT-03**: Augmented reality product placement
-- **EXT-04**: Multi-user collaborative shopping experience
+---
 
-## Out of Scope
+## Out of Scope (Post-Handoff v3.1+)
 
-Explicitly excluded. Documented to prevent scope creep.
-
-| Feature | Reason |
-|---------|--------|
-| VR headset support | Hardware adoption too limited, focus on web experience |
-| Real-time chat integration | Not core to visual transformation, future enhancement |
-| Video backgrounds | Performance impact outweighs benefit, focus on 3D |
-| Complex physics simulation | Over-engineering for product showcase needs |
-| Multi-language interface changes | Content management scope, not visual transformation |
-| Payment flow modifications | Current flow works well, focus on discovery |
-| Checkout flow redesign | Working flow should not be touched - revenue critical |
-| Auto-playing content | Never build - degrades user experience |
+- Multi-language (English-only at v3.0)
+- Multi-currency (EUR-only)
+- Loyalty / rewards program
+- Subscription / sample club
+- Native mobile apps
+- ERP / inventory integrations
+- Vendor swaps (Supabase / Stripe / Sentry / Resend stay)
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
+| Milestone | Phases | REQ-IDs |
+|---|---|---|
+| M1 Design Foundation | 1.1, 1.2, 1.3 | DESIGN-01..04, STACK-01..03, TYPE-01..02, PRIM-01..05 |
+| M2 Storefront That Sells | 2.1..2.5 | HOME-01..05, PDP-01..06, SHOP-01..04, CART-01..05, CREATE-01..04, AI-01..03, TRUST-01..03 |
+| M3 Admin Rebuild | 3.1..3.4 | SEC-01..04, DASH-01..05, ADMIN-01..08 |
+| M4 Handoff | 4.1..4.4 | POLISH-01..04, SEO-01..04, QA-01..03, HAND-01..04 |
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| VFX-01 | Phase 13 | Pending |
-| VFX-02 | Phase 13 | Pending |
-| VFX-03 | Phase 13 | Pending |
-| VFX-04 | Phase 13 | Pending |
-| VFX-05 | Phase 13 | Pending |
-| VFX-06 | Phase 15 | Pending |
-| 3D-01 | Phase 14 | Pending |
-| 3D-02 | Phase 14 | Pending |
-| 3D-03 | Phase 14 | Pending |
-| 3D-04 | Phase 14 | Pending |
-| 3D-05 | Phase 14 | Pending |
-| 3D-06 | Phase 14 | Pending |
-| NAV-01 | Phase 15 | Pending |
-| NAV-02 | Phase 15 | Pending |
-| NAV-03 | Phase 15 | Pending |
-| NAV-04 | Phase 15 | Pending |
-| NAV-05 | Phase 15 | Pending |
-| NAV-06 | Phase 15 | Pending |
-| PERF-01 | Phase 13 | Pending |
-| PERF-02 | Phase 13 | Pending |
-| PERF-03 | Phase 17 | Pending |
-| PERF-04 | Phase 14 | Pending |
-| PERF-05 | Phase 13 | Pending |
-| PERF-06 | Phase 17 | Pending |
-| TRACK-01 | Phase 16 | Pending |
-| TRACK-02 | Phase 16 | Pending |
-| TRACK-03 | Phase 16 | Pending |
-| TRACK-04 | Phase 16 | Pending |
-| TRACK-05 | Phase 16 | Pending |
-| TRACK-06 | Phase 16 | Pending |
-| LOAD-01 | Phase 15 | Pending |
-| LOAD-02 | Phase 15 | Pending |
-| LOAD-03 | Phase 14 | Pending |
-| LOAD-04 | Phase 17 | Pending |
-| LOAD-05 | Phase 17 | Pending |
-| LOAD-06 | Phase 17 | Pending |
-| A11Y-01 | Phase 17 | Pending |
-| A11Y-02 | Phase 17 | Pending |
-| A11Y-03 | Phase 17 | Pending |
-| A11Y-04 | Phase 17 | Pending |
-| A11Y-05 | Phase 17 | Pending |
-| A11Y-06 | Phase 17 | Pending |
-
-**Coverage:**
-- v2.0 requirements: 36 total
-- Mapped to phases: 36/36 ✓
-- Unmapped: 0 ✓
-
-**Phase Distribution:**
-- Phase 13 (Parallax & Visual): 8 requirements
-- Phase 14 (3D Showcase): 8 requirements
-- Phase 15 (Navigation & Discovery): 9 requirements
-- Phase 16 (Analytics): 6 requirements
-- Phase 17 (Accessibility & Polish): 11 requirements
-
----
-*Requirements defined: 2026-03-09*
-*Last updated: 2026-03-09 after v2.0 roadmap creation*
+All REQs start as Pending. Marked Complete by `/qualia-milestone` on milestone close.
