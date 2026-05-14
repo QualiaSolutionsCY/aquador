@@ -32,8 +32,9 @@ export const PopoverPortal = PopoverPrimitive.Portal;
 export const PopoverAnchor = PopoverPrimitive.Anchor;
 export const PopoverClose = PopoverPrimitive.Close;
 
-export interface PopoverContentProps
-  extends ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> {}
+export type PopoverContentProps = ComponentPropsWithoutRef<
+  typeof PopoverPrimitive.Content
+>;
 
 export const PopoverContent = forwardRef<
   ElementRef<typeof PopoverPrimitive.Content>,

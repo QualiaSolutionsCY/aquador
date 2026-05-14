@@ -1,11 +1,40 @@
 'use client';
 
+/**
+ * /admin — dashboard (Phase 3 PRIM-05 migration).
+ *
+ * Presentation layer rebuilt on v3.0 primitives (@/components/ui). Data layer
+ * is unchanged: same Supabase queries, same realtime subscription, same data
+ * shapes. Stat color soup (blue/green/red/gold/purple) is replaced with a
+ * single restrained accent treatment per DESIGN.md §2 — "one signature warm
+ * gold, no third anchor".
+ */
+
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Package, DollarSign, ShoppingCart, TrendingUp, AlertCircle, ShoppingBag, Users, Eye } from 'lucide-react';
-import * as Sentry from '@sentry/nextjs';
 import Link from 'next/link';
 import Image from 'next/image';
+import * as Sentry from '@sentry/nextjs';
+import {
+  Package,
+  DollarSign,
+  ShoppingCart,
+  TrendingUp,
+  ShoppingBag,
+  Users,
+  Eye,
+} from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  Badge,
+  Skeleton,
+  Table,
+  useToast,
+} from '@/components/ui';
 import type { Product, Order } from '@/lib/supabase/types';
 
 interface Stats {
@@ -20,6 +49,7 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
+  const { toast } = useToast();
   const [stats, setStats] = useState<Stats>({
     totalProducts: 0,
     inStockProducts: 0,
@@ -33,7 +63,6 @@ export default function AdminDashboard() {
   const [recentProducts, setRecentProducts] = useState<Product[]>([]);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -51,20 +80,33 @@ export default function AdminDashboard() {
           // Query 1: Get all products for stats aggregation
           supabase.from('products').select('in_stock, category'),
           // Query 2: Recent products for display
-          supabase.from('products').select('*').order('created_at', { ascending: false }).limit(5),
+          supabase
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(5),
           // Query 3: Get all orders for stats and recent orders
-          supabase.from('orders').select('*').order('created_at', { ascending: false }),
+          supabase
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false }),
           // Query 4: Customer count
           supabase.from('customers').select('*', { count: 'exact', head: true }),
           // Query 5: Live visitors
-          supabase.from('site_visitors').select('id').gte('last_seen', new Date(Date.now() - 2 * 60 * 1000).toISOString()),
+          supabase
+            .from('site_visitors')
+            .select('id')
+            .gte(
+              'last_seen',
+              new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+            ),
         ]);
 
         // Derive product stats from single query
         const totalProducts = allProducts?.length || 0;
-        const inStockProducts = allProducts?.filter(p => p.in_stock).length || 0;
+        const inStockProducts = allProducts?.filter((p) => p.in_stock).length || 0;
         const outOfStockProducts = totalProducts - inStockProducts;
-        const categoryCount = new Set(allProducts?.map(p => p.category)).size;
+        const categoryCount = new Set(allProducts?.map((p) => p.category)).size;
 
         // Derive order stats from single query
         const totalOrders = allOrders?.length || 0;
@@ -89,9 +131,13 @@ export default function AdminDashboard() {
           category: 'admin-dashboard',
           message: 'Dashboard error',
           level: 'error',
-          data: { error: e }
+          data: { error: e },
         });
-        setError(e instanceof Error ? e.message : 'Failed to load data');
+        toast({
+          variant: 'error',
+          title: "We couldn't load the dashboard.",
+          description: 'Refresh and try again.',
+        });
       } finally {
         setLoading(false);
       }
@@ -102,33 +148,37 @@ export default function AdminDashboard() {
     // Realtime subscription for live visitors
     const channel = supabase
       .channel('site_visitors_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_visitors' }, async () => {
-        const { data } = await supabase
-          .from('site_visitors')
-          .select('id')
-          .gte('last_seen', new Date(Date.now() - 2 * 60 * 1000).toISOString());
-        setStats(prev => ({ ...prev, liveVisitors: data?.length || 0 }));
-      })
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'site_visitors' },
+        async () => {
+          const { data } = await supabase
+            .from('site_visitors')
+            .select('id')
+            .gte(
+              'last_seen',
+              new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+            );
+          setStats((prev) => ({ ...prev, liveVisitors: data?.length || 0 }));
+        },
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [toast]);
 
   if (loading) {
     return (
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="text-gray-400 mt-1">Loading...</p>
+          <h1 className="text-fg text-[28px] font-display">Dashboard</h1>
+          <p className="text-fg-muted font-body mt-1">Loading store overview.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-gray-900 rounded-xl border border-gray-800 p-6 animate-pulse">
-              <div className="h-4 bg-gray-800 rounded w-1/2 mb-2"></div>
-              <div className="h-8 bg-gray-800 rounded w-1/3"></div>
-            </div>
+            <Skeleton key={i} variant="rect" height={120} />
           ))}
         </div>
       </div>
@@ -138,253 +188,386 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-gray-400 mt-1">Welcome to your store admin panel</p>
+        <h1 className="text-fg text-[28px] font-display">Dashboard</h1>
+        <p className="text-fg-muted font-body mt-1">
+          Welcome to your store admin panel.
+        </p>
       </div>
 
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-red-400 font-medium">Error loading data</p>
-            <p className="text-red-400/70 text-sm mt-1">{error}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Primary Stats */}
+      {/* Primary Stats — inline Card blocks per PRIM-05 plan template */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Orders"
-          value={stats.totalOrders}
-          icon={<ShoppingBag className="h-6 w-6" />}
-          color="blue"
-        />
-        <StatCard
-          title="Revenue"
-          value={`\u20AC${(stats.totalRevenue / 100).toFixed(0)}`}
-          icon={<DollarSign className="h-6 w-6" />}
-          color="gold"
-        />
-        <StatCard
-          title="Customers"
-          value={stats.totalCustomers}
-          icon={<Users className="h-6 w-6" />}
-          color="green"
-        />
-        <StatCard
-          title="Live Visitors"
-          value={stats.liveVisitors}
-          icon={<Eye className="h-6 w-6" />}
-          color="purple"
-          pulse={stats.liveVisitors > 0}
-        />
+        <Card>
+          <CardContent className="flex flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-fg-muted text-[12px] uppercase tracking-[0.05em] font-micro">
+                Total Orders
+              </p>
+              <p className="text-fg text-[32px] font-display mt-1 [font-feature-settings:'tnum'_1]">
+                {stats.totalOrders}
+              </p>
+            </div>
+            <div className="text-accent">
+              <ShoppingBag className="h-6 w-6" strokeWidth={1.5} />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-fg-muted text-[12px] uppercase tracking-[0.05em] font-micro">
+                Revenue
+              </p>
+              <p className="text-fg text-[32px] font-display mt-1 [font-feature-settings:'tnum'_1]">
+                &euro;{(stats.totalRevenue / 100).toFixed(0)}
+              </p>
+            </div>
+            <div className="text-accent">
+              <DollarSign className="h-6 w-6" strokeWidth={1.5} />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-fg-muted text-[12px] uppercase tracking-[0.05em] font-micro">
+                Customers
+              </p>
+              <p className="text-fg text-[32px] font-display mt-1 [font-feature-settings:'tnum'_1]">
+                {stats.totalCustomers}
+              </p>
+            </div>
+            <div className="text-accent">
+              <Users className="h-6 w-6" strokeWidth={1.5} />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-fg-muted text-[12px] uppercase tracking-[0.05em] font-micro">
+                Live Visitors
+              </p>
+              <p className="text-fg text-[32px] font-display mt-1 [font-feature-settings:'tnum'_1] flex items-center gap-2">
+                {stats.liveVisitors}
+                {stats.liveVisitors > 0 ? (
+                  <span
+                    aria-hidden="true"
+                    className="inline-flex h-2 w-2 rounded-full bg-success animate-pulse"
+                  />
+                ) : null}
+              </p>
+            </div>
+            <div className="text-accent">
+              <Eye className="h-6 w-6" strokeWidth={1.5} />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Product Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Products"
-          value={stats.totalProducts}
-          icon={<Package className="h-6 w-6" />}
-          color="blue"
-        />
-        <StatCard
-          title="In Stock"
-          value={stats.inStockProducts}
-          icon={<ShoppingCart className="h-6 w-6" />}
-          color="green"
-        />
-        <StatCard
-          title="Out of Stock"
-          value={stats.outOfStockProducts}
-          icon={<TrendingUp className="h-6 w-6" />}
-          color="red"
-        />
-        <StatCard
-          title="Categories"
-          value={stats.categoryCount}
-          icon={<DollarSign className="h-6 w-6" />}
-          color="gold"
-        />
+        <Card>
+          <CardContent className="flex flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-fg-muted text-[12px] uppercase tracking-[0.05em] font-micro">
+                Total Products
+              </p>
+              <p className="text-fg text-[32px] font-display mt-1 [font-feature-settings:'tnum'_1]">
+                {stats.totalProducts}
+              </p>
+            </div>
+            <div className="text-accent">
+              <Package className="h-6 w-6" strokeWidth={1.5} />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-fg-muted text-[12px] uppercase tracking-[0.05em] font-micro">
+                In Stock
+              </p>
+              <p className="text-fg text-[32px] font-display mt-1 [font-feature-settings:'tnum'_1]">
+                {stats.inStockProducts}
+              </p>
+            </div>
+            <div className="text-accent">
+              <ShoppingCart className="h-6 w-6" strokeWidth={1.5} />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-fg-muted text-[12px] uppercase tracking-[0.05em] font-micro">
+                Out of Stock
+              </p>
+              <p className="text-fg text-[32px] font-display mt-1 [font-feature-settings:'tnum'_1]">
+                {stats.outOfStockProducts}
+              </p>
+            </div>
+            <div className="text-accent">
+              <TrendingUp className="h-6 w-6" strokeWidth={1.5} />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-fg-muted text-[12px] uppercase tracking-[0.05em] font-micro">
+                Categories
+              </p>
+              <p className="text-fg text-[32px] font-display mt-1 [font-feature-settings:'tnum'_1]">
+                {stats.categoryCount}
+              </p>
+            </div>
+            <div className="text-accent">
+              <DollarSign className="h-6 w-6" strokeWidth={1.5} />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent Orders */}
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">Recent Orders</h2>
+      <Card className="p-0">
+        <CardHeader className="px-6 pt-6 pb-4 flex flex-row items-center justify-between gap-4 border-b border-border">
+          <CardTitle>Recent Orders</CardTitle>
           <Link
             href="/admin/orders"
-            className="text-sm text-gold hover:text-amber-400 transition-colors"
+            className="text-fg-muted hover:text-fg font-micro text-[12px] uppercase tracking-[0.05em] transition-colors duration-150"
           >
-            View All &rarr;
+            View all &rarr;
           </Link>
-        </div>
-        <div className="divide-y divide-gray-800">
-          {recentOrders.length === 0 ? (
-            <div className="px-6 py-12 text-center">
-              <ShoppingBag className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400">No orders yet</p>
-              <p className="text-gray-500 text-sm mt-1">Orders will appear here after customers purchase</p>
-            </div>
-          ) : (
-            recentOrders.map((order) => (
-              <div key={order.id} className="px-6 py-4 flex items-center justify-between">
-                <div>
-                  <p className="text-white font-mono text-sm">
-                    #{order.stripe_session_id ? order.stripe_session_id.slice(-8).toUpperCase() : order.id.slice(0, 8).toUpperCase()}
-                  </p>
-                  <p className="text-gray-500 text-xs mt-0.5">
-                    {order.customer_name || order.customer_email}
-                    {' \u00B7 '}
-                    {new Date(order.created_at).toLocaleDateString('en-GB', {
-                      day: 'numeric',
-                      month: 'short',
-                    })}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-white font-medium">&euro;{(order.total / 100).toFixed(2)}</p>
-                  <p className="text-xs text-gray-500 capitalize">{order.status}</p>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table.Root>
+            <Table.Header>
+              <Table.Row>
+                <Table.HeaderCell>Order</Table.HeaderCell>
+                <Table.HeaderCell>Customer</Table.HeaderCell>
+                <Table.HeaderCell>Date</Table.HeaderCell>
+                <Table.HeaderCell className="text-right">Total</Table.HeaderCell>
+                <Table.HeaderCell>Status</Table.HeaderCell>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {recentOrders.length === 0 ? (
+                <Table.Empty colSpan={5}>
+                  <div className="flex flex-col items-center gap-3 py-8">
+                    <ShoppingBag
+                      aria-hidden="true"
+                      strokeWidth={1.5}
+                      className="h-10 w-10 text-fg-muted"
+                    />
+                    <div className="space-y-1 text-center">
+                      <p className="font-body text-[15px] text-fg">
+                        No orders yet.
+                      </p>
+                      <p className="font-body text-[14px] text-fg-muted">
+                        Orders will appear here after customers purchase.
+                      </p>
+                    </div>
+                  </div>
+                </Table.Empty>
+              ) : (
+                recentOrders.map((order) => (
+                  <Table.Row key={order.id}>
+                    <Table.Cell>
+                      <span className="font-micro text-[12px] tracking-[0.05em] text-fg">
+                        #
+                        {order.stripe_session_id
+                          ? order.stripe_session_id.slice(-8).toUpperCase()
+                          : order.id.slice(0, 8).toUpperCase()}
+                      </span>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <span className="font-body text-[14px] text-fg">
+                        {order.customer_name || order.customer_email}
+                      </span>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <span className="font-body text-[14px] text-fg-muted">
+                        {new Date(order.created_at).toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'short',
+                        })}
+                      </span>
+                    </Table.Cell>
+                    <Table.Cell align="right">
+                      &euro;{(order.total / 100).toFixed(2)}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge variant={orderStatusVariant(order.status)}>
+                        {order.status}
+                      </Badge>
+                    </Table.Cell>
+                  </Table.Row>
+                ))
+              )}
+            </Table.Body>
+          </Table.Root>
+        </CardContent>
+      </Card>
 
       {/* Recent Products */}
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">Recent Products</h2>
+      <Card className="p-0">
+        <CardHeader className="px-6 pt-6 pb-4 flex flex-row items-center justify-between gap-4 border-b border-border">
+          <CardTitle>Recent Products</CardTitle>
           <Link
             href="/admin/products"
-            className="text-sm text-gold hover:text-amber-400 transition-colors"
+            className="text-fg-muted hover:text-fg font-micro text-[12px] uppercase tracking-[0.05em] transition-colors duration-150"
           >
-            View All &rarr;
+            View all &rarr;
           </Link>
-        </div>
-        <div className="divide-y divide-gray-800">
-          {recentProducts.length === 0 ? (
-            <div className="px-6 py-12 text-center">
-              <Package className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400">No products yet</p>
-              <Link
-                href="/admin/products/new"
-                className="inline-block mt-4 px-4 py-2 bg-gold text-black font-medium rounded-lg hover:bg-amber-500 transition-colors"
-              >
-                Add Your First Product
-              </Link>
-            </div>
-          ) : (
-            recentProducts.map((product) => (
-              <div key={product.id} className="px-6 py-4 flex items-center gap-4">
-                <div className="relative w-12 h-12 flex-shrink-0">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className="rounded-lg object-cover bg-gray-800"
-                    unoptimized
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium truncate">{product.name}</p>
-                  <p className="text-sm text-gray-400 capitalize">
-                    {product.category.replace('-', ' ')} &bull; {product.product_type.replace('-', ' ')}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-white font-medium">&euro;{product.price.toFixed(2)}</p>
-                  <p className={`text-xs ${product.in_stock ? 'text-green-400' : 'text-red-400'}`}>
-                    {product.in_stock ? 'In Stock' : 'Out of Stock'}
-                  </p>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table.Root>
+            <Table.Header>
+              <Table.Row>
+                <Table.HeaderCell>Product</Table.HeaderCell>
+                <Table.HeaderCell>Category</Table.HeaderCell>
+                <Table.HeaderCell>Type</Table.HeaderCell>
+                <Table.HeaderCell className="text-right">Price</Table.HeaderCell>
+                <Table.HeaderCell>Stock</Table.HeaderCell>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {recentProducts.length === 0 ? (
+                <Table.Empty colSpan={5}>
+                  <div className="flex flex-col items-center gap-3 py-8">
+                    <Package
+                      aria-hidden="true"
+                      strokeWidth={1.5}
+                      className="h-10 w-10 text-fg-muted"
+                    />
+                    <div className="space-y-1 text-center">
+                      <p className="font-body text-[15px] text-fg">
+                        No products yet.
+                      </p>
+                      <p className="font-body text-[14px] text-fg-muted">
+                        Add a product to start filling your store.
+                      </p>
+                    </div>
+                    <Link
+                      href="/admin/products/new"
+                      className="font-micro text-[12px] uppercase tracking-[0.05em] text-accent-deep hover:text-accent transition-colors duration-150"
+                    >
+                      Add your first product
+                    </Link>
+                  </div>
+                </Table.Empty>
+              ) : (
+                recentProducts.map((product) => (
+                  <Table.Row key={product.id}>
+                    <Table.Cell>
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-10 w-10 shrink-0 rounded-sm overflow-hidden bg-bg-alt">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                        <span className="font-body text-[14px] text-fg truncate">
+                          {product.name}
+                        </span>
+                      </div>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <span className="font-body text-[14px] text-fg-muted capitalize">
+                        {product.category.replace('-', ' ')}
+                      </span>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <span className="font-body text-[14px] text-fg-muted capitalize">
+                        {product.product_type.replace('-', ' ')}
+                      </span>
+                    </Table.Cell>
+                    <Table.Cell align="right">
+                      &euro;{product.price.toFixed(2)}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge
+                        variant={product.in_stock ? 'success' : 'critical'}
+                      >
+                        {product.in_stock ? 'In Stock' : 'Out of Stock'}
+                      </Badge>
+                    </Table.Cell>
+                  </Table.Row>
+                ))
+              )}
+            </Table.Body>
+          </Table.Root>
+        </CardContent>
+      </Card>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link
-          href="/admin/products/new"
-          className="bg-gray-900 rounded-xl border border-gray-800 p-6 hover:border-gold/50 transition-colors group"
-        >
-          <Package className="h-8 w-8 text-gold mb-4" />
-          <h3 className="text-lg font-semibold text-white group-hover:text-gold transition-colors">
-            Add New Product
-          </h3>
-          <p className="text-gray-400 text-sm mt-1">
-            Create a new product listing
-          </p>
+        <Link href="/admin/products/new" className="block">
+          <Card interactive>
+            <CardContent>
+              <Package
+                aria-hidden="true"
+                strokeWidth={1.5}
+                className="h-8 w-8 text-accent"
+              />
+              <CardTitle>Add New Product</CardTitle>
+              <CardDescription>Create a new product listing.</CardDescription>
+            </CardContent>
+          </Card>
         </Link>
 
-        <Link
-          href="/admin/orders"
-          className="bg-gray-900 rounded-xl border border-gray-800 p-6 hover:border-gold/50 transition-colors group"
-        >
-          <ShoppingBag className="h-8 w-8 text-gold mb-4" />
-          <h3 className="text-lg font-semibold text-white group-hover:text-gold transition-colors">
-            Manage Orders
-          </h3>
-          <p className="text-gray-400 text-sm mt-1">
-            View and update order statuses
-          </p>
+        <Link href="/admin/orders" className="block">
+          <Card interactive>
+            <CardContent>
+              <ShoppingBag
+                aria-hidden="true"
+                strokeWidth={1.5}
+                className="h-8 w-8 text-accent"
+              />
+              <CardTitle>Manage Orders</CardTitle>
+              <CardDescription>View and update order statuses.</CardDescription>
+            </CardContent>
+          </Card>
         </Link>
 
-        <a
-          href="/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-gray-900 rounded-xl border border-gray-800 p-6 hover:border-gold/50 transition-colors group"
-        >
-          <TrendingUp className="h-8 w-8 text-gold mb-4" />
-          <h3 className="text-lg font-semibold text-white group-hover:text-gold transition-colors">
-            View Store
-          </h3>
-          <p className="text-gray-400 text-sm mt-1">
-            See your live storefront
-          </p>
+        <a href="/" target="_blank" rel="noopener noreferrer" className="block">
+          <Card interactive>
+            <CardContent>
+              <TrendingUp
+                aria-hidden="true"
+                strokeWidth={1.5}
+                className="h-8 w-8 text-accent"
+              />
+              <CardTitle>View Store</CardTitle>
+              <CardDescription>See your live storefront.</CardDescription>
+            </CardContent>
+          </Card>
         </a>
       </div>
     </div>
   );
 }
 
-function StatCard({
-  title,
-  value,
-  icon,
-  color,
-  pulse,
-}: {
-  title: string;
-  value: number | string;
-  icon: React.ReactNode;
-  color: 'blue' | 'green' | 'red' | 'gold' | 'purple';
-  pulse?: boolean;
-}) {
-  const colorClasses = {
-    blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    green: 'bg-green-500/10 text-green-400 border-green-500/20',
-    red: 'bg-red-500/10 text-red-400 border-red-500/20',
-    gold: 'bg-gold/10 text-gold border-gold/20',
-    purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  };
-
-  return (
-    <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-400 text-sm">{title}</p>
-          <p className="text-3xl font-bold text-white mt-1">{value}</p>
-        </div>
-        <div className={`p-3 rounded-xl border ${colorClasses[color]} ${pulse ? 'animate-pulse' : ''}`}>
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
+/** Map order_status enum → Badge variant. Pending sits neutral; positive
+ * fulfilment stages read as success; cancelled/refunded read as critical. */
+function orderStatusVariant(
+  status: Order['status'],
+): 'neutral' | 'success' | 'critical' {
+  switch (status) {
+    case 'confirmed':
+    case 'processing':
+    case 'shipped':
+    case 'delivered':
+      return 'success';
+    case 'cancelled':
+    case 'refunded':
+      return 'critical';
+    case 'pending':
+    default:
+      return 'neutral';
+  }
 }
+

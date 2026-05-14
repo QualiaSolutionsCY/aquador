@@ -34,8 +34,9 @@ export const Tooltip = RadixTooltip.Root;
 /** Trigger — always `asChild` so callers wrap their own focusable element. */
 export const TooltipTrigger = RadixTooltip.Trigger;
 
-export interface TooltipContentProps
-  extends React.ComponentPropsWithoutRef<typeof RadixTooltip.Content> {}
+export type TooltipContentProps = React.ComponentPropsWithoutRef<
+  typeof RadixTooltip.Content
+>;
 
 export const TooltipContent = React.forwardRef<
   React.ElementRef<typeof RadixTooltip.Content>,

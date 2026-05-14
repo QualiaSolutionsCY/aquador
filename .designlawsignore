@@ -14,7 +14,20 @@ src/components/cart
 src/components/layout
 src/components/sections
 src/components/blog
-src/components/ui
+# src/components/ui — v3.0 primitives (Phase 3 PRIM-01..05) are now compliant.
+# Legacy ui/ files that still need migration are listed individually below.
+src/components/ui/AnimatedSection.tsx
+src/components/ui/animated-shader-background.tsx
+src/components/ui/CookieConsent.tsx
+src/components/ui/LoadingSpinner.tsx
+src/components/ui/location-map.tsx
+src/components/ui/LuxurySkeleton.tsx
+src/components/ui/OptimizedImage.tsx
+src/components/ui/ParallaxSection.tsx
+src/components/ui/ProductCard.tsx
+src/components/ui/ProductImage.tsx
+src/components/ui/ProgressiveLoader.tsx
+src/components/ui/Section.tsx
 src/components/ai
 src/components/perfume
 src/components/admin

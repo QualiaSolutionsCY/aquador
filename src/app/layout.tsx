@@ -16,12 +16,8 @@ import { ScrollDepthTracker } from "@/components/analytics/ScrollDepthTracker";
 // Next 16: `dynamic(..., { ssr: false })` is no longer allowed in Server
 // Components, so the lazy-loaded ChatWidget lives behind a client boundary.
 import ChatWidgetClient from "@/components/ai/ChatWidgetClient";
-// v3.0 overlay primitives (Phase 3 Task 3).
-// TooltipProvider sourced directly from @radix-ui/react-tooltip until Task 2
-// lands `@/components/ui/Tooltip` — the wrapped re-export is a drop-in swap.
-// TODO(Phase 3 Task 2): import TooltipProvider from '@/components/ui/Tooltip'.
-import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { Toaster } from "@/components/ui/Toast";
+// v3.0 overlay primitives (Phase 3, PRIM-05 barrel).
+import { TooltipProvider, Toaster } from '@/components/ui';
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
