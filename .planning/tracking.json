@@ -9,18 +9,20 @@
   "milestone": 1,
   "milestone_name": "Design Foundation",
   "milestones": [],
-  "phase": 1,
-  "phase_name": "Direction & Tokens",
+  "phase": 2,
+  "phase_name": "Stack & Type Unification",
   "total_phases": 3,
-  "status": "built",
+  "status": "planned",
   "wave": 2,
-  "tasks_done": 5,
-  "tasks_total": 5,
+  "tasks_done": 0,
+  "tasks_total": 0,
   "verification": "pending",
-  "gap_cycles": {},
+  "gap_cycles": {
+    "1": 0
+  },
   "blockers": [],
   "session_started_at": "2026-05-14T16:55:57.661Z",
-  "last_updated": "2026-05-14T18:13:53Z",
+  "last_updated": "2026-05-14T18:20:28.337Z",
   "last_pushed_at": "2026-05-14T18:13:53Z",
   "last_commit": "0c46730",
   "build_count": 1,
@@ -29,10 +31,11 @@
   "notes": "",
   "submitted_by": "",
   "lifetime": {
-    "tasks_completed": 0,
-    "phases_completed": 0,
+    "tasks_completed": 5,
+    "phases_completed": 1,
     "milestones_completed": 0,
     "total_phases": 0,
     "last_closed_milestone": 0
-  }
+  },
+  "report_seq": 0
 }
