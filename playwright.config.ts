@@ -35,6 +35,13 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
 
+  /* Admin e2e tests require a seeded Supabase test admin user + service-role
+     key. Gate them on env presence rather than muting the suite. CI sets these
+     env vars; local dev runs skip them by default. M3 (admin rebuild) will
+     replace this entire surface so investing in admin e2e env now is wasted
+     work. */
+  testIgnore: process.env.TEST_ADMIN_EMAIL ? undefined : '**/admin/**',
+
   /* Configure projects for major browsers */
   projects: [
     {
