@@ -10,12 +10,12 @@ import { SectionHeader } from '@/components/ui/Section';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
 import { fadeInUp } from '@/lib/animations/scroll-animations';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import type { LegacyProduct } from '@/types';
+import type { Product } from '@/types';
 
 const FALLBACK_IMAGE = '/placeholder-product.svg';
 
 interface FeaturedProductsProps {
-  products: LegacyProduct[];
+  products: Product[];
 }
 
 export default function FeaturedProducts({ products }: FeaturedProductsProps) {
@@ -59,7 +59,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                     />
 
                     {/* Sale badge */}
-                    {product.salePrice && (
+                    {product.sale_price && (
                       <div className="absolute top-3 left-3 bg-gold text-black text-[9px] uppercase tracking-[0.12em] px-2.5 py-1 font-medium">
                         Sale
                       </div>
@@ -84,10 +84,10 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                     {/* Price + size in one clean row */}
                     <div className="flex items-center justify-between pt-1">
                       <div className="flex items-baseline gap-2">
-                        <span className={`font-playfair text-sm md:text-base ${product.salePrice ? 'text-gold-dark' : 'text-gray-800'}`}>
-                          {formatPrice(product.salePrice ?? product.price)}
+                        <span className={`font-playfair text-sm md:text-base ${product.sale_price ? 'text-gold-dark' : 'text-gray-800'}`}>
+                          {formatPrice(product.sale_price ?? product.price)}
                         </span>
-                        {product.salePrice && (
+                        {product.sale_price && (
                           <span className="text-[11px] text-gray-400 line-through">
                             {formatPrice(product.price)}
                           </span>

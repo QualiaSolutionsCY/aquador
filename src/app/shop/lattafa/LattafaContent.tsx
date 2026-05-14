@@ -192,17 +192,17 @@ export default function LattafaContent({ products }: LattafaContentProps) {
                     src={product.image}
                     alt={product.name}
                     fill
-                    className={`object-cover transition-transform duration-700 group-hover:scale-110 ${!product.inStock ? 'opacity-60' : ''}`}
+                    className={`object-cover transition-transform duration-700 group-hover:scale-110 ${product.in_stock === false ? 'opacity-60' : ''}`}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   />
                   {/* Sale Badge */}
-                  {product.salePrice && product.salePrice < product.price && product.inStock && (
+                  {product.sale_price && product.sale_price < product.price && product.in_stock !== false && (
                     <span className="absolute top-4 left-4 bg-gold text-black text-[10px] uppercase tracking-wider px-3 py-1.5 font-medium">
                       Sale
                     </span>
                   )}
                   {/* Coming Soon Badge */}
-                  {!product.inStock && (
+                  {product.in_stock === false && (
                     <span className="absolute top-4 left-4 bg-gray-800 text-white text-[10px] uppercase tracking-wider px-3 py-1.5 font-medium">
                       Coming Soon
                     </span>
@@ -221,9 +221,9 @@ export default function LattafaContent({ products }: LattafaContentProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-baseline gap-2">
                       <span className="text-lg font-semibold text-gold-dark">
-                        {formatPrice(product.salePrice || product.price)}
+                        {formatPrice(product.sale_price || product.price)}
                       </span>
-                      {product.salePrice && product.salePrice < product.price && (
+                      {product.sale_price && product.sale_price < product.price && (
                         <span className="text-sm text-gray-400 line-through">
                           {formatPrice(product.price)}
                         </span>

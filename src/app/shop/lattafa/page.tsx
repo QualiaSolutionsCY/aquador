@@ -26,24 +26,7 @@ export const metadata: Metadata = {
 };
 
 export default async function LattafaPage() {
-  const supabaseProducts = await getProductsByCategory('lattafa-original');
-
-  // Transform Supabase products to match the LegacyProduct interface
-  const products = supabaseProducts.map(p => ({
-    id: p.id,
-    name: p.name,
-    description: p.description,
-    price: Number(p.price),
-    salePrice: p.sale_price ? Number(p.sale_price) : undefined,
-    category: p.category as 'men' | 'women' | 'niche' | 'essence-oil' | 'body-lotion' | 'lattafa-original' | 'al-haramain-originals' | 'victorias-secret-originals',
-    productType: p.product_type as 'perfume' | 'essence-oil' | 'body-lotion',
-    size: p.size,
-    image: p.image,
-    inStock: p.in_stock ?? true,
-    brand: p.brand ?? undefined,
-    gender: p.gender ?? undefined,
-    tags: p.tags ?? undefined,
-  }));
+  const products = await getProductsByCategory('lattafa-original');
 
   if (products.length === 0) {
     return (

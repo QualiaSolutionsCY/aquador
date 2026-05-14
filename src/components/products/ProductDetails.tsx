@@ -8,7 +8,7 @@ import ProductVariantSelector, {
 } from './ProductVariantSelector';
 import AddToCartButton from './AddToCartButton';
 import RichDescription from './RichDescription';
-import type { LegacyProduct } from '@/types';
+import type { Product } from '@/types';
 
 // Aquador's own fragrances support perfume / essence oil / body lotion variants
 const AQUADOR_CATEGORIES = ['women', 'men', 'niche'];
@@ -20,7 +20,7 @@ const productTypeLabel = (type: string) => {
 };
 
 interface ProductDetailsProps {
-  product: LegacyProduct;
+  product: Product;
 }
 
 export default function ProductDetails({ product }: ProductDetailsProps) {
@@ -29,13 +29,15 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
   // Aquador products: use selected variant price/type/size
   // Branded products: use exact DB price/type/size
-  const displayProduct: LegacyProduct = isAquador
-    ? { ...product, price: variant.price, salePrice: undefined, productType: variant.type, size: variant.size }
+  const displayProduct: Product = isAquador
+    ? { ...product, price: variant.price, sale_price: null, product_type: variant.type, size: variant.size }
     : product;
 
   const displayPrice = isAquador
     ? variant.price
-    : (product.salePrice && product.salePrice < product.price ? product.salePrice : product.price);
+    : (product.sale_price && product.sale_price < product.price ? product.sale_price : product.price);
+
+  const inStock = product.in_stock ?? true;
 
   return (
     <div className="flex flex-col gap-6">
@@ -60,8 +62,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           <span className="text-sm text-gray-400">{variant.label} · {variant.size}</span>
         ) : (
           <span className="text-sm text-gray-400">
-            {productTypeLabel(product.productType)} · {product.size}
-            {product.salePrice && product.salePrice < product.price && (
+            {productTypeLabel(product.product_type)} · {product.size}
+            {product.sale_price && product.sale_price < product.price && (
               <span className="ml-2 line-through text-gray-300">{formatPrice(product.price)}</span>
             )}
           </span>
@@ -74,12 +76,12 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
       {/* Stock + Add to Cart */}
       <div className="flex items-center gap-3 text-sm">
         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs ${
-          product.inStock
+          inStock
             ? 'bg-emerald-50 text-emerald-600'
             : 'bg-red-50 text-red-500'
         }`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${product.inStock ? 'bg-emerald-500' : 'bg-red-400'}`} />
-          {product.inStock ? 'In Stock' : 'Coming Soon'}
+          <span className={`w-1.5 h-1.5 rounded-full ${inStock ? 'bg-emerald-500' : 'bg-red-400'}`} />
+          {inStock ? 'In Stock' : 'Coming Soon'}
         </span>
       </div>
 

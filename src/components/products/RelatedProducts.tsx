@@ -2,10 +2,10 @@
 
 import { motion } from 'framer-motion';
 import { ProductCard } from '@/components/ui/ProductCard';
-import type { LegacyProduct } from '@/types';
+import type { Product } from '@/types';
 
 interface RelatedProductsProps {
-  products: LegacyProduct[];
+  products: Product[];
 }
 
 export default function RelatedProducts({ products }: RelatedProductsProps) {

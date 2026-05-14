@@ -74,59 +74,28 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const relatedProductsData = await getRelatedProducts(product.id, product.category);
+  const relatedProducts = await getRelatedProducts(product.id, product.category);
 
-  // Transform Supabase product to match expected interface
-  const transformedProduct = {
-    id: product.id,
-    name: product.name,
-    description: product.description,
-    price: Number(product.price),
-    salePrice: product.sale_price ? Number(product.sale_price) : undefined,
-    category: product.category,
-    productType: product.product_type,
-    size: product.size,
-    image: product.image,
-    images: product.images ?? [],
-    inStock: product.in_stock ?? true,
-    brand: product.brand ?? undefined,
-    gender: product.gender ?? undefined,
-    tags: product.tags ?? undefined,
-  };
-
-  const relatedProducts = relatedProductsData.map(p => ({
-    id: p.id,
-    name: p.name,
-    description: p.description,
-    price: Number(p.price),
-    salePrice: p.sale_price ? Number(p.sale_price) : undefined,
-    category: p.category,
-    productType: p.product_type,
-    size: p.size,
-    image: p.image,
-    inStock: p.in_stock ?? true,
-    brand: p.brand ?? undefined,
-    gender: p.gender ?? undefined,
-    tags: p.tags ?? undefined,
-  }));
+  const productImages = product.images ?? [];
+  const inStock = product.in_stock ?? true;
 
   // JSON-LD structured data for SEO
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: transformedProduct.name,
-    description: transformedProduct.description,
-    image: [transformedProduct.image, ...transformedProduct.images],
-    brand: transformedProduct.brand ? {
+    name: product.name,
+    description: product.description,
+    image: [product.image, ...productImages],
+    brand: product.brand ? {
       '@type': 'Brand',
-      name: transformedProduct.brand,
+      name: product.brand,
     } : undefined,
     offers: {
       '@type': 'Offer',
       url: `https://aquadorcy.com/products/${slug}`,
       priceCurrency: 'EUR',
-      price: transformedProduct.price,
-      availability: transformedProduct.inStock
+      price: product.price,
+      availability: inStock
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
       seller: {
@@ -155,7 +124,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       {
         '@type': 'ListItem',
         position: 3,
-        name: transformedProduct.name,
+        name: product.name,
         item: `https://aquadorcy.com/products/${slug}`,
       },
     ],
@@ -194,16 +163,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {/* Product Images - Subtle parallax for depth */}
             <ParallaxWrapper>
               <ProductGallery
-                mainImage={transformedProduct.image}
-                images={transformedProduct.images}
-                name={transformedProduct.name}
-                inStock={transformedProduct.inStock}
+                mainImage={product.image}
+                images={productImages}
+                name={product.name}
+                inStock={inStock}
               />
             </ParallaxWrapper>
 
             {/* Product Details with variant selector + add to cart */}
             <div className="lg:sticky lg:top-28">
-              <ProductDetails product={transformedProduct} />
+              <ProductDetails product={product} />
             </div>
           </div>
 

@@ -1,7 +1,7 @@
 /**
  * ProductCard Component
- * Reusable luxury product card for consistent presentation across the site
- * Handles both LegacyProduct (camelCase) and Supabase Product (snake_case) formats
+ * Reusable luxury product card for consistent presentation across the site.
+ * Accepts the canonical Supabase Product shape (snake_case).
  */
 
 'use client';
@@ -16,11 +16,10 @@ import { hoverVariants, tapVariants } from '@/lib/animations/micro-interactions'
 import { imageZoomVariants } from '@/lib/animations/discovery-animations';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { preloadProduct } from '@/lib/preload/strategy';
-import type { LegacyProduct } from '@/types';
 import type { Product } from '@/lib/supabase/types';
 
 interface ProductCardProps {
-  product: LegacyProduct | Product;
+  product: Product;
   priority?: boolean;
   variant?: 'default' | 'compact';
 }
@@ -31,9 +30,8 @@ export function ProductCard({ product, priority = false, variant = 'default' }: 
   const [isTapRevealed, setIsTapRevealed] = useState(false);
   const cancelPreloadRef = useRef<(() => void) | null>(null);
 
-  // Normalize property names to handle both LegacyProduct (camelCase) and Supabase Product (snake_case)
-  const inStock = 'in_stock' in product ? product.in_stock : product.inStock;
-  const salePrice = 'sale_price' in product ? product.sale_price : product.salePrice;
+  const inStock = product.in_stock ?? true;
+  const salePrice = product.sale_price;
 
   // Determine if product is on sale (has sale price and is in stock)
   const isOnSale = !!salePrice && !!inStock;
@@ -103,17 +101,15 @@ export function ProductCard({ product, priority = false, variant = 'default' }: 
           />
         </motion.div>
 
-        {/* ProductQuickView Overlay - only show for Supabase Product type */}
-        {'tags' in product && (
-          <ProductQuickView
-            product={product as Product}
-            isVisible={isHovered}
-            onClose={() => {
-              setIsHovered(false);
-              setIsTapRevealed(false);
-            }}
-          />
-        )}
+        {/* ProductQuickView Overlay */}
+        <ProductQuickView
+          product={product}
+          isVisible={isHovered}
+          onClose={() => {
+            setIsHovered(false);
+            setIsTapRevealed(false);
+          }}
+        />
 
         {/* Hover overlay with subtle backdrop blur */}
         <motion.div
@@ -142,7 +138,7 @@ export function ProductCard({ product, priority = false, variant = 'default' }: 
       <div className="space-y-2 min-h-[7rem]">
         {/* Brand */}
         <p className={`${brandSize} tracking-[0.15em] uppercase text-gold/60 font-medium ${!product.brand ? 'invisible' : ''}`}>
-          {product.brand || '\u00A0'}
+          {product.brand || ' '}
         </p>
 
         {/* Product Name */}

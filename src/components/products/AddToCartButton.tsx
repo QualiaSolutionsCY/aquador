@@ -7,12 +7,12 @@ import { track } from '@vercel/analytics';
 import { useCart } from '@/components/cart';
 import { hoverVariants, tapVariants, loadingVariants } from '@/lib/animations/micro-interactions';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import type { LegacyProduct } from '@/types';
+import type { Product } from '@/types';
 import type { CartItem } from '@/types/cart';
 import type { ProductType, ProductSize } from '@/types/product';
 
 interface AddToCartButtonProps {
-  product: LegacyProduct;
+  product: Product;
 }
 
 export default function AddToCartButton({ product }: AddToCartButtonProps) {
@@ -39,19 +39,19 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
     await new Promise(resolve => setTimeout(resolve, 200));
 
     // Use sale price if available, otherwise original price
-    const effectivePrice = product.salePrice && product.salePrice < product.price
-      ? product.salePrice
+    const effectivePrice = product.sale_price && product.sale_price < product.price
+      ? product.sale_price
       : product.price;
 
     const cartItem: CartItem = {
       productId: product.id,
-      variantId: `${product.id}-${product.productType}-${product.size}`,
+      variantId: `${product.id}-${product.product_type}-${product.size}`,
       quantity,
       name: product.name,
       image: product.image,
       price: effectivePrice,
       size: product.size as ProductSize,
-      productType: product.productType as ProductType,
+      productType: product.product_type as ProductType,
     };
 
     addItem(cartItem);
@@ -83,6 +83,8 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
     setQuantity(quantity + 1);
   };
 
+  const inStock = product.in_stock ?? true;
+
   return (
     <div className="space-y-4">
       {/* Quantity Selector */}
@@ -111,14 +113,14 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
       {/* Add to Cart Button */}
       <motion.button
         onClick={handleAddToCart}
-        disabled={!product.inStock || isAdded || isLoading}
+        disabled={!inStock || isAdded || isLoading}
         whileHover={
-          product.inStock && !isAdded && !isLoading && !reducedMotion
+          inStock && !isAdded && !isLoading && !reducedMotion
             ? hoverVariants.glow
             : undefined
         }
         whileTap={
-          product.inStock && !isAdded && !isLoading && !reducedMotion
+          inStock && !isAdded && !isLoading && !reducedMotion
             ? tapVariants.shrink
             : undefined
         }
@@ -127,7 +129,7 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
         className={`w-full py-4 min-h-[44px] rounded-xl font-medium tracking-[0.05em] flex items-center justify-center gap-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
           isAdded
             ? 'bg-emerald-500/90 text-white'
-            : product.inStock
+            : inStock
               ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-black hover:from-gold-600 hover:to-gold-700 shadow-lg shadow-gold-500/20'
               : 'bg-neutral-800 text-gray-400 border border-neutral-700 cursor-not-allowed'
         }`}
@@ -158,7 +160,7 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
               <Check className="w-5 h-5" />
               Added to Cart!
             </motion.span>
-          ) : product.inStock ? (
+          ) : inStock ? (
             <motion.span
               key="idle"
               initial={{ opacity: 0 }}

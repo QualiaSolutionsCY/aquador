@@ -8,32 +8,10 @@ export { type ProductType, type ProductSize } from './product';
 // Gender type for Lattafa products
 export type ProductGender = 'men' | 'women' | 'unisex';
 
-/**
- * @deprecated Use Product type from @/lib/supabase/types instead.
- * This type uses camelCase properties (salePrice, inStock) while the Supabase Product type uses snake_case (sale_price, in_stock).
- * Migrate to Supabase Product type for consistency with the database schema.
- */
-export interface LegacyProduct {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  salePrice?: number;
-  category: 'men' | 'women' | 'niche' | 'essence-oil' | 'body-lotion' | 'lattafa-original' | 'al-haramain-originals' | 'victorias-secret-originals';
-  productType: 'perfume' | 'essence-oil' | 'body-lotion';
-  size: string;
-  image: string;
-  images?: string[];
-  inStock: boolean;
-  tags?: string[];
-  brand?: string;
-  gender?: ProductGender;
-  notes?: {
-    top?: string[];
-    heart?: string[];
-    base?: string[];
-  };
-}
+// Canonical product shape — sourced from Supabase generated types (snake_case).
+// All consumers should import Product from here for stability if the underlying
+// schema source ever moves.
+export type { Product } from '@/lib/supabase/types';
 
 export interface FragranceNote {
   name: string;
@@ -74,9 +52,3 @@ export interface Category {
   image: string;
   contain?: boolean;
 }
-
-/**
- * @deprecated Use Product type from @/lib/supabase/types instead.
- * This alias maintains backward compatibility but should be phased out.
- */
-export type Product = LegacyProduct;

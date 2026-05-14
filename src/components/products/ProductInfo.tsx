@@ -1,9 +1,9 @@
 import { formatPrice } from '@/lib/currency';
 import RichDescription from './RichDescription';
-import type { LegacyProduct } from '@/types';
+import type { Product } from '@/types';
 
 interface ProductInfoProps {
-  product: LegacyProduct;
+  product: Product;
 }
 
 const productTypeLabels: Record<string, string> = {
@@ -13,6 +13,8 @@ const productTypeLabels: Record<string, string> = {
 };
 
 export default function ProductInfo({ product }: ProductInfoProps) {
+  const inStock = product.in_stock ?? true;
+
   return (
     <div className="space-y-8">
       {/* Brand */}
@@ -29,10 +31,10 @@ export default function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Price */}
       <div className="flex items-baseline gap-4">
-        {product.salePrice && product.salePrice < product.price ? (
+        {product.sale_price && product.sale_price < product.price ? (
           <>
             <span className="text-[clamp(2rem,1.75rem+1.25vw,2.75rem)] font-playfair font-medium text-gold-600">
-              {formatPrice(product.salePrice)}
+              {formatPrice(product.sale_price)}
             </span>
             <span className="text-lg text-gray-500 line-through">
               {formatPrice(product.price)}
@@ -49,7 +51,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       <div className="flex flex-wrap gap-4 text-sm">
         <div className="px-5 py-2.5 bg-white/80 backdrop-blur-sm rounded-full border border-gray-800/20">
           <span className="text-gray-400">Type: </span>
-          <span className="text-black">{productTypeLabels[product.productType]}</span>
+          <span className="text-black">{productTypeLabels[product.product_type]}</span>
         </div>
         <div className="px-5 py-2.5 bg-white/80 backdrop-blur-sm rounded-full border border-gray-800/20">
           <span className="text-gray-400">Size: </span>
@@ -57,8 +59,8 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         </div>
         <div className="px-5 py-2.5 bg-white/80 backdrop-blur-sm rounded-full border border-gray-800/20">
           <span className="text-gray-400">Status: </span>
-          <span className={product.inStock ? 'text-green-400' : 'text-red-400'}>
-            {product.inStock ? 'In Stock' : 'Coming Soon'}
+          <span className={inStock ? 'text-green-400' : 'text-red-400'}>
+            {inStock ? 'In Stock' : 'Coming Soon'}
           </span>
         </div>
       </div>
