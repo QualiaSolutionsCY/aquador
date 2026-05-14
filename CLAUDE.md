@@ -173,3 +173,15 @@ See `.env.example`:
 `old-website-pages/` contains archived Squarespace content including the original product CSV export and page content for reference.
 
 `scripts/` contains one-off migration scripts used to move product data from the static catalog into Supabase. These are excluded from TypeScript compilation via `tsconfig.json`.
+
+## Qualia substrate
+
+Qualia framework artifacts live under `.planning/`:
+
+- `.planning/codebase/` — brownfield map (`README.md` index, plus `architecture.md`, `stack.md`, `conventions.md`, `concerns.md`, `onboarding.md`). Scanned 2026-05-14.
+- `.planning/agents/` — adapter config so Qualia honors repo conventions: `tracker.md` (GitHub), `labels.md` (canonical mapping), `domain.md`.
+- `.planning/CONTEXT.md` — domain glossary (created lazily).
+- `.planning/decisions/` — ADRs for hard-to-reverse architectural calls.
+- `.planning/{PROJECT,MILESTONES,REQUIREMENTS,ROADMAP,STATE}.md`, `.planning/milestones/`, `.planning/phases/`, `.planning/quick/` — roadmap + phase artifacts.
+
+Read `.planning/codebase/README.md` first when picking up work — it links the rest.
