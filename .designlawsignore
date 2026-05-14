@@ -1,0 +1,66 @@
+# .designlawsignore
+# Paths exempt from scripts/design-laws-check.sh.
+# These are pre-v3.0 (M1 reset) surfaces that will be progressively replaced.
+# New v3.0 files (src/styles/tokens.css, src/app/_design/*, future M1.3
+# primitives, M2 sections) MUST NOT be added here.
+#
+# Pass --strict to scripts/design-laws-check.sh to ignore this file.
+
+# Phase 1 task-allowance: tailwind.config.ts still contains hex literals
+# until Task 3 rewrites it. Removed once Task 3 lands.
+tailwind.config.ts
+
+# Legacy global stylesheet — replaced by src/styles/tokens.css via @import in M1.1.
+src/app/globals.css
+
+# Legacy component trees (M2 will rebuild section-by-section).
+src/components/cart
+src/components/layout
+src/components/sections
+src/components/blog
+src/components/ui
+src/components/ai
+src/components/perfume
+src/components/admin
+src/components/providers
+src/components/visitor
+src/components/analytics
+src/components/3d
+src/components/home
+src/components/products
+src/components/search
+src/components/shop
+src/components/VisitorTracker.tsx
+
+# Legacy app routes (M2 will rebuild route-by-route).
+src/app/blog
+src/app/admin
+src/app/create-perfume
+src/app/shop
+src/app/account
+src/app/product
+src/app/products
+src/app/contact
+src/app/about
+src/app/checkout
+src/app/reorder
+src/app/maintenance
+src/app/privacy
+src/app/shipping
+src/app/terms
+src/app/api
+src/app/page.tsx
+src/app/layout.tsx
+src/app/error.tsx
+src/app/global-error.tsx
+src/app/not-found.tsx
+
+# Library code (non-UI; design laws target CSS+TSX rendering surfaces).
+src/lib
+src/types
+src/hooks
+src/middleware.ts
+
+# Test files.
+src/**/__tests__
+e2e
