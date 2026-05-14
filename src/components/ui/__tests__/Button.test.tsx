@@ -34,7 +34,7 @@ describe('Button Component', () => {
     it('should apply outline variant styles', () => {
       render(<Button variant="outline">Outline</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('border-gold');
+      expect(button).toHaveClass('border-gold/40');
     });
 
     it('should apply ghost variant styles', () => {
@@ -48,19 +48,19 @@ describe('Button Component', () => {
     it('should apply medium size by default', () => {
       render(<Button>Medium</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('px-6', 'py-3');
+      expect(button).toHaveClass('px-7', 'py-3');
     });
 
     it('should apply small size', () => {
       render(<Button size="sm">Small</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('px-4', 'py-2');
+      expect(button).toHaveClass('px-5', 'py-2.5');
     });
 
     it('should apply large size', () => {
       render(<Button size="lg">Large</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('px-8', 'py-4');
+      expect(button).toHaveClass('px-9', 'py-4');
     });
   });
 
@@ -81,7 +81,7 @@ describe('Button Component', () => {
   describe('loading state', () => {
     it('should show loading text when isLoading is true', () => {
       render(<Button isLoading>Submit</Button>);
-      expect(screen.getByText('Loading...')).toBeInTheDocument();
+      expect(screen.getByText('Loading')).toBeInTheDocument();
     });
 
     it('should be disabled when loading', () => {

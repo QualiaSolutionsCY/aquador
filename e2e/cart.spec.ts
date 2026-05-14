@@ -1,10 +1,25 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Shopping Cart', () => {
-  test.beforeEach(async ({ page }) => {
-    // Clear localStorage before each test
+  test.beforeEach(async ({ page, context }) => {
+    // Pre-seed cookie consent so the bottom banner doesn't intercept clicks.
+    // Banner is fixed-bottom z-50 and would intercept Clear Cart / checkout buttons.
+    await context.addInitScript(() => {
+      try {
+        localStorage.setItem('aquador_cookie_consent', 'accepted');
+      } catch {
+        // ignore — context may not have storage yet
+      }
+    });
+
+    // Clear cart but preserve consent
     await page.goto('/');
-    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(() => {
+      const keys = Object.keys(localStorage);
+      for (const k of keys) {
+        if (k !== 'aquador_cookie_consent') localStorage.removeItem(k);
+      }
+    });
   });
 
   test('should show empty cart initially', async ({ page }) => {
@@ -46,8 +61,9 @@ test.describe('Shopping Cart', () => {
     // Cart should be open
     await expect(page.locator('text=Your Cart')).toBeVisible();
 
-    // Click increase quantity button
-    const increaseButton = page.locator('button[aria-label="Increase quantity"]');
+    // Click increase quantity button (scope to cart drawer, since product page also has one)
+    const cartDrawer = page.locator('div').filter({ hasText: /^Your Cart/ }).first();
+    const increaseButton = cartDrawer.locator('button[aria-label="Increase quantity"]').first();
     await increaseButton.click();
 
     // Should show 2 items

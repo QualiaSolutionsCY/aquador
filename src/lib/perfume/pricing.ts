@@ -14,7 +14,7 @@ export function calculatePrice(volume: PerfumeVolume): number {
     case '50ml':
       return 29.99
     case '100ml':
-      return 49.99
+      return 199.00
     default:
       throw new Error('Invalid perfume volume')
   }

@@ -15,12 +15,18 @@ const mockSupabaseEq = jest.fn();
 const mockSupabaseSingle = jest.fn();
 const mockFetch = jest.fn();
 const mockConstructEvent = jest.fn();
+const mockSessionsRetrieve = jest.fn();
 
 // Mock Stripe
 jest.mock('stripe', () => {
   return jest.fn().mockImplementation(() => ({
     webhooks: {
       constructEvent: (...args: any[]) => mockConstructEvent(...args),
+    },
+    checkout: {
+      sessions: {
+        retrieve: (...args: any[]) => mockSessionsRetrieve(...args),
+      },
     },
   }));
 });
@@ -54,6 +60,11 @@ jest.mock('@/lib/stripe', () => ({
   getStripe: jest.fn(() => ({
     webhooks: {
       constructEvent: (...args: any[]) => mockConstructEvent(...args),
+    },
+    checkout: {
+      sessions: {
+        retrieve: (...args: any[]) => mockSessionsRetrieve(...args),
+      },
     },
   })),
 }));
@@ -139,6 +150,16 @@ describe('Stripe Webhook Handler', () => {
       type: 'checkout.session.completed',
       data: { object: mockCheckoutSession },
     } as Stripe.Event);
+
+    // Default: stripe.checkout.sessions.retrieve mirrors the event's session payload.
+    // The source calls retrieve() to fetch phone_number_collection data not present
+    // in the webhook envelope; for tests we just echo the session set by
+    // mockConstructEvent.mockReturnValue's data.object.
+    mockSessionsRetrieve.mockImplementation(async () => {
+      const event = mockConstructEvent.mock.results[mockConstructEvent.mock.results.length - 1]?.value
+        ?? { data: { object: mockCheckoutSession } };
+      return event.data.object;
+    });
 
     // Default Supabase chain
     mockSupabaseSelect.mockReturnThis();

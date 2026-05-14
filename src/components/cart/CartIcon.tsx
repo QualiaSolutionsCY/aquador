@@ -40,9 +40,9 @@ export default function CartIcon({ className }: { className?: string }) {
           key={itemCount}
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="absolute top-1 right-0 w-4 h-4 bg-gold text-black text-[9px] rounded-full flex items-center justify-center font-medium leading-none"
+          className="absolute top-1 right-0 min-w-4 h-4 px-1 bg-gold text-black text-[9px] rounded-full flex items-center justify-center font-medium leading-none"
         >
-          {itemCount > 99 ? '99' : itemCount}
+          {itemCount > 99 ? '99+' : itemCount}
         </motion.span>
       )}
     </motion.button>
