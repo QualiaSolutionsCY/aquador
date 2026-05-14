@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Poppins } from "next/font/google";
+import { Cormorant_Garamond, Newsreader } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import dynamic from "next/dynamic";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -18,18 +19,20 @@ const ChatWidget = dynamic(() => import("@/components/ai/ChatWidget"), {
   ssr: false,
 });
 
-const playfair = Playfair_Display({
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  variable: "--font-display",
   display: "swap",
-  weight: ["400", "700"],
+  weight: ["400", "500"],
+  style: ["normal", "italic"],
 });
 
-const poppins = Poppins({
+const newsreader = Newsreader({
   subsets: ["latin"],
-  variable: "--font-poppins",
+  variable: "--font-body",
   display: "swap",
-  weight: ["300", "400", "600"],
+  weight: ["400", "500"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -110,7 +113,10 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://hznpuxplqgszbacxzbhv.supabase.co" />
         <link rel="dns-prefetch" href="https://js.stripe.com" />
       </head>
-      <body className={`${poppins.variable} ${playfair.variable} antialiased`}>
+      <body
+        className={`${cormorant.variable} ${newsreader.variable} ${GeistSans.variable} antialiased`}
+        style={{ ['--font-micro' as unknown as string]: 'var(--font-geist-sans)' }}
+      >
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-gold focus:text-black focus:text-sm focus:font-medium focus:rounded"
