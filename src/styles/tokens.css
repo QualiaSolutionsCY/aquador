@@ -35,6 +35,12 @@
   --color-oxblood: oklch(0.40 0.140 25);
   --color-oxblood-soft: oklch(0.55 0.110 25);
 
+  /* Semantic status hues — tinted toward the gold-warm canvas so they sit
+     inside the editorial palette instead of fighting it. Used by Badge /
+     Tag / Toast variants. Phase 1 catch-up: tokens.css was missing these. */
+  --color-success: oklch(0.62 0.13 145);
+  --color-warning: oklch(0.78 0.14 75);
+
   /* Tinted neutrals — all chroma 0.005-0.015, h=80 (toward gold) */
   --color-neutral-50:  oklch(0.98 0.005 80);
   --color-neutral-100: oklch(0.95 0.006 80);
@@ -55,6 +61,8 @@
   --accent: var(--color-gold);
   --accent-deep: var(--color-gold-deep);
   --critical: var(--color-oxblood);
+  --success: var(--color-success);
+  --warning: var(--color-warning);
   --border: var(--color-neutral-200);
   --border-strong: var(--color-neutral-300);
 

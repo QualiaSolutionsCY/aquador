@@ -1,98 +1,62 @@
 'use client';
 
+/**
+ * Skeleton — v3.0 loading placeholder (Phase 3 Task 2, PRIM-02).
+ *
+ * Tokenized replacement for ad-hoc pulse-over-neutral usages. Surface is
+ * `bg-bg-alt` so the placeholder reads as a paused tile of the page.
+ * Three shapes:
+ *   - text:   `h-4 w-full rounded-sm` — single line of body copy
+ *   - rect:   `rounded-sm` with caller-supplied width/height (image, card body)
+ *   - circle: `rounded-full aspect-square` — avatar, dot indicator
+ *
+ * Motion: 1500ms ease-in-out opacity loop (`animate-skeleton-pulse`, defined
+ * in tailwind.config.ts theme). `prefers-reduced-motion` is honoured by the
+ * global reduced-motion media query in tokens.css.
+ *
+ * A11y: renders `role="status"`, `aria-busy="true"`, `aria-live="polite"` so
+ * screen readers announce the pending state without trapping focus.
+ */
+
+import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-interface SkeletonProps {
-  className?: string;
+export type SkeletonVariant = 'text' | 'rect' | 'circle';
+
+export interface SkeletonProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: SkeletonVariant;
+  /** Caller-supplied width. Number → px, string → CSS value (e.g. '8rem', '100%'). */
+  width?: string | number;
+  /** Caller-supplied height. Number → px, string → CSS value. */
+  height?: string | number;
 }
 
-export function Skeleton({ className }: SkeletonProps) {
-  return <div className={cn('skeleton', className)} />;
-}
+const variantClasses: Record<SkeletonVariant, string> = {
+  text: 'h-4 w-full rounded-sm',
+  rect: 'rounded-sm',
+  circle: 'rounded-full aspect-square',
+};
 
-export function ProductCardSkeleton() {
-  return (
-    <div className="bg-white overflow-hidden">
-      {/* Image skeleton */}
-      <Skeleton className="aspect-square w-full" />
-      {/* Content skeleton */}
-      <div className="p-5 space-y-3">
-        <Skeleton className="h-3 w-16" />
-        <Skeleton className="h-5 w-3/4" />
-        <div className="pt-3 border-t border-gray-300">
-          <Skeleton className="h-3 w-12 mb-2" />
-          <div className="flex justify-between">
-            <Skeleton className="h-6 w-20" />
-            <Skeleton className="h-4 w-12" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function ProductGridSkeleton({ count = 6 }: { count?: number }) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-      {Array.from({ length: count }).map((_, i) => (
-        <ProductCardSkeleton key={i} />
-      ))}
-    </div>
-  );
-}
-
-export function TextSkeleton({ lines = 3, className }: { lines?: number; className?: string }) {
-  return (
-    <div className={cn('space-y-2', className)}>
-      {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton
-          key={i}
-          className={cn('h-4', i === lines - 1 ? 'w-2/3' : 'w-full')}
-        />
-      ))}
-    </div>
-  );
-}
-
-export function PageLoadingSkeleton() {
-  return (
-    <div className="min-h-screen bg-gold-ambient pt-32 pb-16">
-      <div className="container-wide">
-        {/* Hero skeleton */}
-        <div className="text-center mb-16">
-          <Skeleton className="h-12 w-64 mx-auto mb-4" />
-          <Skeleton className="h-px w-16 mx-auto mb-5" />
-          <Skeleton className="h-5 w-96 mx-auto" />
-        </div>
-        {/* Content skeleton */}
-        <ProductGridSkeleton count={8} />
-      </div>
-    </div>
-  );
-}
-
-export function SpinnerLoader({ className, size = 'md' }: { className?: string; size?: 'sm' | 'md' | 'lg' }) {
-  const sizes = {
-    sm: 'w-5 h-5 border-2',
-    md: 'w-8 h-8 border-2',
-    lg: 'w-12 h-12 border-3',
-  };
-
-  return (
+export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
+  ({ variant = 'text', width, height, className, style, ...props }, ref) => (
     <div
+      ref={ref}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
       className={cn(
-        'rounded-full border-gold border-t-transparent animate-spin',
-        sizes[size],
-        className
+        'bg-bg-alt animate-skeleton-pulse',
+        variantClasses[variant],
+        className,
       )}
+      style={{
+        ...style,
+        width: typeof width === 'number' ? `${width}px` : width,
+        height: typeof height === 'number' ? `${height}px` : height,
+      }}
+      {...props}
     />
-  );
-}
-
-export function FullPageLoader() {
-  return (
-    <div className="min-h-screen bg-gold-ambient flex items-center justify-center">
-      <SpinnerLoader size="lg" />
-    </div>
-  );
-}
+  ),
+);
+Skeleton.displayName = 'Skeleton';

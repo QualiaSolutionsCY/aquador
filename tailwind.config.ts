@@ -39,6 +39,8 @@ const config: Config = {
           deep: "var(--accent-deep)",
         },
         critical: "var(--critical)",
+        success: "var(--success)",
+        warning: "var(--warning)",
         border: {
           DEFAULT: "var(--border)",
           strong: "var(--border-strong)",
@@ -132,6 +134,16 @@ const config: Config = {
         float: "float 6s ease-in-out infinite",
         "pulse-gold": "pulse-gold 2s ease-in-out infinite",
         gradient: "gradient 8s ease infinite",
+        // v3.0 overlay primitives (Phase 3 Task 3) — Dialog/Drawer/Toast/Popover.
+        // Durations are 250ms = --duration-base; easing matches --ease-out-quart.
+        "fade-in": "fade-in 250ms cubic-bezier(0.25,1,0.5,1)",
+        "fade-out": "fade-out 250ms cubic-bezier(0.25,1,0.5,1)",
+        "slide-in-right": "slide-in-right 250ms cubic-bezier(0.25,1,0.5,1)",
+        "slide-out-right": "slide-out-right 250ms cubic-bezier(0.25,1,0.5,1)",
+        // Skeleton pulse — 1500ms loop per design-product.md (Loading) §Motion.
+        // Subtle opacity dip rather than Tailwind's default 1s pulse so the
+        // rhythm reads as "loading" without strobing the page.
+        "skeleton-pulse": "skeleton-pulse 1.5s cubic-bezier(0.4,0,0.6,1) infinite",
       },
       keyframes: {
         shimmer: {
@@ -154,6 +166,27 @@ const config: Config = {
           "0%, 100%": { backgroundPosition: "0% 50%" },
           "50%": { backgroundPosition: "100% 50%" },
         },
+        // v3.0 overlay primitives (Phase 3 Task 3).
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "fade-out": {
+          from: { opacity: "1" },
+          to: { opacity: "0" },
+        },
+        "slide-in-right": {
+          from: { transform: "translateX(100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        "slide-out-right": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(100%)" },
+        },
+        "skeleton-pulse": {
+          "0%, 100%": { opacity: "0.6" },
+          "50%": { opacity: "1" },
+        },
       },
       backgroundImage: {
         "gold-gradient":
@@ -162,6 +195,14 @@ const config: Config = {
           "linear-gradient(135deg, var(--bg) 0%, var(--bg-alt) 50%, var(--bg) 100%)",
         "light-gradient":
           "linear-gradient(135deg, var(--bg) 0%, var(--bg-alt) 50%, var(--bg) 100%)",
+      },
+      boxShadow: {
+        // Bind tokens.css §6 to Tailwind utility classes so callers can
+        // write `hover:shadow-1`, `shadow-2`, `shadow-3` instead of inline
+        // `style={{ boxShadow: 'var(--shadow-1)' }}`.
+        "1": "var(--shadow-1)",
+        "2": "var(--shadow-2)",
+        "3": "var(--shadow-3)",
       },
     },
   },
