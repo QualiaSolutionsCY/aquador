@@ -145,20 +145,13 @@
   --letter-wider: 0.05em;
   --letter-widest: 0.15em;
 
-  /* Animation Timing */
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Animation timing — only NEW tokens kept here; canonical durations live
+     in src/styles/tokens.css §7 (250ms fast / 250ms base / 400ms slow / 700ms slowest)
+     so we don't shadow them with stale 300ms/500ms values from earlier work. */
   --ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
-  --duration-fast: 150ms;
-  --duration-base: 300ms;
-  --duration-slow: 500ms;
-  --duration-slower: 700ms;
 
-  /* Border Radius */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
-  --radius-full: 9999px;
+  /* Border radius — DESIGN.md §10 caps primitives at 16px = 1rem.
+     `--radius-sm`/`--radius-md`/`--radius-lg` live in src/styles/tokens.css. */
 }
 
 * {

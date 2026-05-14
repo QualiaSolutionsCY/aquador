@@ -77,13 +77,16 @@
   --font-h2: clamp(1.5rem, 2vw + 0.5rem, 2.25rem);
   --font-h3: clamp(1.25rem, 1.5vw + 0.5rem, 1.75rem);
 
-  /* Body (Newsreader serif) — neutral tracking, weights 400/500 only */
-  --font-body-lg: clamp(1.125rem, 0.5vw + 1rem, 1.25rem);
-  --font-body: 1rem;            /* 16px floor */
-  --font-body-sm: 0.875rem;     /* 14px — captions */
+  /* Body sizes (Newsreader serif) — neutral tracking, weights 400/500 only.
+     NB: family names `--font-body` and `--font-micro` are bound by next/font on
+     <body> in layout.tsx, so size tokens use the `--font-size-*` namespace to
+     avoid collision with the family vars on the body subtree. */
+  --font-size-body-lg: clamp(1.125rem, 0.5vw + 1rem, 1.25rem);
+  --font-size-body: 1rem;            /* 16px floor */
+  --font-size-body-sm: 0.875rem;     /* 14px — captions */
 
   /* Micro (Geist) — UPPERCASE, tracking 0.05em to 0.08em, weight 500 */
-  --font-micro: 0.75rem;        /* 12px — UI labels */
+  --font-size-micro: 0.75rem;        /* 12px — UI labels */
 
   /* Family fallback chains.
      Will be re-bound by next/font on <body> in Task 2 — these are the

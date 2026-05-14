@@ -5,16 +5,16 @@ See: .planning/PROJECT.md
 
 ## Current Position
 Phase: 1 of 3 — Direction & Tokens
-Status: planned
+Status: built
 Assigned to: Last activity: 2026-05-14 — Project initialized
-Last activity: 2026-05-14 — planned (phase 1)
+Last activity: 2026-05-14 — Phase 1 built (5/5 tasks)
 
 Progress: [░░░░░░░░░░] 0%
 
 ## Roadmap
 | # | Phase | Goal | Status |
 |---|-------|------|--------|
-| 1 | Direction & Tokens | Commit DESIGN.md direction; ship OKLCH palette, type pair, spacing + motion tokens | planned |
+| 1 | Direction & Tokens | Commit DESIGN.md direction; ship OKLCH palette, type pair, spacing + motion tokens | built |
 | 2 | Stack & Type Unification | Migrate to Next 16 + React 19; unify three product types to one canonical Supabase shape; fix 24 failing Jest tests | — |
 | 3 | Primitive Components | Build token-driven Button/Input/Card/Table/Drawer/Dialog/etc primitives and integrate into one existing page | — |
 

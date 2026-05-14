@@ -96,7 +96,7 @@ const SPACING_STEPS: Array<{ token: string; rem: string; px: string }> = [
 
 const microLabel: CSSProperties = {
   fontFamily: "var(--font-micro)",
-  fontSize: "var(--font-micro)",
+  fontSize: "var(--font-size-micro)",
   fontWeight: 500,
   letterSpacing: "0.05em",
   textTransform: "uppercase",
@@ -112,7 +112,7 @@ const captionBody: CSSProperties = {
 
 const sectionEyebrow: CSSProperties = {
   ...microLabel,
-  fontSize: "var(--font-micro)",
+  fontSize: "var(--font-size-micro)",
   color: "var(--accent-deep)",
   letterSpacing: "0.08em",
   marginBottom: "var(--space-3)",
@@ -349,7 +349,7 @@ export default function DesignShowcasePage() {
               clampLiteral="1rem (16px floor)"
               style={{
                 fontFamily: "var(--font-body)",
-                fontSize: "var(--font-body)",
+                fontSize: "var(--font-size-body)",
                 lineHeight: 1.6,
                 maxWidth: "65ch",
               }}
@@ -379,7 +379,7 @@ export default function DesignShowcasePage() {
               clampLiteral="0.75rem (12px) · tracking 0.05em"
               style={{
                 fontFamily: "var(--font-micro)",
-                fontSize: "var(--font-micro)",
+                fontSize: "var(--font-size-micro)",
                 fontWeight: 500,
                 letterSpacing: "0.05em",
                 textTransform: "uppercase",
@@ -581,7 +581,7 @@ function SwatchTile({ swatch }: { swatch: Swatch }) {
         >
           {swatch.name}
         </span>
-        <span style={{ ...microLabel, fontSize: "var(--font-micro)" }}>{swatch.cssVar}</span>
+        <span style={{ ...microLabel, fontSize: "var(--font-size-micro)" }}>{swatch.cssVar}</span>
         <span
           style={{
             ...microLabel,
