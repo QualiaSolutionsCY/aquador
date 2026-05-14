@@ -86,51 +86,48 @@ function cartReducer(state: Cart, action: CartAction): Cart {
 const CartContext = createContext<CartContextType | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cart, dispatch] = useReducer(cartReducer, initialCart, (init) => {
-    // Only hydrate from localStorage on client side during initialization
-    if (typeof window === 'undefined') return init;
-
-    try {
-      const stored = localStorage.getItem(CART_STORAGE_KEY);
-      if (!stored) return init;
-
-      const parsed = JSON.parse(stored);
-      const validation = CartSchema.safeParse(parsed);
-
-      if (validation.success) {
-        return validation.data;
-      } else {
-        // Invalid cart data - log to Sentry and clear localStorage
-        Sentry.captureException(new Error('Invalid cart data in localStorage'), {
-          contexts: {
-            cart: {
-              validationErrors: validation.error.issues,
-              rawData: parsed,
-            },
-          },
-        });
-        localStorage.removeItem(CART_STORAGE_KEY);
-        return init;
-      }
-    } catch (error) {
-      // JSON parse error - log to Sentry and clear localStorage
-      Sentry.captureException(error, {
-        contexts: {
-          cart: {
-            message: 'Failed to parse cart from localStorage',
-          },
-        },
-      });
-      localStorage.removeItem(CART_STORAGE_KEY);
-      return init;
-    }
-  });
+  // Initialize to empty cart on BOTH server and client. React 19's stricter
+  // hydration check throws on any SSR/client mismatch; reading localStorage
+  // during initialization (client-only) is exactly that mismatch. Hydrate from
+  // localStorage in a useEffect below — runs after first render on client only,
+  // so SSR HTML and first client render agree (empty cart), then the cart fills
+  // in on the second render.
+  const [cart, dispatch] = useReducer(cartReducer, initialCart);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const persistTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Mark as hydrated after first render
+  // Hydrate cart from localStorage AFTER first render (client-only).
+  // Mark hydrated regardless of whether stored cart exists, so the persist
+  // effect below doesn't overwrite a valid cart on initial mount.
   useEffect(() => {
+    try {
+      const stored = localStorage.getItem(CART_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const validation = CartSchema.safeParse(parsed);
+        if (validation.success) {
+          dispatch({ type: 'HYDRATE', payload: validation.data });
+        } else {
+          Sentry.captureException(new Error('Invalid cart data in localStorage'), {
+            contexts: {
+              cart: {
+                validationErrors: validation.error.issues,
+                rawData: parsed,
+              },
+            },
+          });
+          localStorage.removeItem(CART_STORAGE_KEY);
+        }
+      }
+    } catch (error) {
+      Sentry.captureException(error, {
+        contexts: {
+          cart: { message: 'Failed to parse cart from localStorage' },
+        },
+      });
+      localStorage.removeItem(CART_STORAGE_KEY);
+    }
     setIsHydrated(true);
   }, []);
 
