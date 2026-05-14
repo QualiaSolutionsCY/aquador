@@ -4,24 +4,26 @@
 See: .planning/PROJECT.md
 
 ## Current Position
-Phase: 2 of 3 — Stack & Type Unification
-Status: planned
-Assigned to: Last activity: 2026-05-14 — Project initialized
-Last activity: 2026-05-14 — planned (phase 2)
+Phase: 1 of 5 — Homepage
+Status: setup
+Assigned to: 
+Last activity: 2026-05-14 — Project initialized
 
-Progress: [███░░░░░░░] 33%
+Progress: [░░░░░░░░░░] 0%
 
 ## Roadmap
 | # | Phase | Goal | Status |
 |---|-------|------|--------|
-| 1 | Direction & Tokens | Commit DESIGN.md direction; ship OKLCH palette, type pair, spacing + motion tokens | verified |
-| 2 | Stack & Type Unification | Migrate to Next 16 + React 19; unify three product types to one canonical Supabase shape; fix 24 failing Jest tests | planned |
-| 3 | Primitive Components | Build token-driven Button/Input/Card/Table/Drawer/Dialog/etc primitives and integrate into one existing page | — |
+| 1 | Homepage | Hero, editorial sections, featured picks, AI concierge entry, email capture | ready |
+| 2 | Product Detail Page | Large imagery, notes story, social proof, sticky ATC, related cross-sell | — |
+| 3 | Shop / Category | URL-stateful filters, sort, skeleton loading, hover micro-interactions | — |
+| 4 | Cart Drawer + Checkout | One-tap cart, Stripe Payment Element with Apple/Google Pay, trust signals, server validation preserved | — |
+| 5 | Builder + AI Concierge | Rebuild 979-LOC create-perfume flow into separated steps; AI concierge drawer knows catalog and current cart | — |
 
 ## Blockers
 None.
 
 ## Session
 Last session: 2026-05-14
-Last worked by: Last activity: 2026-05-14 — Project initialized
+Last worked by: 
 Resume: —

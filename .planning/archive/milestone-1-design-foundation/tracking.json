@@ -1,0 +1,43 @@
+{
+  "project": "Aquad'or",
+  "client": "Aquad'or Cyprus",
+  "type": "ecommerce",
+  "assigned_to": "",
+  "team_id": "",
+  "project_id": "",
+  "git_remote": "",
+  "milestone": 1,
+  "milestone_name": "Design Foundation",
+  "milestones": [],
+  "phase": 3,
+  "phase_name": "Primitive Components",
+  "total_phases": 3,
+  "status": "verified",
+  "wave": 2,
+  "tasks_done": 5,
+  "tasks_total": 5,
+  "verification": "pass",
+  "gap_cycles": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+  },
+  "blockers": [],
+  "session_started_at": "2026-05-14T16:55:57.661Z",
+  "last_updated": "2026-05-14T23:06:50.537Z",
+  "last_pushed_at": "2026-05-14T23:03:08Z",
+  "last_commit": "578be72",
+  "build_count": 3,
+  "deploy_count": 0,
+  "deployed_url": "",
+  "notes": "",
+  "submitted_by": "",
+  "lifetime": {
+    "tasks_completed": 13,
+    "phases_completed": 3,
+    "milestones_completed": 0,
+    "total_phases": 0,
+    "last_closed_milestone": 0
+  },
+  "report_seq": 0
+}

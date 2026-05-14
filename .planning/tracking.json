@@ -6,24 +6,31 @@
   "team_id": "",
   "project_id": "",
   "git_remote": "",
-  "milestone": 1,
-  "milestone_name": "Design Foundation",
-  "milestones": [],
-  "phase": 3,
-  "phase_name": "Primitive Components",
-  "total_phases": 3,
-  "status": "built",
-  "wave": 2,
-  "tasks_done": 5,
-  "tasks_total": 5,
+  "milestone": 2,
+  "milestone_name": "Storefront That Sells",
+  "milestones": [
+    {
+      "num": 1,
+      "name": "Design Foundation",
+      "total_phases": 3,
+      "phases_completed": 3,
+      "tasks_completed": 13,
+      "shipped_url": "",
+      "closed_at": "2026-05-14T23:08:03.132Z"
+    }
+  ],
+  "phase": 1,
+  "phase_name": "Homepage",
+  "total_phases": 5,
+  "status": "setup",
+  "wave": 0,
+  "tasks_done": 0,
+  "tasks_total": 0,
   "verification": "pending",
-  "gap_cycles": {
-    "1": 0,
-    "2": 0
-  },
+  "gap_cycles": {},
   "blockers": [],
-  "session_started_at": "2026-05-14T16:55:57.661Z",
-  "last_updated": "2026-05-14T23:03:08Z",
+  "session_started_at": "2026-05-14T23:11:24.244Z",
+  "last_updated": "2026-05-14T23:11:24.244Z",
   "last_pushed_at": "2026-05-14T23:03:08Z",
   "last_commit": "578be72",
   "build_count": 3,
@@ -32,11 +39,10 @@
   "notes": "",
   "submitted_by": "",
   "lifetime": {
-    "tasks_completed": 8,
-    "phases_completed": 2,
-    "milestones_completed": 0,
-    "total_phases": 0,
-    "last_closed_milestone": 0
-  },
-  "report_seq": 0
+    "tasks_completed": 13,
+    "phases_completed": 3,
+    "milestones_completed": 1,
+    "total_phases": 3,
+    "last_closed_milestone": 1
+  }
 }
