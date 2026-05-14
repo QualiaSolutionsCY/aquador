@@ -6,10 +6,6 @@
 #
 # Pass --strict to scripts/design-laws-check.sh to ignore this file.
 
-# Phase 1 task-allowance: tailwind.config.ts still contains hex literals
-# until Task 3 rewrites it. Removed once Task 3 lands.
-tailwind.config.ts
-
 # Legacy global stylesheet — replaced by src/styles/tokens.css via @import in M1.1.
 src/app/globals.css
 
