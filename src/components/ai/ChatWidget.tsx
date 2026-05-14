@@ -1,5 +1,6 @@
 'use client';
 
+import type { JSX } from 'react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, Loader2, User, Bot, ArrowLeft } from 'lucide-react';

@@ -182,7 +182,7 @@ export function getEffectiveSpeed(
  * ```
  */
 export function useParallaxEngagementTracking(
-  ref: React.RefObject<Element>,
+  ref: React.RefObject<Element | null>,
   elementId: string
 ): void {
   const enterTimeRef = useRef<number | null>(null);

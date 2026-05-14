@@ -115,7 +115,7 @@ export function ParallaxSection({
 
   // Create motion component with the specified element type
   const MotionComponent = motion[as as keyof typeof motion] as React.ComponentType<
-    MotionProps & { ref: React.RefObject<HTMLElement>; className?: string }
+    MotionProps & { ref: React.RefObject<HTMLElement | null>; className?: string }
   >;
 
   // Decorative parallax elements get role="presentation" so screen readers

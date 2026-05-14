@@ -9,7 +9,7 @@ import { useReducedMotion } from './useReducedMotion';
  */
 export interface UseScrollAnimationReturn {
   /** Ref to attach to the element you want to observe */
-  ref: RefObject<Element>;
+  ref: RefObject<Element | null>;
   /** True when the element is in view */
   isInView: boolean;
   /** True when animations should be played (respects reduced motion) */

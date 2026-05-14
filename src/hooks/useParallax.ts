@@ -40,7 +40,7 @@ export interface UseParallaxReturn {
   /**
    * Ref to attach to the parallax element
    */
-  ref: React.RefObject<HTMLElement>;
+  ref: React.RefObject<HTMLElement | null>;
 
   /**
    * Transform MotionValue for vertical parallax

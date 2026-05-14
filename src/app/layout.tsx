@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Newsreader } from "next/font/google";
 import { GeistSans } from "geist/font/sans";
-import dynamic from "next/dynamic";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -14,10 +13,9 @@ import VisitorTracker from "@/components/VisitorTracker";
 import { PageTransition } from "@/components/providers/PageTransition";
 import { AnimationBudgetProvider } from "@/lib/performance/animation-budget";
 import { ScrollDepthTracker } from "@/components/analytics/ScrollDepthTracker";
-
-const ChatWidget = dynamic(() => import("@/components/ai/ChatWidget"), {
-  ssr: false,
-});
+// Next 16: `dynamic(..., { ssr: false })` is no longer allowed in Server
+// Components, so the lazy-loaded ChatWidget lives behind a client boundary.
+import ChatWidgetClient from "@/components/ai/ChatWidgetClient";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -137,7 +135,7 @@ export default function RootLayout({
               <CartDrawer />
               <CookieConsent />
               <ScrollDepthTracker />
-              <ChatWidget />
+              <ChatWidgetClient />
               <VisitorTracker />
             </CartProvider>
           </AnimationBudgetProvider>

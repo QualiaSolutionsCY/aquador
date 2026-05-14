@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { estimateReadTime } from '@/lib/blog';
+import type { Database } from '@/lib/supabase/types';
 import { z } from 'zod';
+
+type BlogPostUpdate = Database['public']['Tables']['blog_posts']['Update'];
 
 export const maxDuration = 10;
 
@@ -81,7 +84,7 @@ export async function PUT(
       { status: 400 }
     );
   }
-  const updatePayload: Record<string, unknown> = { ...result.data };
+  const updatePayload: BlogPostUpdate = { ...result.data };
   if (result.data.content) {
     updatePayload.read_time = estimateReadTime(result.data.content);
   }

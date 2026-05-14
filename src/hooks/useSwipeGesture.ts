@@ -19,7 +19,7 @@ interface TouchPosition {
 }
 
 export interface SwipeGestureResult {
-  ref: React.RefObject<HTMLDivElement>;
+  ref: React.RefObject<HTMLDivElement | null>;
   isSwiping: boolean;
   swipeDirection: SwipeDirection;
   swipeProgress: number; // 0 to 1, tracks how far the swipe has progressed
