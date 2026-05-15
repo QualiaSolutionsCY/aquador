@@ -63,13 +63,6 @@ function reportSafe(scope: string, err: unknown, extra?: Record<string, unknown>
 // Pure helper — exported separately for unit testing.
 // -----------------------------------------------------------------------------
 
-/** A single line-item parsed out of an order's `items` JSONB column. */
-type ParsedOrderItem = {
-  name: string;
-  quantity: number;
-  price: number;
-};
-
 /** Aggregated top-products row produced by `parseOrderItemsForTopProducts`. */
 export type TopProductRow = {
   productId: string;

@@ -77,7 +77,19 @@ export default function Hero() {
       </div>
 
       <div className="relative order-1 min-h-[60vh] overflow-hidden bg-bg-alt lg:order-2 lg:min-h-full">
-        <div className="absolute inset-0 animate-ken-burns">
+        <video
+          className="absolute inset-0 h-full w-full object-cover"
+          src="/videos/hero.mp4"
+          poster="/images/aquadour1.jpg"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+        />
+
+        <noscript>
           <Image
             src="/images/aquadour1.jpg"
             alt="An Aquad'or perfume composition resting on the perfumer's desk."
@@ -86,7 +98,7 @@ export default function Hero() {
             sizes="(min-width: 1024px) 55vw, 100vw"
             className="object-cover"
           />
-        </div>
+        </noscript>
 
         <div
           aria-hidden="true"
@@ -94,8 +106,8 @@ export default function Hero() {
         />
 
         <div className="absolute right-6 bottom-6 z-10 hidden items-center gap-3 lg:flex">
-          <span className="h-px w-12 bg-fg/30" aria-hidden="true" />
-          <p className="font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-fg/70">
+          <span className="h-px w-12 bg-fg/40" aria-hidden="true" />
+          <p className="font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-bg/80 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
             Composition no. 04, on bone linen.
           </p>
         </div>
