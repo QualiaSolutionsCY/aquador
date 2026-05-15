@@ -42,7 +42,7 @@ export default function Hero() {
 
           <FadeUp className="mt-8 max-w-[var(--container-narrow)]">
             <p className="font-body text-fg-muted text-[length:var(--font-size-body-lg)] leading-relaxed">
-              One hundred fragrances, three perfumers on the desk, and free shipping across Cyprus.
+              One hundred fragrances, three perfumers on the desk. Free shipping over 35 euro across Cyprus.
             </p>
           </FadeUp>
 
@@ -63,11 +63,11 @@ export default function Hero() {
           </FadeUp>
 
           <ul className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-3 font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
-            <li>Free shipping across Cyprus.</li>
+            <li>Free shipping over 35 euro.</li>
             <li aria-hidden="true" className="text-border-strong">
               /
             </li>
-            <li>Thirty day returns.</li>
+            <li>No returns.</li>
             <li aria-hidden="true" className="text-border-strong">
               /
             </li>

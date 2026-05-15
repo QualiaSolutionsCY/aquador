@@ -7,8 +7,8 @@ export interface TrustBarProps {
 }
 
 const TRUST_ITEMS: Array<{ icon: LucideIcon; label: string }> = [
-  { icon: Truck, label: 'Ships in three days' },
-  { icon: RotateCcw, label: 'Returns within thirty' },
+  { icon: Truck, label: 'Free shipping over 35 euro' },
+  { icon: RotateCcw, label: 'No returns' },
   { icon: ShieldCheck, label: 'Authenticity guaranteed' },
   { icon: LockKeyhole, label: 'Secure payment, encrypted' },
 ];

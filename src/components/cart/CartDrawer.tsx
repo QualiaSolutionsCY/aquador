@@ -117,7 +117,7 @@ export default function CartDrawer() {
             </div>
 
             <p className="font-body text-[length:var(--font-size-body-sm)] text-fg-muted">
-              Free shipping. Ships in three days.
+              Free shipping over 35 euro.
             </p>
 
             <TrustBar variant="compact" />
