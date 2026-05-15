@@ -40,8 +40,8 @@ export default function EmailCapture() {
 
     if (!EMAIL_PATTERN.test(trimmed)) {
       toast({
-        title: 'We could not file that.',
-        description: 'Try once more. If it persists, write to us at the desk.',
+        title: 'Something stalled.',
+        description: 'Try once more. If it persists, write to hello@aquadorcy.com.',
         variant: 'error',
       });
       return;
@@ -69,8 +69,8 @@ export default function EmailCapture() {
 
       if (response.ok && data.ok && data.status === 'already_subscribed') {
         toast({
-          title: 'Already on the list.',
-          description: 'One letter a week, no extras for previous subscribers.',
+          title: 'You are already on the list.',
+          description: 'The next letter still finds you.',
           variant: 'success',
         });
         setEmail('');
@@ -78,14 +78,14 @@ export default function EmailCapture() {
       }
 
       toast({
-        title: 'We could not file that.',
-        description: 'Try once more. If it persists, write to us at the desk.',
+        title: 'Something stalled.',
+        description: 'Try once more. If it persists, write to hello@aquadorcy.com.',
         variant: 'error',
       });
     } catch {
       toast({
-        title: 'We could not file that.',
-        description: 'Try once more. If it persists, write to us at the desk.',
+        title: 'Something stalled.',
+        description: 'Try once more. If it persists, write to hello@aquadorcy.com.',
         variant: 'error',
       });
     } finally {
@@ -100,7 +100,7 @@ export default function EmailCapture() {
           Write us once. We will write back with three.
         </p>
         <p className="mt-6 font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed">
-          One letter a week. Three perfumes worth reading. No middle ground.
+          One letter on Fridays. Three fragrances chosen, with a note on each.
         </p>
 
         <form

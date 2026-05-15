@@ -24,10 +24,11 @@ export default function NotesStory() {
           </h2>
         </FadeUp>
         <p className="mt-8 font-body text-fg-muted text-[length:var(--font-size-body-lg)] leading-relaxed">
-          Every perfume on this desk is read like a letter: the opening is what
-          the room smells when you walk in, the middle is what stays through
-          dinner, and the base is what your coat keeps for a week. We list all
-          three. We do not hide the ingredients.
+          A fragrance opens with citrus and aldehydes, then settles into heart
+          florals and spice, and ends on woods, resins, and musk. The top is
+          the first impression. The heart is the wear. The base is what the
+          wool of a coat remembers a week later. Every page on the site reads
+          in that order.
         </p>
       </div>
     </section>

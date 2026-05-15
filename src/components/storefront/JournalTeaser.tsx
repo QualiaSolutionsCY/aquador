@@ -30,9 +30,9 @@ export default function JournalTeaser() {
       </FadeUp>
 
       <p className="mt-8 font-body text-fg-muted text-[length:var(--font-size-body-lg)] leading-relaxed max-w-[var(--container-narrow)]">
-        Field notes on materials, the calendar of bloom seasons, the way a
-        scent reads in the heat of August versus the damp of December. New
-        letters arrive weekly. Each one is sent with the perfume it discusses.
+        Three short essays on what we are wearing this week, why oud reads
+        warmer in October, and how to choose a signature without trying every
+        bottle in the city. New letters publish on Fridays.
       </p>
 
       <p className="mt-10 font-body text-[length:var(--font-size-body)]">

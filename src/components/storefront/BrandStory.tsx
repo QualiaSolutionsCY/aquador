@@ -33,10 +33,11 @@ export default function BrandStory() {
           </FadeUp>
 
           <p className="mt-8 font-body text-fg-muted text-[length:var(--font-size-body-lg)] leading-relaxed max-w-[var(--container-narrow)]">
-            The house sits in Nicosia. Three perfumers share the desk, one
-            studio cat, and a working stack of correspondence that goes back
-            to the first decade of trade. Every bottle leaves with a letter,
-            three hundred grams of paper, written for the scent it accompanies.
+            Aquad&apos;or operates out of Nicosia. The catalogue draws from
+            Lattafa and Al-Haramain houses for oud and amber, from Victoria&apos;s
+            Secret originals for the clean musks, and from a small bench of
+            independent perfumers we trust. The shipment leaves Cyprus three
+            days a week. The letter that comes with it is written by one of us.
           </p>
         </div>
 
