@@ -1,146 +1,131 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingBag } from 'lucide-react';
-import Link from 'next/link';
+/**
+ * CartDrawer. v3.0 editorial bag surface.
+ *
+ * Spec source: .planning/phase-4-plan.md Phase 2.4 Task 1, .planning/DESIGN.md §10b.
+ *
+ * Locked decisions in force here:
+ *   D-03. TrustBar imported from src/components/storefront/TrustBar (Phase 2.2).
+ *   D-06. No card wrapper. Items are hairline-divider rows from CartItem.
+ *   D-07. Motion mandatory: drawer slide (primitive) + row fade-translate
+ *         (CartItem) + tabular-nums subtotal ticker (CSS transition).
+ *   D-08. Voice: "Bag" / "Subtotal" / "Empty for now." / "Continue to checkout".
+ *         No long dashes, no exclamation, no announcements.
+ *
+ * Footer is pinned to the drawer bottom with sticky so the subtotal,
+ * TrustBar, and Continue-to-checkout never scroll out of view at 375px
+ * (CART-03 reframing in phase plan).
+ */
+
+import { useRouter } from 'next/navigation';
+import { X } from 'lucide-react';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerFooter,
+  IconButton,
+  Button,
+} from '@/components/ui';
+import { TrustBar } from '@/components/storefront/TrustBar';
+import { formatPrice } from '@/lib/currency';
 import { useCart } from './CartProvider';
 import CartItem from './CartItem';
 import CheckoutButton from './CheckoutButton';
-import { formatPrice } from '@/lib/currency';
-import { FREE_SHIPPING_THRESHOLD, DELIVERY_FEE } from '@/lib/constants';
 
 export default function CartDrawer() {
-  const { cart, isCartOpen, closeCart, subtotal, clearCart } = useCart();
+  const router = useRouter();
+  const { cart, isCartOpen, closeCart, subtotal } = useCart();
   const isEmpty = cart.items.length === 0;
-  const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
-  const deliveryFee = isFreeShipping ? 0 : DELIVERY_FEE;
+
+  const handleReadCollection = () => {
+    closeCart();
+    router.push('/shop');
+  };
 
   return (
-    <AnimatePresence>
-      {isCartOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+    <Drawer
+      open={isCartOpen}
+      onOpenChange={(open) => {
+        if (!open) closeCart();
+      }}
+    >
+      <DrawerContent
+        hideCloseButton
+        aria-describedby={undefined}
+        className="flex h-screen w-full max-w-[28rem] flex-col gap-0 p-0"
+      >
+        {/* Header. Title plus close. p-6 matches the editorial chrome rhythm. */}
+        <DrawerHeader className="flex flex-row items-center justify-between gap-0 border-b border-border px-6 py-5 pr-6">
+          <DrawerTitle>Bag</DrawerTitle>
+          <IconButton
+            aria-label="Close bag"
+            size="md"
+            variant="ghost"
             onClick={closeCart}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            icon={<X strokeWidth={1.5} />}
           />
+        </DrawerHeader>
 
-          {/* Drawer */}
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 h-full w-full max-w-md bg-[#FAFAF8] border-l border-gold/10 z-50 flex flex-col"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gold/10">
-              <div className="flex items-center gap-3">
-                <ShoppingBag className="w-5 h-5 text-gold" />
-                <h2 className="text-lg font-playfair text-black">Your Cart</h2>
-              </div>
-              <button
-                onClick={closeCart}
-                className="p-2 text-gray-400 hover:text-black transition-colors"
-                aria-label="Close cart"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Cart Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {isEmpty ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <ShoppingBag className="w-16 h-16 text-gold/30 mb-4" />
-                  <h3 className="text-lg font-playfair text-black mb-2">
-                    Your cart is empty
-                  </h3>
-                  <p className="text-gray-400 text-sm mb-6">
-                    Discover our luxury fragrances and find your signature scent.
-                  </p>
-                  <Link
-                    href="/shop"
-                    onClick={closeCart}
-                    className="px-6 py-3 bg-gold text-black text-[11px] uppercase tracking-[0.12em] font-medium hover:bg-gold-light transition-colors"
-                  >
-                    Browse Products
-                  </Link>
-                </div>
-              ) : (
-                <div className="relative">
-                  <AnimatePresence mode="popLayout">
-                    {cart.items.map((item) => (
-                      <CartItem key={item.variantId} item={item} />
-                    ))}
-                  </AnimatePresence>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            {!isEmpty && (
-              <div className="border-t border-gold/10 p-6 space-y-4">
-                {/* Subtotal */}
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Subtotal</span>
-                  <span className="text-lg font-playfair text-black">
-                    {formatPrice(subtotal)}
-                  </span>
-                </div>
-
-                {/* Delivery fee */}
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Delivery</span>
-                  {isFreeShipping ? (
-                    <span className="text-sm font-semibold text-green-600">FREE</span>
-                  ) : (
-                    <span className="text-sm text-black">{formatPrice(deliveryFee)}</span>
-                  )}
-                </div>
-
-                {/* Total */}
-                <div className="flex items-center justify-between pt-2 border-t border-gold/10">
-                  <span className="text-black font-medium">Total</span>
-                  <span className="text-xl font-playfair text-black">
-                    {formatPrice(subtotal + deliveryFee)}
-                  </span>
-                </div>
-
-                {/* Shipping Note */}
-                <p className="text-xs text-gray-500 text-center">
-                  {isFreeShipping
-                    ? 'Free shipping included. Delivery within 1-2 business days.'
-                    : `Add ${formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} more for free shipping.`}
+        {/* Body. Scrollable. Empty state is editorial copy plus ghost CTA;
+            populated state is a hairline-divider list of CartItem rows. */}
+        <div className="flex-1 overflow-y-auto px-6">
+          {isEmpty ? (
+            <div className="flex h-full flex-col items-start justify-center gap-6 py-12 animate-fade-in-up">
+              <div className="flex flex-col gap-3">
+                <h3 className="font-display text-[length:var(--font-h3)] leading-tight text-fg">
+                  Empty for now.
+                </h3>
+                <p className="font-body text-[length:var(--font-size-body)] text-fg-muted">
+                  Three things people are wearing this week.
                 </p>
-
-                {/* Checkout Button */}
-                <CheckoutButton />
-
-                {/* Continue Shopping */}
-                <div className="flex items-center justify-center gap-4">
-                  <button
-                    onClick={clearCart}
-                    className="text-sm text-gray-500 hover:text-red-400 transition-colors"
-                  >
-                    Clear Cart
-                  </button>
-                  <span className="text-gold/20">|</span>
-                  <button
-                    onClick={closeCart}
-                    className="text-sm text-gold hover:text-gold-light transition-colors"
-                  >
-                    Continue Shopping
-                  </button>
-                </div>
               </div>
-            )}
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={handleReadCollection}
+              >
+                Read the collection
+              </Button>
+            </div>
+          ) : (
+            <ul className="flex flex-col">
+              {cart.items.map((item) => (
+                <CartItem key={item.variantId} item={item} />
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Footer. Sticky bottom, hairline-topped. Stack: subtotal row,
+            shipping note, TrustBar, CheckoutButton. Hidden on empty state
+            so the editorial copy breathes. */}
+        {!isEmpty && (
+          <DrawerFooter className="sticky bottom-0 mt-0 flex flex-col gap-4 border-t border-border bg-bg px-6 py-6">
+            <div className="flex items-baseline justify-between gap-4">
+              <span className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
+                Subtotal
+              </span>
+              <span
+                aria-live="polite"
+                className="font-display text-[length:var(--font-h3)] tabular-nums leading-tight text-fg transition-all duration-[var(--duration-base)] ease-[var(--ease-out-quart)]"
+              >
+                {formatPrice(subtotal)}
+              </span>
+            </div>
+
+            <p className="font-body text-[length:var(--font-size-body-sm)] text-fg-muted">
+              Free shipping. Ships in three days.
+            </p>
+
+            <TrustBar variant="compact" />
+
+            <CheckoutButton />
+          </DrawerFooter>
+        )}
+      </DrawerContent>
+    </Drawer>
   );
 }

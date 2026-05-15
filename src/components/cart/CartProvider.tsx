@@ -89,7 +89,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Initialize to empty cart on BOTH server and client. React 19's stricter
   // hydration check throws on any SSR/client mismatch; reading localStorage
   // during initialization (client-only) is exactly that mismatch. Hydrate from
-  // localStorage in a useEffect below — runs after first render on client only,
+  // localStorage in a useEffect below: runs after first render on client only,
   // so SSR HTML and first client render agree (empty cart), then the cart fills
   // in on the second render.
   const [cart, dispatch] = useReducer(cartReducer, initialCart);

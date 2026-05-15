@@ -178,6 +178,44 @@
 }
 
 /* ==========================================================================
+   §7. CART-ROW ENTER / EXIT — fade-translate primitives consumed by
+   src/components/cart/CartItem.tsx (Phase 2.4 T1). Tailwind animation
+   utilities cover overlays (fade-in / slide-in-right); these add the
+   vertical-translate flavor cart rows need without bloating tailwind.config.
+   --duration-fast + --ease-out-quart per §7.
+   ========================================================================== */
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-out-down {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up var(--duration-fast) var(--ease-out-quart) both;
+}
+
+.animate-fade-out-down {
+  animation: fade-out-down var(--duration-fast) var(--ease-out-quart) both;
+}
+
+/* ==========================================================================
    §7. REDUCED MOTION — zero all motion when user prefers
    ========================================================================== */
 

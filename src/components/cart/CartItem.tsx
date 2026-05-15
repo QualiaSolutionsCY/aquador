@@ -1,11 +1,24 @@
 'use client';
 
-import { motion } from 'framer-motion';
+/**
+ * CartItem. Hairline-divider row consumed by CartDrawer.
+ *
+ * Spec source: .planning/phase-4-plan.md Task 1, .planning/DESIGN.md §10b.
+ * D-06: no card wrapper. Cart rows are flex rows separated by a top hairline
+ * (border-t border-border). The drawer body composes them as a vertical stack.
+ *
+ * Layout: 64x64 image then name + product-type/size + qty stepper then line
+ * price + remove. Tokens only: bg-bg, text-fg, text-fg-muted, border-border.
+ * No hex literals. No display-font legacy alias. Motion: animate-fade-in-up
+ * on mount (keyframes live in src/styles/tokens.css).
+ */
+
 import Image from 'next/image';
 import { Minus, Plus, X } from 'lucide-react';
 import type { CartItem as CartItemType } from '@/types/cart';
 import { formatPrice } from '@/lib/currency';
 import { getProductTypeLabel } from '@/lib/constants';
+import { IconButton } from '@/components/ui';
 import { useCart } from './CartProvider';
 
 interface CartItemProps {
@@ -28,71 +41,71 @@ export default function CartItem({ item }: CartItemProps) {
   };
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -100 }}
-      className="flex gap-4 py-5 border-b border-gold/10"
+    <li
+      className="flex gap-4 py-5 border-t border-border first:border-t-0 animate-fade-in-up"
+      data-testid="cart-item"
     >
-      {/* Product Image */}
-      <div className="relative w-20 h-20 bg-[#f0ede8] overflow-hidden flex-shrink-0">
+      {/* Product image. 64x64 square with bone-tinted placeholder. */}
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden bg-bg-alt">
         <Image
           src={item.image}
           alt={item.name}
           fill
           className="object-cover"
-          sizes="80px"
+          sizes="64px"
         />
       </div>
 
-      {/* Product Info */}
-      <div className="flex-1 min-w-0">
-        <h4 className="text-sm font-medium text-black truncate pr-6">
-          {item.name}
-        </h4>
-        <p className="text-xs text-gray-400 mt-0.5">
-          {getProductTypeLabel(item.productType)} - {item.size}
-        </p>
-        <p className="text-sm text-gold font-playfair mt-1.5">
-          {formatPrice(item.price)}
-        </p>
+      {/* Middle column: name, product-type/size, qty stepper. */}
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex flex-col gap-1">
+          <h4 className="truncate font-display text-[length:var(--font-size-body)] text-fg leading-tight">
+            {item.name}
+          </h4>
+          <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
+            {getProductTypeLabel(item.productType)} · {item.size}
+          </p>
+        </div>
 
-        {/* Quantity Controls */}
-        <div className="flex items-center gap-2 mt-2">
-          <button
+        {/* Quantity stepper. Square 36px controls clear the 44px touch floor
+            when composed with the tabular-nums readout in the same row. */}
+        <div className="flex items-center gap-1">
+          <IconButton
+            aria-label={`Decrease quantity for ${item.name}`}
+            size="sm"
+            variant="ghost"
             onClick={handleDecrease}
-            className="w-7 h-7 bg-white border border-gold/15 flex items-center justify-center text-gray-400 hover:text-gold hover:border-gold transition-colors"
-            aria-label="Decrease quantity"
+            icon={<Minus strokeWidth={1.5} />}
+          />
+          <span
+            aria-live="polite"
+            className="min-w-8 text-center font-micro text-[length:var(--font-size-micro)] tabular-nums uppercase tracking-[0.05em] text-fg transition-all duration-[var(--duration-base)] ease-[var(--ease-out-quart)]"
           >
-            <Minus className="w-3 h-3" />
-          </button>
-          <span className="text-sm text-black w-8 text-center">{item.quantity}</span>
-          <button
+            {item.quantity}
+          </span>
+          <IconButton
+            aria-label={`Increase quantity for ${item.name}`}
+            size="sm"
+            variant="ghost"
             onClick={handleIncrease}
-            className="w-7 h-7 bg-white border border-gold/15 flex items-center justify-center text-gray-400 hover:text-gold hover:border-gold transition-colors"
-            aria-label="Increase quantity"
-          >
-            <Plus className="w-3 h-3" />
-          </button>
+            icon={<Plus strokeWidth={1.5} />}
+          />
         </div>
       </div>
 
-      {/* Remove Button */}
-      <button
-        onClick={() => removeItem(item.variantId)}
-        className="absolute top-4 right-4 p-1 text-gray-500 hover:text-red-400 transition-colors"
-        aria-label="Remove item"
-      >
-        <X className="w-4 h-4" />
-      </button>
-
-      {/* Line Total */}
-      <div className="text-right flex-shrink-0">
-        <p className="text-sm font-semibold text-black">
+      {/* Right column: remove (top) + line price (bottom). */}
+      <div className="flex flex-col items-end justify-between gap-2">
+        <IconButton
+          aria-label={`Remove ${item.name} from bag`}
+          size="sm"
+          variant="ghost"
+          onClick={() => removeItem(item.variantId)}
+          icon={<X strokeWidth={1.5} />}
+        />
+        <p className="font-body text-[length:var(--font-size-body-sm)] tabular-nums text-fg transition-all duration-[var(--duration-base)] ease-[var(--ease-out-quart)]">
           {formatPrice(item.price * item.quantity)}
         </p>
       </div>
-    </motion.div>
+    </li>
   );
 }
