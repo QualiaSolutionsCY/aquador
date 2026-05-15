@@ -25,7 +25,7 @@ export const revalidate = 600;
 
 async function fetchFeaturedSafe() {
   try {
-    return await getFeaturedProducts(6);
+    return await getFeaturedProducts(12);
   } catch {
     // Supabase unreachable or schema error: degrade gracefully to an empty
     // grid. The rest of the homepage (hero, editorial sections, email capture,

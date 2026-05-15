@@ -96,17 +96,18 @@ export async function getProductsByCategory(category: string): Promise<Product[]
 // Curator's mix for the homepage featured grid. Without this the newest-first
 // fallback pulls a single category (whichever was imported last) and the page
 // reads as a one-brand catalogue instead of an editorial. The mix surfaces
-// Aquad'or's own + curated lines alongside one Lattafa pick.
+// Aquad'or's curated lines (9 slots) alongside Lattafa (3 slots) so the
+// homepage shows breadth, not a one-brand catalogue.
 const FEATURED_MIX: ReadonlyArray<{ category: ProductCategory; take: number }> = [
-  { category: 'niche', take: 2 },
-  { category: 'essence-oil', take: 1 },
-  { category: 'women', take: 1 },
-  { category: 'men', take: 1 },
-  { category: 'lattafa-original', take: 1 },
+  { category: 'niche', take: 3 },
+  { category: 'essence-oil', take: 2 },
+  { category: 'women', take: 2 },
+  { category: 'men', take: 2 },
+  { category: 'lattafa-original', take: 3 },
 ];
 
 // Get featured products (active + in stock only, curated category mix).
-export async function getFeaturedProducts(count: number = 6): Promise<Product[]> {
+export async function getFeaturedProducts(count: number = 12): Promise<Product[]> {
   const supabase = createPublicClient();
 
   const queries = FEATURED_MIX.map(({ category, take }) =>

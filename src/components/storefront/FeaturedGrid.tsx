@@ -1,21 +1,27 @@
+'use client';
+
 /**
- * FeaturedGrid. Magazine-spread editorial product grid (HOME-03).
+ * FeaturedGrid. Homepage editorial product grid (HOME-03).
  *
- * Spec: .planning/DESIGN.md §10b. Hairline-divider section, numbered eyebrow,
- * type-led layout, NO Card wrapper at section level. ProductCard internal use
- * is explicitly allowed by the §10b verifier (interior tile, not section
- * container).
+ * Spec: .planning/DESIGN.md §10b. Hairline-divider section, type-led layout,
+ * NO Card wrapper at section level. ProductCard internal use is explicitly
+ * allowed by the §10b verifier (interior tile, not section container).
  *
- * Layout: 12-column grid at md+, single column on mobile. The lead product
- * spans col-span-7 row-span-2 to dominate visually; remaining items balance
- * around it in a typographic spread (col-span-5, col-span-4) so the eye is
- * pulled left-to-right like a magazine page rather than a uniform retail
- * grid.
+ * Layout (redesigned per owner direction): uniform editorial wall. 2 cols at
+ * sm, 3 at md, 4 at lg. Twelve products visible — a richer mix of Aquad'or
+ * own + niche + Lattafa than the prior six-tile spread. The cards are smaller
+ * so the eye reads the catalogue as a curated wall, not a one-bottle magazine
+ * cover. The lead-dominant magazine grid was good copy, bad commerce — the
+ * owner wants the shopper to see range first.
  *
- * Motion: hover crossfade between primary and secondary image. ProductCard
- * does not natively accept a `secondaryImage` prop, so a co-located
- * `HoverCrossfade` overlay wraps each card and toggles opacity of an
- * absolutely-positioned second `<Image>` on group hover.
+ * Motion (M3 polish, matches Hero parallax at e1676ca):
+ *   - Header rule + h2 cascade in via RevealHeader.
+ *   - Each card reveals via FadeUp with a 60ms stagger (capped at 540ms so
+ *     the last card lands well inside 1s — keeps the page feeling alive
+ *     without making the shopper wait for the bottom row).
+ *   - Image hover crossfade (HoverCrossfade) flips between primary and
+ *     secondary product photo on group hover.
+ *   - Card micro-shift: each <li> lifts 4px on group-hover via translate-y.
  *
  * Named export `FeaturedGridSkeleton` mirrors the grid shape with `<Skeleton>`
  * blocks so the Suspense fallback ships zero cumulative layout shift.
@@ -26,22 +32,15 @@ import { ProductCard } from '@/components/ui/ProductCard';
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { Product } from '@/lib/supabase/types';
 import FadeUp from './FadeUp';
+import RevealHeader from './RevealHeader';
 
 export interface FeaturedGridProps {
   products: Product[];
 }
 
-// Magazine-spread spans: lead dominates, supporting items balance.
-// Items 2 and 3 occupy the right column alongside the lead.
-// Items 4-6 form a triplet beneath, each col-span-4.
-const SPAN_CLASSES = [
-  'md:col-span-7 md:row-span-2', // lead
-  'md:col-span-5', // 2nd
-  'md:col-span-5', // 3rd
-  'md:col-span-4', // 4th
-  'md:col-span-4', // 5th
-  'md:col-span-4', // 6th
-];
+/** Number of cards rendered on the homepage. Tuned to the curated mix in
+    src/lib/supabase/product-service.ts → getFeaturedProducts. */
+const FEATURED_COUNT = 12;
 
 function HoverCrossfade({
   primary,
@@ -53,7 +52,7 @@ function HoverCrossfade({
   alt: string;
 }) {
   // Absolute overlay that fades in over ProductCard's primary image on group
-  // hover. ProductCard's outer `<Link>` carries the `group` class.
+  // hover. ProductCard's outer <Link> carries the `group` class.
   return (
     <div
       aria-hidden="true"
@@ -63,7 +62,7 @@ function HoverCrossfade({
         src={secondary}
         alt={alt}
         fill
-        sizes="(min-width: 768px) 50vw, 100vw"
+        sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
         className="object-cover"
       />
       <span className="sr-only">{primary}</span>
@@ -72,41 +71,36 @@ function HoverCrossfade({
 }
 
 export default function FeaturedGrid({ products }: FeaturedGridProps) {
-  const items = products.slice(0, 6);
+  const items = products.slice(0, FEATURED_COUNT);
 
   return (
     <section className="border-t border-border py-16 md:py-24 px-[var(--page-px)]">
-      <FadeUp className="mb-12 max-w-[var(--container-narrow)]">
-        <span aria-hidden="true" className="block h-px w-12 bg-border-strong" />
-        <h2 className="mt-8 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-h1)]">
-          Six the desk is wearing this week.
-        </h2>
-      </FadeUp>
+      <RevealHeader
+        className="mb-12 max-w-[var(--container-narrow)]"
+        title="What the desk is wearing now."
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-3 md:gap-x-6 lg:grid-cols-4">
         {items.map((product, index) => {
           const secondary = product.images?.[0];
-          const isLead = index === 0;
           return (
-            <FadeUp
-              key={product.id}
-              className={`relative ${SPAN_CLASSES[index] ?? 'md:col-span-4'}`}
-              delay={index * 90}
-            >
-              <div className="relative">
-                <ProductCard product={product} priority={isLead} />
-                {secondary && secondary !== product.image && (
-                  <HoverCrossfade
-                    primary={product.image}
-                    secondary={secondary}
-                    alt={product.name}
-                  />
-                )}
-              </div>
+            <FadeUp key={product.id} delay={Math.min(index * 60, 540)}>
+              <li className="group relative list-none transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] hover:-translate-y-1">
+                <div className="relative">
+                  <ProductCard product={product} priority={index < 4} variant="compact" />
+                  {secondary && secondary !== product.image && (
+                    <HoverCrossfade
+                      primary={product.image}
+                      secondary={secondary}
+                      alt={product.name}
+                    />
+                  )}
+                </div>
+              </li>
             </FadeUp>
           );
         })}
-      </div>
+      </ul>
     </section>
   );
 }
@@ -117,22 +111,19 @@ export function FeaturedGridSkeleton() {
       <div className="mb-12 max-w-[var(--container-narrow)]">
         <span aria-hidden="true" className="block h-px w-12 bg-border-strong" />
         <h2 className="mt-8 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-h1)]">
-          Six the desk is wearing this week.
+          What the desk is wearing now.
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {SPAN_CLASSES.map((span, index) => (
-          <div key={index} className={span}>
-            <Skeleton
-              variant="rect"
-              className="w-full aspect-[4/5]"
-            />
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-3 md:gap-x-6 lg:grid-cols-4">
+        {Array.from({ length: FEATURED_COUNT }).map((_, index) => (
+          <li key={index} className="list-none">
+            <Skeleton variant="rect" className="w-full aspect-[4/5]" />
             <Skeleton variant="text" className="mt-4 w-1/3" />
             <Skeleton variant="text" className="mt-2 w-2/3" />
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </section>
   );
 }
