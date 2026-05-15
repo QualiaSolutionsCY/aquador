@@ -209,6 +209,10 @@ describe('Blog API Routes', () => {
               data: null, // Not an admin
               error: null,
             }),
+            maybeSingle: mockSupabaseSingle.mockResolvedValue({
+              data: null,
+              error: null,
+            }),
           }),
         }),
       });
@@ -241,6 +245,10 @@ describe('Blog API Routes', () => {
             select: mockSupabaseSelect.mockReturnValue({
               eq: mockSupabaseEq.mockReturnValue({
                 single: mockSupabaseSingle.mockResolvedValue({
+                  data: { id: 'admin_1' },
+                  error: null,
+                }),
+                maybeSingle: mockSupabaseSingle.mockResolvedValue({
                   data: { id: 'admin_1' },
                   error: null,
                 }),
@@ -293,6 +301,10 @@ describe('Blog API Routes', () => {
         select: mockSupabaseSelect.mockReturnValue({
           eq: mockSupabaseEq.mockReturnValue({
             single: mockSupabaseSingle.mockResolvedValue({
+              data: { id: 'admin_1' },
+              error: null,
+            }),
+            maybeSingle: mockSupabaseSingle.mockResolvedValue({
               data: { id: 'admin_1' },
               error: null,
             }),
