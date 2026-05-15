@@ -28,7 +28,7 @@ export default function AiConciergeEntry() {
 
   return (
     <>
-      <section className="border-t border-border py-16 md:py-24 px-[var(--page-px)] text-center">
+      <section className="border-t border-border py-24 md:py-32 px-[var(--page-px)] text-center scroll-mt-24">
         <p className="mx-auto max-w-[var(--container-narrow)] font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed">
           A perfumer reads your message and replies within a day.
         </p>
