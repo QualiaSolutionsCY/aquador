@@ -250,7 +250,7 @@
 }
 
 .animate-marquee {
-  animation: marquee 40s linear infinite;
+  animation: marquee 50s linear infinite;
   will-change: transform;
 }
 
@@ -260,6 +260,46 @@
 
 .animate-fade-out-down {
   animation: fade-out-down var(--duration-fast) var(--ease-out-quart) both;
+}
+
+/* ==========================================================================
+   §7. CONCIERGE PULSE — slow breathing shadow on the homepage concierge
+   trigger so the button reads as "live" without becoming a chatbot ring.
+   Token-driven shadow only, never raw rgba. Reduced motion zeros via the
+   global block below.
+   ========================================================================== */
+
+@keyframes concierge-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 oklch(0.20 0.010 80 / 0);
+  }
+  50% {
+    box-shadow: var(--shadow-1);
+  }
+}
+
+.animate-concierge-pulse {
+  animation: concierge-pulse 4.5s var(--ease-in-out-cubic) infinite;
+}
+
+/* ==========================================================================
+   §7. MARQUEE PHRASE PULSE — every fourth phrase in the homepage brand bar
+   gets a slow scale breath (1.0 → 1.04 → 1.0) so the marquee feels languid
+   rather than mechanical. Reduced motion zeros via the global block below.
+   ========================================================================== */
+
+@keyframes marquee-phrase-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+.animate-marquee-phrase-pulse {
+  animation: marquee-phrase-pulse 1.2s var(--ease-in-out-cubic) infinite;
+  display: inline-block;
 }
 
 /* ==========================================================================

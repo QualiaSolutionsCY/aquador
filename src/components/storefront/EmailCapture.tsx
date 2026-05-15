@@ -14,14 +14,27 @@
  * Client-side validation is intentionally minimal (`/.+@.+\..+/`): the
  * server's Zod schema is authoritative. The regex only guards against the
  * obvious "no @" submission so we do not round-trip a clear network failure.
+ *
+ * Motion (M3 polish, matches Hero parallax at e1676ca):
+ *   - The eyebrow + body line reveal in cascade when the section enters view.
+ *   - Two hairline rules around the form draw left-to-right (scaleX 0 → 1) in
+ *     sequence — the top rule first, the bottom rule on a 0.25s delay — so
+ *     the form composes itself like an editorial pull-quote rather than
+ *     dropping in flat.
+ *   - The Subscribe button gets an underline-reveal on hover (sits inside the
+ *     Button's content slot as a span with origin-left scaleX).
+ *   - Reduced motion zeroes via framer-motion's useReducedMotion + tokens.css
+ *     §7.
  */
 
+import { motion, useReducedMotion } from 'framer-motion';
 import { useState, type FormEvent } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 
 const EMAIL_PATTERN = /.+@.+\..+/;
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 interface CaptureResponse {
   ok: boolean;
@@ -31,6 +44,7 @@ interface CaptureResponse {
 
 export default function EmailCapture() {
   const { toast } = useToast();
+  const reducedMotion = useReducedMotion();
   const [email, setEmail] = useState('');
   const [pending, setPending] = useState(false);
 
@@ -93,19 +107,44 @@ export default function EmailCapture() {
     }
   };
 
+  const ruleInitial = reducedMotion ? { scaleX: 1 } : { scaleX: 0 };
+  const textInitial = reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 };
+
   return (
     <section className="border-t border-border py-16 md:py-24 px-[var(--page-px)]">
       <div className="max-w-[var(--container-narrow)]">
-        <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted">
+        <motion.p
+          initial={textInitial}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.9, ease: EASE }}
+          className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted"
+        >
           Write us once. We will write back with three.
-        </p>
-        <p className="mt-6 font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed">
+        </motion.p>
+        <motion.p
+          initial={textInitial}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
+          className="mt-6 font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed"
+        >
           One letter on Fridays. Three fragrances chosen, with a note on each.
-        </p>
+        </motion.p>
+
+        <motion.span
+          aria-hidden="true"
+          initial={ruleInitial}
+          whileInView={{ scaleX: 1 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.7, delay: 0.35, ease: EASE }}
+          style={{ transformOrigin: 'left center' }}
+          className="mt-10 block h-px w-full max-w-[36rem] bg-border"
+        />
 
         <form
           onSubmit={handleSubmit}
-          className="mt-8 flex flex-col sm:flex-row gap-3 max-w-[36rem]"
+          className="mt-6 flex flex-col sm:flex-row gap-3 max-w-[36rem]"
           noValidate
         >
           <div className="flex-1">
@@ -122,16 +161,38 @@ export default function EmailCapture() {
               autoComplete="email"
             />
           </div>
-          <div className="sm:pt-7">
+          <div className="group/cta sm:pt-7">
             <Button type="submit" disabled={pending} isLoading={pending}>
-              Subscribe
+              <span className="relative inline-block">
+                <span>Subscribe</span>
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -bottom-1 left-0 h-px w-full origin-left scale-x-0 bg-current transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover/cta:scale-x-100"
+                />
+              </span>
             </Button>
           </div>
         </form>
 
-        <p className="mt-6 font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
+        <motion.span
+          aria-hidden="true"
+          initial={ruleInitial}
+          whileInView={{ scaleX: 1 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.7, delay: 0.6, ease: EASE }}
+          style={{ transformOrigin: 'left center' }}
+          className="mt-6 block h-px w-full max-w-[36rem] bg-border"
+        />
+
+        <motion.p
+          initial={textInitial}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.9, delay: 0.7, ease: EASE }}
+          className="mt-6 font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted"
+        >
           One letter a week. Unsubscribe at the foot of any letter.
-        </p>
+        </motion.p>
       </div>
     </section>
   );
