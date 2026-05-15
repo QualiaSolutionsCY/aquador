@@ -126,7 +126,7 @@ export default function ChatWidget() {
   const handleLiveSend = async () => {
     if (!liveInput.trim() || !sessionId) return;
     const content = liveInput.trim(); setLiveInput('');
-    // Optimistic update — show message instantly
+    // Optimistic update. show message instantly
     const optimisticMsg: LiveMessage = { id: `opt-${Date.now()}`, sender_type: 'visitor', content, created_at: new Date().toISOString() };
     setLiveMessages(prev => [...prev, optimisticMsg]);
     await supabaseRef.current.from('live_chat_messages').insert({ session_id: sessionId, sender_type: 'visitor', content });
