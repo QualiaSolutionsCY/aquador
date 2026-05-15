@@ -23,6 +23,10 @@ npm test -- src/lib/perfume/__tests__/pricing.test.ts
 npx playwright test e2e/cart.spec.ts
 ```
 
+## Operator Runbooks
+
+- See [docs/stripe-wallets.md](docs/stripe-wallets.md) before testing wallet payments.
+
 ## Architecture
 
 **Next.js 14 App Router** (14.2.35, React 18) luxury perfume e-commerce site for Aquad'or Cyprus.
