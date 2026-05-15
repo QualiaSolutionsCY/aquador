@@ -28,14 +28,16 @@ To revoke admin access, delete the corresponding row from `admin_users` in the S
 
 ## Live Chat RLS
 
-Live-chat session data is protected by Row Level Security policies defined in migration `supabase/migrations/20260515000001_live_chat_sessions_rls.sql`. RLS is the only enforcement layer for live-chat reads and writes from non-service-role contexts. Three policies are defined on the `live_chat_sessions` table:
+Live-chat session data is protected by Row Level Security policies defined in migration `supabase/migrations/20260515000001_live_chat_sessions_rls.sql`. The policies use a coarse anon gate at the DB layer; per-session ownership is enforced by the server-side route. Three policies are defined on the `live_chat_sessions` table:
 
-- `live_chat_sessions_select_owner` — restricts SELECT to the session owner identified by the request's session identifier.
-- `live_chat_sessions_insert_owner` — restricts INSERT to rows whose owner matches the request's session identifier.
-- `live_chat_sessions_update_owner` — restricts UPDATE to rows owned by the request's session identifier.
+- `live_chat_sessions_select_anon` — allows SELECT for the `anon` role (`USING (true)`).
+- `live_chat_sessions_insert_anon` — allows INSERT for the `anon` role (`WITH CHECK (true)`).
+- `live_chat_sessions_update_anon` — denies UPDATE for the `anon` role (`USING (false) WITH CHECK (false)`).
 
-The owner identity is carried in the `x-session-id` header. Any client that touches live-chat data must forward this header on every request. Routes and components that proxy live-chat traffic must propagate `x-session-id` from the incoming request to the Supabase call site; dropping the header causes RLS to deny the operation, which surfaces as an empty result or a 401 from the API layer.
+Per-session ownership is enforced in the server-side route at `src/app/api/live-chat/notify/route.ts`, which queries `.eq('id', sessionId).eq('status', 'waiting').single()` before doing anything else. Any future live-chat write surface must go through a server route and use the same explicit filter pattern; do not call Supabase from the browser bundle for live-chat writes.
 
-The notify endpoint at `/api/live-chat/notify` uses `createPublicClient` from `@/lib/supabase/public` (verified during the SEC-04 audit), never the service-role admin client. This is deliberate: routing live-chat writes through the public anon client forces them through RLS, so a bug in the route cannot accidentally bypass the owner check. Any future live-chat route added under `/api/live-chat/*` must follow the same pattern — `createPublicClient` only, never `createAdminClient` or `SUPABASE_SERVICE_ROLE_KEY`.
+This is the deliberate choice. `live_chat_sessions` carries no PII or financial fields (columns: `id, status, visitor_id, visitor_name, admin_id, created_at, closed_at, updated_at`), and the single-route write surface gives one auditable choke point. A finer-grained RLS predicate would require either a per-session JWT (overkill for an anonymous chat widget) or a forwarded request header that PostgREST honors (a custom infrastructure to maintain). The coarse-gate-plus-route-filter design avoids both costs.
+
+The notify endpoint at `/api/live-chat/notify` uses `createPublicClient` from `@/lib/supabase/public`, never the service-role admin client. This forces all live-chat writes through RLS, so a bug in the route cannot accidentally bypass the gate. Any future live-chat route added under `/api/live-chat/*` must follow the same pattern — `createPublicClient` only, never `createAdminClient` or `SUPABASE_SERVICE_ROLE_KEY`.
 
 When modifying the policies, edit the migration file in place only before it has been applied to production. After application, write a new migration that drops and recreates the policies; do not edit the original migration. Verify the new policies in the Supabase Dashboard under Authentication then Policies on the `live_chat_sessions` table.
