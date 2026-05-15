@@ -1241,3 +1241,7 @@ body {
   @apply border-gold/10 my-6;
 }
 
+.storefront-sticky-atc[data-elevated="true"] {
+  box-shadow: var(--shadow-1);
+}
+

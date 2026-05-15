@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui';
 import { cn } from '@/lib/utils';
@@ -24,6 +24,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
 
   const [isHovering, setIsHovering] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const visibleIndex = isHovering && safeImages[1] ? 1 : 0;
   const activeIndex = lightboxIndex ?? visibleIndex;
   const activeImage = safeImages[activeIndex] ?? safeImages[0];
@@ -55,6 +56,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         aria-label={`Open ${productName} gallery`}
         className="group relative block aspect-[3/4] w-full overflow-hidden border border-border bg-bg-alt text-left lg:min-h-[800px]"
@@ -84,7 +86,15 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         )}
       </button>
 
-      <Dialog open={lightboxIndex !== null} onOpenChange={(open) => !open && setLightboxIndex(null)}>
+      <Dialog
+        open={lightboxIndex !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setLightboxIndex(null);
+            requestAnimationFrame(() => triggerRef.current?.focus());
+          }
+        }}
+      >
         <DialogContent
           hideCloseButton
           className="max-h-[92vh] max-w-[min(92vw,72rem)] gap-6 overflow-hidden p-4 md:p-6"
