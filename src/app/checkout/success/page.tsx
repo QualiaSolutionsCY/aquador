@@ -2,275 +2,100 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { CheckCircle, Package, ArrowRight, XCircle } from 'lucide-react';
 import * as Sentry from '@sentry/nextjs';
+import { buttonVariants } from '@/components/ui';
 import { useCart } from '@/components/cart';
-import { formatPrice } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface OrderData {
   orderNumber: string;
-  items: Array<{ name: string; quantity: number; price: number; size: string }>;
   total: number;
-  shipping: number;
   currency: string;
 }
 
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams();
   const { clearCart } = useCart();
-  const [loading, setLoading] = useState(true);
   const [orderData, setOrderData] = useState<OrderData | null>(null);
-  const [error, setError] = useState(false);
 
-  // Fetch order details from session
+  // Stripe redirects with ?session_id={CHECKOUT_SESSION_ID}.
+  // We preserve the parsing so the receipt line can render the order number,
+  // but the page does NOT block on it; the editorial copy stands alone.
   useEffect(() => {
     const sessionId = searchParams.get('session_id');
+    if (!sessionId) return;
 
-    if (!sessionId) {
-      setError(true);
-      setLoading(false);
-      return;
-    }
-
+    let cancelled = false;
     fetch(`/api/checkout/session-details?session_id=${sessionId}`)
       .then(async (response) => {
-        if (!response.ok) {
-          throw new Error('Failed to fetch session details');
-        }
+        if (!response.ok) throw new Error('session-details fetch failed');
         return response.json();
       })
       .then((data) => {
+        if (cancelled) return;
         setOrderData({
           orderNumber: data.orderNumber,
-          items: data.items,
-          total: data.total / 100, // Convert cents to euros
-          shipping: (data.shipping || 0) / 100,
+          total: (data.total ?? 0) / 100,
           currency: data.currency,
         });
         clearCart();
-        setLoading(false);
       })
       .catch((err) => {
         Sentry.addBreadcrumb({
           category: 'checkout-success',
           message: 'Error fetching order details',
           level: 'error',
-          data: { error: err }
+          data: { error: err },
         });
-        setError(true);
-        setLoading(false);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [searchParams, clearCart]);
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gold-ambient pt-32 md:pt-40 lg:pt-44 pb-16">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-            className="w-24 h-24 bg-green-500/20  flex items-center justify-center mx-auto mb-8"
-          >
-            <CheckCircle className="w-12 h-12 text-green-500" />
-          </motion.div>
-          <p className="text-xl text-gray-400">Processing your order...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state
-  if (error || !orderData) {
-    return (
-      <div className="min-h-screen bg-gold-ambient pt-32 md:pt-40 lg:pt-44 pb-16">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-            className="w-24 h-24 bg-red-500/20  flex items-center justify-center mx-auto mb-8"
-          >
-            <XCircle className="w-12 h-12 text-red-500" />
-          </motion.div>
-          <h1 className="text-3xl font-playfair text-black mb-4">
-            Unable to Load Order Details
-          </h1>
-          <p className="text-gray-400 mb-8">
-            We couldn&apos;t retrieve your order information. Please contact us for assistance.
-          </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gold text-black text-[12px] uppercase tracking-[0.12em] font-medium hover:bg-gold-light transition-all duration-300"
-          >
-            Contact Us
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // Success state with order details
-  const shipping = orderData.shipping;
-  const subtotal = orderData.total - shipping;
-
   return (
-    <div className="min-h-screen bg-gold-ambient pt-32 md:pt-40 lg:pt-44 pb-16">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-          className="w-24 h-24 bg-green-500/20  flex items-center justify-center mx-auto mb-8"
-        >
-          <CheckCircle className="w-12 h-12 text-green-500" />
-        </motion.div>
+    <section className="min-h-screen bg-bg flex items-center justify-center px-6 py-24">
+      <div className="max-w-[42rem] w-full border-t border-border pt-16">
+        <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted">
+          Confirmed
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-4xl md:text-5xl font-playfair text-black mb-4">
-            Thank You!
-          </h1>
-          <p className="text-xl text-gray-600 mb-2">
-            Your order has been confirmed
-          </p>
-          <p className="text-2xl text-gold font-semibold">
-            {orderData.orderNumber}
-          </p>
-        </motion.div>
+        <h1 className="mt-6 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-display-xl)]">
+          It&apos;s ours to send now.
+        </h1>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white border border-gold/10 p-8 md:p-10 mb-8"
-        >
-          <h2 className="text-xl font-playfair text-black mb-6">Order Details</h2>
+        <p className="mt-8 font-body text-fg-muted text-[length:var(--font-size-body-lg)] leading-relaxed max-w-[36rem]">
+          You&apos;ll have it in three days, maybe four. The notes settle best
+          after the first wear; let it find its skin.
+        </p>
 
-          {/* Items table */}
-          <div className="overflow-x-auto mb-6">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-gold/20">
-                  <th className="pb-3 text-sm font-medium text-gray-400">Product</th>
-                  <th className="pb-3 text-sm font-medium text-gray-400 text-center">Size</th>
-                  <th className="pb-3 text-sm font-medium text-gray-400 text-center">Qty</th>
-                  <th className="pb-3 text-sm font-medium text-gray-400 text-right">Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orderData.items.map((item, index) => (
-                  <tr key={index} className="border-b border-gold/10">
-                    <td className="py-4 text-black">{item.name}</td>
-                    <td className="py-4 text-gray-400 text-center">{item.size}</td>
-                    <td className="py-4 text-gray-400 text-center">{item.quantity}</td>
-                    <td className="py-4 text-black text-right">{formatPrice(item.price)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {orderData && (
+          <div className="mt-10 border-t border-border pt-6">
+            <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
+              Order
+            </p>
+            <p className="mt-2 font-body text-fg text-[length:var(--font-size-body)]">
+              {orderData.orderNumber}
+            </p>
           </div>
+        )}
 
-          {/* Totals */}
-          <div className="space-y-2 border-t border-gold/20 pt-4">
-            <div className="flex justify-between text-gray-400">
-              <span>Subtotal</span>
-              <span>{formatPrice(subtotal)}</span>
-            </div>
-            <div className="flex justify-between text-gray-400">
-              <span>Shipping</span>
-              {shipping === 0 ? (
-                <span className="text-green-500 font-semibold">FREE</span>
-              ) : (
-                <span>{formatPrice(shipping)}</span>
-              )}
-            </div>
-            <div className="flex justify-between text-xl font-semibold text-black pt-2 border-t border-gold/20">
-              <span>Total</span>
-              <span className="text-gold">{formatPrice(orderData.total)}</span>
-            </div>
-          </div>
-
-          <p className="text-sm text-gray-500 mt-6 pt-6 border-t border-gold/20">
-            Expect delivery within <strong className="text-black">1-2 business days</strong>
-          </p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-white  p-8 border border-gold/20 mb-8"
-        >
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="w-12 h-12 bg-gold/20  flex items-center justify-center">
-              <Package className="w-6 h-6 text-gold" />
-            </div>
-            <div className="text-left">
-              <h3 className="text-black font-semibold">What happens next?</h3>
-              <p className="text-gray-400 text-sm">We&apos;ll send you a confirmation email shortly</p>
-            </div>
-          </div>
-
-          <div className="space-y-4 text-left">
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6  bg-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-gold text-xs font-bold">1</span>
-              </div>
-              <div>
-                <p className="text-black text-sm font-medium">Order Confirmation</p>
-                <p className="text-gray-500 text-xs">You&apos;ll receive an email with your order details</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6  bg-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-gold text-xs font-bold">2</span>
-              </div>
-              <div>
-                <p className="text-black text-sm font-medium">Preparation</p>
-                <p className="text-gray-500 text-xs">Our team will carefully prepare your fragrances</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6  bg-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-gold text-xs font-bold">3</span>
-              </div>
-              <div>
-                <p className="text-black text-sm font-medium">Shipping</p>
-                <p className="text-gray-500 text-xs">Expect delivery within 1-2 business days</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-        >
+        <div className="mt-12 border-t border-border pt-8">
           <Link
             href="/shop"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gold text-black text-[12px] uppercase tracking-[0.12em] font-medium hover:bg-gold-light transition-all duration-300"
+            className={cn(
+              buttonVariants.base,
+              buttonVariants.variants.ghost,
+              buttonVariants.sizes.lg,
+              'px-0',
+            )}
           >
-            Continue Shopping
-            <ArrowRight className="w-4 h-4" />
+            Continue reading the collection
           </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-gold/40 text-gold text-[12px] uppercase tracking-[0.12em] font-medium hover:bg-gold hover:text-black transition-all duration-300"
-          >
-            Back to Home
-          </Link>
-        </motion.div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

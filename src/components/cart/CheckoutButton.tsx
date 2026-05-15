@@ -1,18 +1,18 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
 import { track } from '@vercel/analytics';
 import * as Sentry from '@sentry/nextjs';
+import { Button, useToast } from '@/components/ui';
 import { useCart } from './CartProvider';
 
 export default function CheckoutButton() {
   const { cart } = useCart();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     return () => {
@@ -22,7 +22,7 @@ export default function CheckoutButton() {
     };
   }, []);
 
-  const handleCheckout = async () => {
+  const handleCheckout = useCallback(async () => {
     if (isProcessing) return;
 
     if (abortControllerRef.current) {
@@ -31,13 +31,15 @@ export default function CheckoutButton() {
 
     setIsProcessing(true);
     setIsLoading(true);
-    setError(null);
 
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
     // Track checkout started
-    const totalValue = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const totalValue = cart.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
     track('checkout_started', {
       item_count: cart.items.length,
       total_value: totalValue,
@@ -71,43 +73,49 @@ export default function CheckoutButton() {
         category: 'checkout-button',
         message: 'Checkout error',
         level: 'error',
-        data: { error: err }
+        data: { error: err },
       });
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      toast({
+        variant: 'error',
+        title: 'Could not start checkout',
+        description:
+          err instanceof Error ? err.message : 'Something went wrong',
+      });
     } finally {
       setIsProcessing(false);
       setIsLoading(false);
       abortControllerRef.current = null;
     }
-  };
+  }, [cart.items, isProcessing, toast]);
+
+  const isDisabled = isLoading || isProcessing || cart.items.length === 0;
 
   return (
-    <div className="space-y-2">
-      <motion.button
+    <div className="space-y-3">
+      <Button
+        variant="primary"
+        size="lg"
+        className="w-full"
+        disabled={isDisabled}
         onClick={handleCheckout}
-        disabled={isLoading || isProcessing || cart.items.length === 0}
-        whileHover={{ scale: isLoading ? 1 : 1.02 }}
-        whileTap={{ scale: isLoading ? 1 : 0.98 }}
-        className="w-full py-4 bg-gold text-black text-[12px] uppercase tracking-[0.12em] font-medium flex items-center justify-center gap-2 hover:bg-gold-light transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_2px_16px_rgba(212,175,55,0.15)] hover:shadow-[0_4px_24px_rgba(212,175,55,0.3)]"
+        aria-busy={isLoading || undefined}
       >
         {isLoading ? (
           <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Processing...
+            <Loader2
+              aria-hidden="true"
+              className="size-4 animate-spin"
+              strokeWidth={1.5}
+            />
+            Working
           </>
         ) : (
-          <>
-            Proceed to Checkout
-          </>
+          'Continue to checkout'
         )}
-      </motion.button>
+      </Button>
 
-      {error && (
-        <p className="text-red-400 text-sm text-center">{error}</p>
-      )}
-
-      <p className="text-xs text-gray-500 text-center">
-        Secure checkout powered by Stripe
+      <p className="text-center font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
+        Secure payment, encrypted.
       </p>
     </div>
   );

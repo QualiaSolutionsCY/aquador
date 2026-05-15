@@ -1,97 +1,62 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { XCircle, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { Button, buttonVariants } from '@/components/ui';
+import { cn } from '@/lib/utils';
 import { useCart } from '@/components/cart';
+import { useRouter } from 'next/navigation';
 
 export default function CheckoutCancelPage() {
   const { openCart, itemCount } = useCart();
+  const router = useRouter();
+
+  // Editorial choice: route back to /shop and reopen the drawer in-place via
+  // the existing CartProvider context. This avoids a query-param hook on the
+  // root layout and keeps the cancel page a pure leaf.
+  const handleReturnToBag = () => {
+    if (itemCount > 0) {
+      openCart();
+    }
+    router.push('/shop');
+  };
 
   return (
-    <div className="min-h-screen bg-gold-ambient pt-32 md:pt-40 lg:pt-44 pb-16">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-          className="w-24 h-24 bg-gray-500/20  flex items-center justify-center mx-auto mb-8"
-        >
-          <XCircle className="w-12 h-12 text-gray-400" />
-        </motion.div>
+    <section className="min-h-screen bg-bg flex items-center justify-center px-6 py-24">
+      <div className="max-w-[42rem] w-full border-t border-border pt-16">
+        <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted">
+          Held back
+        </p>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-4xl md:text-5xl font-playfair text-black mb-4"
-        >
-          Checkout Cancelled
-        </motion.h1>
+        <h1 className="mt-6 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-display-xl)]">
+          Not this time, then.
+        </h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-xl text-gray-400 mb-8"
-        >
-          No worries! Your cart is still waiting for you.
-        </motion.p>
+        <p className="mt-8 font-body text-fg-muted text-[length:var(--font-size-body-lg)] leading-relaxed max-w-[36rem]">
+          Your bag is waiting; the prices haven&apos;t moved. Take it back up
+          when you&apos;re ready.
+        </p>
 
-        {itemCount > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-white  p-8 border border-gold/20 mb-8"
+        <div className="mt-12 border-t border-border pt-8 flex flex-col sm:flex-row gap-4 sm:items-center">
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={handleReturnToBag}
           >
-            <div className="flex items-center justify-center gap-4">
-              <div className="w-12 h-12 bg-gold/20  flex items-center justify-center">
-                <ShoppingBag className="w-6 h-6 text-gold" />
-              </div>
-              <div className="text-left">
-                <h3 className="text-black font-semibold">Your cart is saved</h3>
-                <p className="text-gray-400 text-sm">
-                  {itemCount} {itemCount === 1 ? 'item' : 'items'} still in your cart
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-        >
-          {itemCount > 0 && (
-            <button
-              onClick={openCart}
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gold text-black text-[12px] uppercase tracking-[0.12em] font-medium hover:bg-gold-light transition-all duration-300"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              Return to Cart
-            </button>
-          )}
+            Return to bag
+          </Button>
           <Link
             href="/shop"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-gold/40 text-gold text-[12px] uppercase tracking-[0.12em] font-medium hover:bg-gold hover:text-black transition-all duration-300"
+            className={cn(
+              buttonVariants.base,
+              buttonVariants.variants.ghost,
+              buttonVariants.sizes.lg,
+              'px-0',
+            )}
           >
-            <ArrowLeft className="w-4 h-4" />
-            Continue Shopping
+            Read the collection
           </Link>
-        </motion.div>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-8 text-gray-500 text-sm"
-        >
-          Need help? <Link href="/contact" className="text-gold hover:text-gold-light">Contact us</Link>
-        </motion.p>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
