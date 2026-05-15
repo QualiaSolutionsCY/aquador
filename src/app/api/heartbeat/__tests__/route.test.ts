@@ -7,17 +7,17 @@ import { NextRequest } from 'next/server';
 const mockCheckRateLimit = jest.fn();
 const mockSupabaseFrom = jest.fn();
 const mockSupabaseUpsert = jest.fn();
-const mockSupabaseDelete = jest.fn();
-const mockSupabaseLt = jest.fn();
 
 // Mock rate limiter
 jest.mock('@/lib/rate-limit', () => ({
   checkRateLimit: (...args: any[]) => mockCheckRateLimit(...args),
 }));
 
-// Mock Supabase admin client
-jest.mock('@/lib/supabase/admin', () => ({
-  createAdminClient: jest.fn(() => ({
+// Mock Supabase public (anon) client — heartbeat now uses createPublicClient
+// after SEC-02 removed the admin-client dependency. Stale-row cleanup is handled
+// by pg_cron, so the route no longer calls .delete().lt(...).
+jest.mock('@/lib/supabase/public', () => ({
+  createPublicClient: jest.fn(() => ({
     from: (...args: any[]) => mockSupabaseFrom(...args),
   })),
 }));
@@ -61,15 +61,11 @@ describe('POST /api/heartbeat', () => {
 
     // Default Supabase responses
     mockSupabaseUpsert.mockResolvedValue({ data: null, error: null });
-    mockSupabaseLt.mockResolvedValue({ data: null, error: null });
 
     mockSupabaseFrom.mockImplementation((table: string) => {
       if (table === 'site_visitors') {
         return {
           upsert: mockSupabaseUpsert,
-          delete: jest.fn().mockReturnValue({
-            lt: mockSupabaseLt,
-          }),
         };
       }
       return {};
@@ -137,18 +133,6 @@ describe('POST /api/heartbeat', () => {
       expect(upsertCall.country).toBe('CY');
     });
 
-    it('should cleanup stale visitors', async () => {
-      const request = createMockRequest({
-        sessionId: 'sess_cleanup_test',
-      });
-
-      await POST(request);
-
-      // Verify delete was called to cleanup old records
-      expect(mockSupabaseLt).toHaveBeenCalled();
-      const ltArg = mockSupabaseLt.mock.calls[0][0];
-      expect(ltArg).toBe('last_seen');
-    });
   });
 
   describe('Validation', () => {
