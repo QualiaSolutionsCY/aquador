@@ -151,6 +151,44 @@ export async function getRelatedProducts(
   return data || [];
 }
 
+export async function getProductOrdersCount(
+  productId: string,
+  days: number
+): Promise<number | null> {
+  const supabase = createPublicClient();
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data, error } = await supabase
+    .from('orders')
+    .select('items')
+    .gte('created_at', since);
+
+  if (error) {
+    Sentry.addBreadcrumb({
+      category: 'product-service',
+      message: 'Orders count unavailable for social proof',
+      level: 'warning',
+      data: { error, productId, days },
+    });
+    return null;
+  }
+
+  return (data || []).reduce((total, order) => {
+    const items = Array.isArray(order.items) ? order.items : [];
+    const matches = items.filter((item) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return false;
+      const record = item as Record<string, unknown>;
+      return (
+        record.productId === productId ||
+        record.product_id === productId ||
+        record.id === productId
+      );
+    });
+
+    return total + matches.length;
+  }, 0);
+}
+
 // Search products (active only, sanitized against PostgREST injection)
 export async function searchProducts(query: string): Promise<Product[]> {
   const supabase = createPublicClient();
