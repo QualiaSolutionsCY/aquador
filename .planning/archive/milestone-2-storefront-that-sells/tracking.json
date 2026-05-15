@@ -1,0 +1,55 @@
+{
+  "project": "Aquad'or",
+  "client": "Aquad'or Cyprus",
+  "type": "ecommerce",
+  "assigned_to": "",
+  "team_id": "",
+  "project_id": "",
+  "git_remote": "",
+  "milestone": 2,
+  "milestone_name": "Storefront That Sells",
+  "milestones": [
+    {
+      "num": 1,
+      "name": "Design Foundation",
+      "total_phases": 3,
+      "phases_completed": 3,
+      "tasks_completed": 13,
+      "shipped_url": "",
+      "closed_at": "2026-05-14T23:08:03.132Z"
+    }
+  ],
+  "phase": 5,
+  "phase_name": "Builder + AI Concierge",
+  "total_phases": 5,
+  "status": "verified",
+  "wave": 0,
+  "tasks_done": 4,
+  "tasks_total": 4,
+  "verification": "pass",
+  "gap_cycles": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0
+  },
+  "blockers": [],
+  "session_started_at": "2026-05-14T23:11:24.244Z",
+  "last_updated": "2026-05-15T05:44:26Z",
+  "last_pushed_at": "2026-05-15T05:44:26Z",
+  "last_commit": "ef680b0",
+  "build_count": 8,
+  "deploy_count": 0,
+  "deployed_url": "",
+  "notes": "Session paused mid Wave 1 of M2 Phase 2.2 — T1+T2 committed, T3 files on disk untracked. See .continue-here.md",
+  "submitted_by": "",
+  "lifetime": {
+    "tasks_completed": 28,
+    "phases_completed": 8,
+    "milestones_completed": 1,
+    "total_phases": 3,
+    "last_closed_milestone": 1
+  },
+  "report_seq": 0
+}

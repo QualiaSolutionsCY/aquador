@@ -147,7 +147,7 @@ User-centric, atomic, testable. One REQ-ID per requirement. Grouped by milestone
 | Milestone | Phases | REQ-IDs |
 |---|---|---|
 | M1 Design Foundation | 1.1, 1.2, 1.3 | DESIGN-01..04, STACK-01..03, TYPE-01..02, PRIM-01..05 — **Complete** (shipped 2026-05-15) |
-| M2 Storefront That Sells | 2.1..2.5 | HOME-01..05, PDP-01..06, SHOP-01..04, CART-01..05, CREATE-01..04, AI-01..03, TRUST-01..03 |
+| M2 Storefront That Sells | 2.1..2.5 | HOME-01..05, PDP-01..06, SHOP-01..04, CART-01..05, CREATE-01..04, AI-01..03, TRUST-01..03 — **Complete** (shipped 2026-05-15) |
 | M3 Admin Rebuild | 3.1..3.4 | SEC-01..04, DASH-01..05, ADMIN-01..08 |
 | M4 Handoff | 4.1..4.4 | POLISH-01..04, SEO-01..04, QA-01..03, HAND-01..04 |
 

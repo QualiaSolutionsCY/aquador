@@ -1,13 +1,13 @@
 {
   "project": "Aquad'or",
-  "client": "Aquad'or Cyprus",
-  "type": "ecommerce",
+  "client": "Aquad'or Cyprus (internal — Qualia owns)",
+  "type": "full",
   "assigned_to": "",
   "team_id": "",
   "project_id": "",
   "git_remote": "",
-  "milestone": 2,
-  "milestone_name": "Storefront That Sells",
+  "milestone": 3,
+  "milestone_name": "Admin Rebuild",
   "milestones": [
     {
       "num": 1,
@@ -17,39 +17,41 @@
       "tasks_completed": 13,
       "shipped_url": "",
       "closed_at": "2026-05-14T23:08:03.132Z"
+    },
+    {
+      "num": 2,
+      "name": "Storefront That Sells",
+      "total_phases": 5,
+      "phases_completed": 5,
+      "tasks_completed": 15,
+      "shipped_url": "",
+      "closed_at": "2026-05-15T05:45:24.148Z"
     }
   ],
-  "phase": 5,
-  "phase_name": "Builder + AI Concierge",
-  "total_phases": 5,
-  "status": "verified",
+  "phase": 1,
+  "phase_name": "Admin Security & Reset",
+  "total_phases": 4,
+  "status": "setup",
   "wave": 0,
-  "tasks_done": 4,
-  "tasks_total": 4,
-  "verification": "pass",
-  "gap_cycles": {
-    "1": 0,
-    "2": 0,
-    "3": 0,
-    "4": 0,
-    "5": 0
-  },
+  "tasks_done": 0,
+  "tasks_total": 0,
+  "verification": "pending",
+  "gap_cycles": {},
   "blockers": [],
-  "session_started_at": "2026-05-14T23:11:24.244Z",
-  "last_updated": "2026-05-15T05:44:26Z",
+  "session_started_at": "2026-05-15T05:48:55.654Z",
+  "last_updated": "2026-05-15T05:48:55.654Z",
   "last_pushed_at": "2026-05-15T05:44:26Z",
   "last_commit": "ef680b0",
   "build_count": 8,
   "deploy_count": 0,
   "deployed_url": "",
-  "notes": "Session paused mid Wave 1 of M2 Phase 2.2 — T1+T2 committed, T3 files on disk untracked. See .continue-here.md",
+  "notes": "",
   "submitted_by": "",
   "lifetime": {
     "tasks_completed": 28,
     "phases_completed": 8,
-    "milestones_completed": 1,
-    "total_phases": 3,
-    "last_closed_milestone": 1
-  },
-  "report_seq": 0
+    "milestones_completed": 2,
+    "total_phases": 8,
+    "last_closed_milestone": 2
+  }
 }
