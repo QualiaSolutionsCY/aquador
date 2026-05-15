@@ -23,14 +23,12 @@ import {
   GENDER_OPTIONS,
   NOTES_FAMILY_OPTIONS,
   PRICE_BANDS,
-  SORT_OPTIONS,
 } from '@/lib/constants';
 import type { Product } from '@/lib/supabase/types';
 
 /** Sort keys for the shop sort dropdown. */
 export type SortKey = 'featured' | 'price-asc' | 'price-desc' | 'newest';
 
-const SORT_KEYS = SORT_OPTIONS.map((o) => o.id) as readonly SortKey[];
 const CATEGORY_IDS = CATEGORY_OPTIONS.map((c) => c.id);
 const GENDER_IDS = GENDER_OPTIONS.map((g) => g.id) as readonly string[];
 const BRAND_IDS = BRAND_OPTIONS.map((b) => b.id) as readonly string[];
