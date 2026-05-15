@@ -37,6 +37,7 @@
     "@stripe/stripe-js": "^8.6.3",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.91.0",
+    "@tiptap/extension-image": "^3.23.4",
     "@tiptap/extension-underline": "^3.19.0",
     "@tiptap/react": "^3.19.0",
     "@tiptap/starter-kit": "^3.19.0",
