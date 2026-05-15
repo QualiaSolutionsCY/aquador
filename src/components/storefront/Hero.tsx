@@ -230,7 +230,7 @@ export default function Hero() {
 
         <div className="absolute right-6 bottom-6 z-10 hidden items-center gap-3 lg:flex">
           <span className="h-px w-12 bg-fg/40" aria-hidden="true" />
-          <p className="font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-bg/90 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
+          <p className="font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-bg/90 [text-shadow:0_1px_2px_oklch(0.10_0_0_/_0.4)]">
             Composition no. 04, on bone linen.
           </p>
         </div>

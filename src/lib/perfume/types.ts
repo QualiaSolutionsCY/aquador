@@ -5,7 +5,13 @@ export type PerfumeVolume = '50ml' | '100ml'
 export interface FragranceNote {
   name: string
   category: FragranceCategory
-  icon: string
+  /**
+   * @deprecated v2.0 emoji icon. Not rendered anywhere in v3.0; kept optional
+   * to avoid breaking the existing notes.ts entries (which still set the field
+   * for back-compat with the prebuild AI catalogue script). Remove entirely
+   * after the next prebuild snapshot regen.
+   */
+  icon?: string
   color: string
   description: string
 }

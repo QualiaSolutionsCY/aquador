@@ -70,7 +70,7 @@ export async function PUT(
     .from('admin_users')
     .select('id')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
   if (!adminUser) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -130,7 +130,7 @@ export async function DELETE(
     .from('admin_users')
     .select('id')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
   if (!adminUser) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

@@ -39,7 +39,7 @@ export default function AboutPage() {
         title="Our Story"
         subtitle="Aquad'or was born from a deep passion for the art of perfumery and a desire to bring the world's finest fragrances to Cyprus."
         backgroundImage="https://images.unsplash.com/photo-1541643600914-78b084683601?w=1920&q=80"
-        eyebrow="Est. 2024 — Nicosia, Cyprus"
+        eyebrow="Est. 2024, Nicosia, Cyprus"
       />
 
       {/* Story Section — editorial asymmetric layout */}
@@ -65,7 +65,7 @@ export default function AboutPage() {
                   Founded in the heart of Nicosia, Aquad&apos;or has established itself as Cyprus&apos;s premier destination for luxury fragrances. Our curated collection features high-end and niche perfumes from globally recognized brands.
                 </p>
                 <p>
-                  We believe that fragrance is more than just a scent — it&apos;s an expression of identity, a memory captured in a bottle, and a journey of the senses.
+                  We believe that fragrance is more than just a scent. It&apos;s an expression of identity, a memory captured in a bottle, and a journey of the senses.
                 </p>
               </div>
 

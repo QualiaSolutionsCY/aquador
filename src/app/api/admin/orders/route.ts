@@ -43,12 +43,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify user is an admin
+    // Verify user is an admin. maybeSingle so a non-admin returns clean 403 instead of 500.
     const { data: adminUser } = await authSupabase
       .from('admin_users')
       .select('id')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (!adminUser) {
       return NextResponse.json(

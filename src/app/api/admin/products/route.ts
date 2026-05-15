@@ -72,7 +72,7 @@ async function requireAdmin(request: NextRequest) {
     .from('admin_users')
     .select('id')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
   if (!adminUser) {
     return {
       ok: false as const,

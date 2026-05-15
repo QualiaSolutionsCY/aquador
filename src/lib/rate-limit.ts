@@ -77,6 +77,19 @@ export const rateLimiters = {
         prefix: 'ratelimit:live-chat-notify',
       })
     : null,
+
+  // Email capture: 3 subscribe attempts per minute per IP. Combined with the
+  // honeypot field on the form, this raises the cost of mailing-list pollution
+  // beyond the gain. RLS on `subscribers` already gates inserts to anon, but
+  // the policy is `with_check (email ~ <regex>)` only — no rate limit there.
+  'email-capture': isConfigured && redis
+    ? new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(3, '1 m'),
+        analytics: true,
+        prefix: 'ratelimit:email-capture',
+      })
+    : null,
 };
 
 export type RateLimiterKey = keyof typeof rateLimiters;

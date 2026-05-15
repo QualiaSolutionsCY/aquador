@@ -26,11 +26,18 @@ export async function POST(request: NextRequest) {
     // handled by pg_cron — see supabase/migrations/20260515000000_heartbeat_pg_cron_cleanup.sql
     const supabase = createPublicClient();
 
-    // Hash the IP for privacy
+    // Hash the IP for privacy. HEARTBEAT_SALT must be set in production —
+    // a static fallback would let anyone reconstruct visitor IPs from a table dump.
+    const salt = process.env.HEARTBEAT_SALT;
+    if (!salt) {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json({ error: 'Heartbeat misconfigured' }, { status: 503 });
+      }
+    }
     const forwarded = request.headers.get('x-forwarded-for');
     const ip = forwarded?.split(',')[0]?.trim() || 'unknown';
     const encoder = new TextEncoder();
-    const data = encoder.encode(ip + (process.env.HEARTBEAT_SALT || 'aquador'));
+    const data = encoder.encode(ip + (salt || 'dev-only-salt'));
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const ipHash = Array.from(new Uint8Array(hashBuffer))
       .map(b => b.toString(16).padStart(2, '0'))

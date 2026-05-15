@@ -187,11 +187,15 @@ export async function POST(request: NextRequest) {
 
   const requestId = getRequestId(request);
 
+  if (!API_KEY) {
+    Sentry.captureMessage('AI API key not configured', { level: 'error' });
+    return NextResponse.json(
+      { error: 'AI concierge is not configured' },
+      { status: 503 },
+    );
+  }
+
   try {
-    if (!API_KEY) {
-      Sentry.captureMessage('AI API key not configured', { level: 'error' });
-      throw new Error('AI API key not configured');
-    }
 
     const body = await request.json();
     const result = aiAssistantSchema.safeParse(body);

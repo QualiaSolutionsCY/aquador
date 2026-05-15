@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
         .from('admin_users')
         .select('id')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       if (!adminUser) {
         query = query.eq('status', 'published');
       }
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     .from('admin_users')
     .select('id')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
   if (!adminUser) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
