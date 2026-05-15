@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { createClient } from '@supabase/supabase-js';
+import { createPublicClient } from '@/lib/supabase/public';
 import { getAllProductSlugs } from '@/lib/supabase/product-service';
 
 export const dynamic = 'force-dynamic';
@@ -45,10 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Blog posts - use a cookie-free client since sitemap has no request context
   let blogPages: MetadataRoute.Sitemap = [];
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const supabase = createPublicClient();
     const { data: posts } = await supabase
       .from('blog_posts')
       .select('slug, published_at, updated_at')
