@@ -1,4 +1,4 @@
-import { RotateCcw, ShieldCheck, Truck, type LucideIcon } from 'lucide-react';
+import { LockKeyhole, RotateCcw, ShieldCheck, Truck, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface TrustBarProps {
@@ -10,6 +10,7 @@ const TRUST_ITEMS: Array<{ icon: LucideIcon; label: string }> = [
   { icon: Truck, label: 'Ships in three days' },
   { icon: RotateCcw, label: 'Returns within thirty' },
   { icon: ShieldCheck, label: 'Authenticity guaranteed' },
+  { icon: LockKeyhole, label: 'Secure payment, encrypted' },
 ];
 
 /**

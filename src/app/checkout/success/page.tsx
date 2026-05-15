@@ -6,6 +6,7 @@ import Link from 'next/link';
 import * as Sentry from '@sentry/nextjs';
 import { buttonVariants } from '@/components/ui';
 import { useCart } from '@/components/cart';
+import TrustBar from '@/components/storefront/TrustBar';
 import { cn } from '@/lib/utils';
 
 interface OrderData {
@@ -83,6 +84,10 @@ export default function CheckoutSuccessPage() {
         )}
 
         <div className="mt-12 border-t border-border pt-8">
+          <TrustBar variant="inline" />
+        </div>
+
+        <div className="mt-10 border-t border-border pt-8">
           <Link
             href="/shop"
             className={cn(
