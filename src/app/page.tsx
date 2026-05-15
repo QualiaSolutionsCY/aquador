@@ -22,16 +22,20 @@ export const metadata: Metadata = {
 
 export const revalidate = 600;
 
-async function FeaturedGridLoader() {
+async function fetchFeaturedSafe() {
   try {
-    const products = await getFeaturedProducts(6);
-    return <FeaturedGrid products={products} />;
+    return await getFeaturedProducts(6);
   } catch {
     // Supabase unreachable or schema error: degrade gracefully to an empty
     // grid. The rest of the homepage (hero, editorial sections, email capture,
     // concierge) remains rendered. Logged server-side via Next instrumentation.
-    return <FeaturedGrid products={[]} />;
+    return [];
   }
+}
+
+async function FeaturedGridLoader() {
+  const products = await fetchFeaturedSafe();
+  return <FeaturedGrid products={products} />;
 }
 
 export default function Home() {

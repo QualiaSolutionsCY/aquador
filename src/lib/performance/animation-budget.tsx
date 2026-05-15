@@ -80,10 +80,11 @@ const AnimationBudgetContext = createContext<AnimationBudgetContextValue | null>
  * ```
  */
 export function AnimationBudgetProvider({ children }: { children: ReactNode }) {
-  const [budget, setBudget] = useState<AnimationBudget>({
-    averageFps: 60,
-    isPerformant: true,
-    shouldSimplify: false,
+  const [budget, setBudget] = useState<AnimationBudget>(() => {
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return { averageFps: 60, isPerformant: false, shouldSimplify: true };
+    }
+    return { averageFps: 60, isPerformant: true, shouldSimplify: false };
   });
 
   // Monitor global FPS and frame drops via RAF — fires analytics on unmount if degraded
@@ -126,14 +127,9 @@ export function AnimationBudgetProvider({ children }: { children: ReactNode }) {
     // Skip FPS tracking on server
     if (typeof window === 'undefined') return;
 
-    // Check for reduced motion preference
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      setBudget({
-        averageFps: 60,
-        isPerformant: false,
-        shouldSimplify: true,
-      });
+    // Reduced-motion preference is honored at initial state via the lazy initializer;
+    // skip FPS measurement loop when it's set so we never overwrite that decision.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return;
     }
 
