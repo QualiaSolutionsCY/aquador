@@ -1,116 +1,94 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Cookie, X } from 'lucide-react';
+/**
+ * CookieConsent, v3.0 editorial hairline strip.
+ *
+ * Replaces the v2.0 rounded card with gold halo. Surface is a fixed-bottom
+ * full-width band on `bg-bg-alt` with a single `border-t border-border`
+ * hairline. No rounded corners on the wrapper, no Card primitive, no gold
+ * backgrounds, no Playfair. Voice is editorial-direct (PRODUCT.md §brand).
+ *
+ * Persistence: localStorage key `aquador_cookies_v3`. The v2 key
+ * (`aquador_cookie_consent`) is deliberately retired (different schema), so
+ * users who previously accepted re-confirm under the new wording.
+ *
+ * A11y: not a modal, focus is not trapped. Escape dismisses the strip.
+ * Button focus-visible rings come from the Button primitive.
+ */
+
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { Button } from '@/components/ui';
 
-const COOKIE_CONSENT_KEY = 'aquador_cookie_consent';
-
-type ConsentStatus = 'pending' | 'accepted' | 'declined';
+const COOKIE_CONSENT_KEY = 'aquador_cookies_v3';
 
 export default function CookieConsent() {
-  const [consentStatus, setConsentStatus] = useState<ConsentStatus>('pending');
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Check if user has already made a choice
-    const stored = localStorage.getItem(COOKIE_CONSENT_KEY);
-    if (stored) {
-      setConsentStatus(stored as ConsentStatus);
-    } else {
-      // Show banner after a short delay for better UX
-      const timer = setTimeout(() => setIsVisible(true), 1500);
-      return () => clearTimeout(timer);
+    if (typeof window === 'undefined') return;
+    try {
+      const stored = window.localStorage.getItem(COOKIE_CONSENT_KEY);
+      if (!stored) {
+        const timer = window.setTimeout(() => setIsVisible(true), 1200);
+        return () => window.clearTimeout(timer);
+      }
+    } catch {
+      // localStorage may throw in private mode; fail closed (don't show).
     }
   }, []);
 
-  const handleAccept = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
-    setConsentStatus('accepted');
+  const dismiss = useCallback((value: 'accepted' | 'dismissed') => {
+    try {
+      window.localStorage.setItem(COOKIE_CONSENT_KEY, value);
+    } catch {
+      // ignore quota / disabled storage
+    }
     setIsVisible(false);
-  };
+  }, []);
 
-  const handleDecline = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, 'declined');
-    setConsentStatus('declined');
-    setIsVisible(false);
-  };
+  useEffect(() => {
+    if (!isVisible) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') dismiss('dismissed');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isVisible, dismiss]);
 
-  // Don't render if consent already given
-  if (consentStatus !== 'pending') {
-    return null;
-  }
+  if (!isVisible) return null;
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="fixed bottom-0 left-0 right-0 z-50 p-4 md:p-6"
-        >
-          <div className="max-w-4xl mx-auto bg-white border border-gray-300 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="p-6 md:p-8">
-              <div className="flex items-start gap-4">
-                <div className="hidden sm:flex w-12 h-12 rounded-full bg-gold/10 border border-gold/30 items-center justify-center flex-shrink-0">
-                  <Cookie className="w-6 h-6 text-gold" />
-                </div>
-
-                <div className="flex-1">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-playfair text-black mb-2">
-                        We Value Your Privacy
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-4 max-w-2xl">
-                        We use cookies to enhance your browsing experience, serve personalized content,
-                        and analyze our traffic. By clicking &quot;Accept All&quot;, you consent to our use of cookies.
-                        Read our{' '}
-                        <Link href="/privacy" className="text-gold hover:text-gold-light underline">
-                          Privacy Policy
-                        </Link>{' '}
-                        to learn more.
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={handleDecline}
-                      className="p-2 text-gray-500 hover:text-black transition-colors md:hidden"
-                      aria-label="Close cookie banner"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button
-                      onClick={handleAccept}
-                      className="px-6 py-3 bg-gold text-black font-semibold rounded-full hover:bg-gold-light transition-colors"
-                    >
-                      Accept All
-                    </button>
-                    <button
-                      onClick={handleDecline}
-                      className="px-6 py-3 border border-gold/30 text-gold rounded-full hover:bg-gold/10 transition-colors"
-                    >
-                      Decline
-                    </button>
-                    <Link
-                      href="/privacy"
-                      className="px-6 py-3 text-gray-600 hover:text-black transition-colors text-center"
-                    >
-                      Learn More
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div
+      role="region"
+      aria-label="Cookie notice"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-bg-alt border-t border-border py-4 px-[var(--page-px)]"
+    >
+      <div className="mx-auto flex max-w-[var(--container-wide)] flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-6">
+        <div className="flex-1">
+          <p className="font-body text-fg text-[length:var(--font-size-body-sm)] leading-relaxed">
+            <span className="font-medium text-fg">This site uses cookies.</span>{' '}
+            <span className="text-fg-muted">
+              Performance and analytics only. Nothing leaves the desk.
+            </span>
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/privacy"
+            className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted hover:text-fg underline-offset-4 hover:underline outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-alt transition-colors duration-150"
+          >
+            Read the policy
+          </Link>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => dismiss('accepted')}
+          >
+            Accept
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

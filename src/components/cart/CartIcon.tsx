@@ -11,7 +11,7 @@ export default function CartIcon({ className }: { className?: string }) {
       onClick={openCart}
       whileHover={{ scale: 1.04 }}
       whileTap={{ scale: 0.96 }}
-      className={`relative min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-gold transition-colors duration-300 ${className || 'text-black/80'}`}
+      className={`relative min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-accent-deep transition-colors duration-300 ${className || 'text-fg'}`}
       aria-label={`Shopping cart with ${itemCount} items`}
     >
       <svg
@@ -40,7 +40,7 @@ export default function CartIcon({ className }: { className?: string }) {
           key={itemCount}
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="absolute top-1 right-0 min-w-4 h-4 px-1 bg-gold text-black text-[9px] rounded-full flex items-center justify-center font-medium leading-none"
+          className="absolute top-1 right-0 min-w-4 h-4 px-1 bg-accent text-bg text-[9px] rounded-full flex items-center justify-center font-medium leading-none"
         >
           {itemCount > 99 ? '99+' : itemCount}
         </motion.span>

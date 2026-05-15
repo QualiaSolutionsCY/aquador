@@ -13,9 +13,6 @@ import VisitorTracker from "@/components/VisitorTracker";
 import { PageTransition } from "@/components/providers/PageTransition";
 import { AnimationBudgetProvider } from "@/lib/performance/animation-budget";
 import { ScrollDepthTracker } from "@/components/analytics/ScrollDepthTracker";
-// Next 16: `dynamic(..., { ssr: false })` is no longer allowed in Server
-// Components, so the lazy-loaded ChatWidget lives behind a client boundary.
-import ChatWidgetClient from "@/components/ai/ChatWidgetClient";
 // v3.0 overlay primitives (Phase 3, PRIM-05 barrel).
 import { TooltipProvider, Toaster } from '@/components/ui';
 
@@ -139,7 +136,6 @@ export default function RootLayout({
                   <CartDrawer />
                   <CookieConsent />
                   <ScrollDepthTracker />
-                  <ChatWidgetClient />
                   <VisitorTracker />
                 </CartProvider>
               </AnimationBudgetProvider>

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, Mail, MapPin, Phone } from 'lucide-react';
+import { Skeleton } from '@/components/ui';
 import type { Customer, Order } from '@/lib/supabase/types';
 
 interface ShippingAddress {
@@ -61,8 +62,8 @@ export default function CustomerDetailPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 bg-gray-800 rounded w-48 animate-pulse" />
-        <div className="h-48 bg-gray-800 rounded animate-pulse" />
+        <Skeleton variant="rect" width="12rem" height="2rem" />
+        <Skeleton variant="rect" width="100%" height="12rem" />
       </div>
     );
   }
@@ -70,8 +71,11 @@ export default function CustomerDetailPage() {
   if (!customer) {
     return (
       <div className="text-center py-16">
-        <p className="text-gray-400 text-lg">Customer not found</p>
-        <Link href="/admin/customers" className="text-gold hover:text-amber-400 mt-4 inline-block">
+        <p className="text-fg-muted text-lg">Customer not found</p>
+        <Link
+          href="/admin/customers"
+          className="text-accent-deep hover:text-accent mt-4 inline-block underline-offset-4 hover:underline"
+        >
           Back to customers
         </Link>
       </div>
