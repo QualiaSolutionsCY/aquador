@@ -1,113 +1,114 @@
 'use client';
 
+/**
+ * AdminSidebar — token-driven vertical nav (Phase 2 Task 3).
+ *
+ * Single source for both desktop sticky sidebar (always visible at md+)
+ * and the mobile Drawer body. Active route is computed via `usePathname`
+ * and announced to assistive tech via `aria-current="page"`.
+ *
+ * Visual contract (DESIGN.md §2 / §3):
+ *   - Hairline-divider rows; NO Card wrap, NO bordered rectangles.
+ *   - Active item: `text-accent` glyph + label, `bg-bg-alt` row tint.
+ *   - Tokens only: var(--bg), var(--bg-alt), var(--fg), var(--fg-muted),
+ *     var(--accent), var(--border). No legacy gold utility, no hex, no
+ *     legacy display fonts.
+ */
+
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Package, Tags, Settings, Plus, FileText,
-  ShoppingBag, Users, X, MessageCircle,
+  LayoutDashboard,
+  Package,
+  ShoppingBag,
+  Users,
+  FileText,
+  Settings,
+  type LucideIcon,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-const navigation = [
-  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
-  { name: 'Customers', href: '/admin/customers', icon: Users },
-  { name: 'Products', href: '/admin/products', icon: Package },
-  { name: 'Blog', href: '/admin/blog', icon: FileText },
-  { name: 'Categories', href: '/admin/categories', icon: Tags },
-  { name: 'Settings', href: '/admin/settings', icon: Settings },
+interface NavItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+const NAV_ITEMS: readonly NavItem[] = [
+  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { label: 'Products', href: '/admin/products', icon: Package },
+  { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
+  { label: 'Customers', href: '/admin/customers', icon: Users },
+  { label: 'Blog', href: '/admin/blog', icon: FileText },
+  { label: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
 interface AdminSidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
-  liveChatCount: number;
+  /** Called when a nav link is activated — used by the mobile Drawer to close. */
+  onNavigate?: () => void;
 }
 
-export default function AdminSidebar({ isOpen, onClose, liveChatCount }: AdminSidebarProps) {
+function isItemActive(pathname: string, href: string): boolean {
+  if (href === '/admin') return pathname === '/admin';
+  return pathname === href || pathname.startsWith(href + '/');
+}
+
+export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
   const pathname = usePathname();
 
-  const isActive = (href: string) => {
-    if (href === '/admin') return pathname === '/admin';
-    return pathname.startsWith(href);
-  };
-
   return (
-    <>
-      {/* Mobile-only backdrop + sidebar drawer */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
-          onClick={onClose}
-        />
-      )}
+    <nav
+      aria-label="Admin navigation"
+      className="flex h-full flex-col bg-[var(--bg)]"
+    >
+      {/* Brand mark — hairline below */}
+      <div className="flex h-16 items-center border-b border-[var(--border)] px-6">
+        <Link
+          href="/admin"
+          onClick={onNavigate}
+          className={cn(
+            'font-micro text-[12px] uppercase tracking-[0.18em] text-[var(--fg)]',
+            'outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
+            'focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]',
+          )}
+        >
+          Aquad&apos;or Admin
+        </Link>
+      </div>
 
-      <aside
-        className={`fixed left-0 top-0 z-50 h-screen w-72 bg-gray-900 border-r border-gray-800 transition-transform duration-300 ease-in-out md:hidden ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between h-16 border-b border-gray-800 px-4">
-            <Link href="/admin" onClick={onClose} className="flex items-center">
-              <Image src="/aquador.webp" alt="Aquad'or" width={120} height={40} className="h-10 w-auto" />
-            </Link>
-            <button
-              onClick={onClose}
-              className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            {navigation.map((item) => (
+      {/* Nav stack — hairline-divider rows */}
+      <ul role="list" className="flex flex-1 flex-col overflow-y-auto">
+        {NAV_ITEMS.map((item) => {
+          const active = isItemActive(pathname, item.href);
+          const Icon = item.icon;
+          return (
+            <li key={item.href} className="border-b border-[var(--border)]">
               <Link
-                key={item.name}
                 href={item.href}
-                onClick={onClose}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? 'bg-gold/10 text-gold border border-gold/20'
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                }`}
+                onClick={onNavigate}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'flex items-center gap-3 px-6 py-4',
+                  'font-micro text-[12px] uppercase tracking-[0.12em]',
+                  'transition-colors duration-150 ease-[cubic-bezier(0.25,1,0.5,1)]',
+                  'outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
+                  'focus-visible:ring-inset',
+                  active
+                    ? 'bg-[var(--bg-alt)] text-[var(--accent)]'
+                    : 'text-[var(--fg-muted)] hover:bg-[var(--bg-alt)] hover:text-[var(--fg)]',
+                )}
               >
-                <item.icon className="h-5 w-5" />
-                {item.name}
+                <Icon
+                  aria-hidden="true"
+                  strokeWidth={1.5}
+                  className="h-4 w-4 shrink-0"
+                />
+                <span>{item.label}</span>
               </Link>
-            ))}
-
-            <Link
-              href="/admin/live-chat"
-              onClick={onClose}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                pathname.startsWith('/admin/live-chat')
-                  ? 'bg-gold/10 text-gold border border-gold/20'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-              }`}
-            >
-              <MessageCircle className="h-5 w-5" />
-              Live Chat
-              {liveChatCount > 0 && (
-                <span className="ml-auto bg-amber-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center animate-pulse">
-                  {liveChatCount}
-                </span>
-              )}
-            </Link>
-          </nav>
-
-          <div className="px-3 py-3 border-t border-gray-800">
-            <Link
-              href="/admin/products/new"
-              onClick={onClose}
-              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gold text-black font-medium rounded-lg hover:bg-amber-500 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              Add Product
-            </Link>
-          </div>
-        </div>
-      </aside>
-    </>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }

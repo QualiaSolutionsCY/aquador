@@ -1,12 +1,28 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+/**
+ * AdminShell — token-driven coordinator (Phase 2 Task 3).
+ *
+ * Sole composition for the admin chrome:
+ *   - Desktop (md+): sticky left sidebar + sticky top bar + scrollable main.
+ *   - Mobile (<md):  sidebar collapses into a Drawer triggered by a hamburger
+ *                    in the top bar.
+ *
+ * Auth gating is enforced upstream by `src/middleware.ts` (Task 1). The shell
+ * itself only renders chrome + the signed-in user's email; it never blocks
+ * an unauthenticated route.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+} from '@/components/ui/Drawer';
 import AdminSidebar from './AdminSidebar';
-import AdminNavBar from './AdminNavBar';
-import type { User } from '@supabase/supabase-js';
-import type { AdminUser } from '@/lib/supabase/types';
+import AdminTopBar from './AdminTopBar';
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -14,126 +30,71 @@ interface AdminShellProps {
 
 export default function AdminShell({ children }: AdminShellProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const isLoginPage = pathname === '/admin/login';
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const mountedRef = useRef(true);
 
-  const [user, setUser] = useState<User | null>(null);
-  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
-  const [loading, setLoading] = useState(!isLoginPage);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [liveChatCount, setLiveChatCount] = useState(0);
-  const supabaseRef = useRef(createClient());
-
+  // Close the mobile drawer whenever the route changes.
   useEffect(() => {
-    setSidebarOpen(false);
+    setMobileOpen(false);
   }, [pathname]);
 
-  // Single live chat count subscription — shared by NavBar + Sidebar
-  useEffect(() => {
-    if (isLoginPage) return;
-    const supabase = supabaseRef.current;
-    const loadCount = async () => {
-      const { count } = await supabase
-        .from('live_chat_sessions')
-        .select('*', { count: 'exact', head: true })
-        .in('status', ['waiting', 'active']);
-      setLiveChatCount(count ?? 0);
-    };
-    loadCount();
-    const channel = supabase
-      .channel('admin-live-chat-count')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_chat_sessions' }, () => loadCount())
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [isLoginPage]);
-
-  const toggleSidebar = useCallback(() => {
-    setSidebarOpen(prev => !prev);
-  }, []);
-
-  const closeSidebar = useCallback(() => {
-    setSidebarOpen(false);
-  }, []);
-
+  // Resolve the signed-in user's email for the top-bar display.
   useEffect(() => {
     mountedRef.current = true;
-
-    if (isLoginPage) {
-      setLoading(false);
-      return;
-    }
-
+    if (isLoginPage) return;
     const supabase = createClient();
-
-    const checkAuth = async () => {
-      try {
-        const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
-        if (!mountedRef.current) return;
-        if (authError || !currentUser) { router.replace('/admin/login'); return; }
-        setUser(currentUser);
-
-        const { data: adminData, error: adminError } = await supabase
-          .from('admin_users')
-          .select('*')
-          .eq('id', currentUser.id)
-          .maybeSingle();
-        if (!mountedRef.current) return;
-        if (adminError || !adminData) { router.replace('/admin/login?error=unauthorized'); return; }
-        setAdminUser(adminData);
-        setLoading(false);
-      } catch {
-        if (mountedRef.current) router.replace('/admin/login');
-      }
-    };
-
-    checkAuth();
-
+    supabase.auth.getUser().then(({ data }) => {
+      if (mountedRef.current) setUserEmail(data.user?.email ?? null);
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!mountedRef.current) return;
-        if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
-          setUser(null);
-          setAdminUser(null);
-          router.replace('/admin/login');
-        }
-      }
+      (_event, session) => {
+        if (mountedRef.current) setUserEmail(session?.user?.email ?? null);
+      },
     );
-
     return () => {
       mountedRef.current = false;
       subscription.unsubscribe();
     };
-  }, [isLoginPage, router]);
+  }, [isLoginPage]);
 
   if (isLoginPage) {
     return <>{children}</>;
   }
 
-  if (loading || !user) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gold"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="pt-[60px] md:pt-[70px]">
-      {/* Admin Navigation Bar — horizontal on desktop, hamburger on mobile */}
-      <AdminNavBar
-        user={user}
-        adminUser={adminUser}
-        onMobileMenuToggle={toggleSidebar}
-        liveChatCount={liveChatCount}
-      />
+    <div
+      data-admin-shell
+      className="flex min-h-screen bg-[var(--bg)] text-[var(--fg)]"
+    >
+      {/* Desktop sidebar — sticky, hairline-right against content. */}
+      <aside
+        aria-label="Admin sidebar"
+        className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-[var(--border)] md:block"
+      >
+        <AdminSidebar />
+      </aside>
 
-      {/* Mobile sidebar drawer */}
-      <AdminSidebar isOpen={sidebarOpen} onClose={closeSidebar} liveChatCount={liveChatCount} />
+      {/* Mobile drawer — same nav, anchored via Drawer primitive. */}
+      <Drawer open={mobileOpen} onOpenChange={setMobileOpen}>
+        <DrawerContent
+          className="left-0 right-auto w-72 max-w-[80vw] p-0"
+          hideCloseButton
+        >
+          <DrawerTitle className="sr-only">Admin navigation</DrawerTitle>
+          <AdminSidebar onNavigate={() => setMobileOpen(false)} />
+        </DrawerContent>
+      </Drawer>
 
-      {/* Admin content area — dark panel */}
-      <div className="bg-gray-950 text-white min-h-[calc(100vh-160px)] rounded-t-2xl mx-2 sm:mx-4 md:mx-6 mb-0 overflow-hidden">
-        <main className="p-4 sm:p-6">
+      {/* Right column — top bar + scrollable content. */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AdminTopBar
+          userEmail={userEmail}
+          onMobileMenuOpen={() => setMobileOpen(true)}
+        />
+        <main className="flex-1 overflow-x-hidden bg-[var(--bg)] px-4 py-6 md:px-8 md:py-8">
           {children}
         </main>
       </div>
