@@ -1,11 +1,32 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+/**
+ * Admin / Orders — list view consuming the shared `AdminTable` primitive.
+ *
+ * Phase 2 Task 4 rewrite. Column definitions inlined; the legacy
+ * `OrdersTable` component (which mixed an expand-on-click detail panel into
+ * the table itself) is gone. The status select stays inline as a per-row
+ * mutation control — Phase 3.3 will replace it with a row-detail drawer.
+ *
+ * Tokens only. Status badges use the semantic Badge variants — no raw
+ * red/green/blue/yellow Tailwind classes.
+ */
+
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { Search, Plus } from 'lucide-react';
-import OrdersTable from '@/components/admin/OrdersTable';
+import { Badge, type BadgeVariant } from '@/components/ui/Badge';
+import { formatPrice } from '@/lib/currency';
+import { fromCents } from '@/lib/currency';
+import {
+  AdminTable,
+  type AdminTableColumn,
+} from '@/components/admin/AdminTable';
+import { AdminTableToolbar } from '@/components/admin/AdminTableToolbar';
 import type { Order, OrderStatus } from '@/lib/supabase/types';
+
+const PAGE_SIZE = 20;
 
 const STATUSES: { label: string; value: OrderStatus | 'all' }[] = [
   { label: 'All', value: 'all' },
@@ -18,7 +39,28 @@ const STATUSES: { label: string; value: OrderStatus | 'all' }[] = [
   { label: 'Refunded', value: 'refunded' },
 ];
 
-const PAGE_SIZE = 20;
+const STATUS_VARIANT: Record<OrderStatus, BadgeVariant> = {
+  pending: 'warning',
+  confirmed: 'accent',
+  processing: 'accent',
+  shipped: 'accent',
+  delivered: 'success',
+  cancelled: 'critical',
+  refunded: 'neutral',
+};
+
+function formatOrderId(order: Order): string {
+  const source = order.stripe_session_id || order.id;
+  return `#${source.slice(-8).toUpperCase()}`;
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -41,11 +83,12 @@ export default function OrdersPage() {
     if (statusFilter !== 'all') {
       query = query.eq('status', statusFilter);
     }
-
     if (search.trim()) {
-      // SEC-03: Escape SQL wildcards to prevent PostgREST filter injection
-      const escapedSearch = search.trim().replace(/[%_]/g, '\\$&');
-      query = query.or(`customer_email.ilike.%${escapedSearch}%,customer_name.ilike.%${escapedSearch}%`);
+      // SEC-03: Escape SQL wildcards
+      const escaped = search.trim().replace(/[%_]/g, '\\$&');
+      query = query.or(
+        `customer_email.ilike.%${escaped}%,customer_name.ilike.%${escaped}%`,
+      );
     }
 
     const { data, count } = await query;
@@ -58,98 +101,172 @@ export default function OrdersPage() {
     fetchOrders();
   }, [fetchOrders]);
 
-  const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+  async function handleStatusChange(orderId: string, newStatus: OrderStatus) {
     const supabase = createClient();
     const { error } = await supabase
       .from('orders')
       .update({ status: newStatus })
       .eq('id', orderId);
-
     if (!error) {
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)),
+      );
     }
-  };
+  }
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Orders</h1>
-          <p className="text-gray-400 mt-1">{totalCount} total order{totalCount !== 1 ? 's' : ''}</p>
+  const columns: AdminTableColumn<Order>[] = [
+    {
+      key: 'order',
+      header: 'Order',
+      accessor: (row) => (
+        <div className="flex flex-col leading-tight">
+          <span className="font-mono text-[13px] text-fg">{formatOrderId(row)}</span>
+          {row.order_source === 'manual' ? (
+            <Badge variant="warning" className="mt-1 w-fit">Manual</Badge>
+          ) : null}
         </div>
-        <Link
-          href="/admin/orders/new"
-          className="flex items-center gap-2 px-4 py-2.5 bg-gold text-black font-semibold text-sm rounded-lg hover:bg-gold/90 transition-colors"
+      ),
+    },
+    {
+      key: 'customer',
+      header: 'Customer',
+      accessor: (row) => (
+        <div className="flex flex-col leading-tight">
+          <span className="text-fg">{row.customer_name ?? 'Unnamed'}</span>
+          <span className="text-[12px] text-fg-muted">{row.customer_email}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'total',
+      header: 'Total',
+      align: 'right',
+      accessor: (row) => (
+        <span className="font-medium text-fg">{formatPrice(fromCents(row.total))}</span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      accessor: (row) => (
+        <select
+          value={row.status}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => {
+            e.stopPropagation();
+            handleStatusChange(row.id, e.target.value as OrderStatus);
+          }}
+          aria-label={`Status for ${formatOrderId(row)}`}
+          className="rounded-sm border border-border bg-bg px-2 py-1 text-[12px] font-medium text-fg outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
-          <Plus className="h-4 w-4" />
-          Add Order
-        </Link>
-      </div>
+          {(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'] as OrderStatus[]).map((s) => (
+            <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      key: 'status-badge',
+      header: 'State',
+      accessor: (row) => (
+        <Badge variant={STATUS_VARIANT[row.status]} className="capitalize">{row.status}</Badge>
+      ),
+    },
+    {
+      key: 'created',
+      header: 'Date',
+      accessor: (row) => (
+        <span className="text-[13px] text-fg-muted">{formatDate(row.created_at)}</span>
+      ),
+    },
+  ];
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search by email or name..."
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-800 rounded-lg text-white text-sm placeholder:text-gray-500 focus:outline-none focus:border-gold/50"
-          />
-        </div>
-        <div className="flex gap-2 flex-wrap">
+  const toolbar: ReactNode = (
+    <AdminTableToolbar
+      search={search}
+      onSearchChange={(value) => {
+        setSearch(value);
+        setPage(0);
+      }}
+      searchPlaceholder="Search by name or email"
+      filters={
+        <div className="flex flex-wrap gap-1">
           {STATUSES.map((s) => (
             <button
               key={s.value}
-              onClick={() => { setStatusFilter(s.value); setPage(0); }}
-              className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+              type="button"
+              onClick={() => {
+                setStatusFilter(s.value);
+                setPage(0);
+              }}
+              className={`rounded-sm px-3 py-1.5 text-[12px] font-micro uppercase tracking-[0.05em] transition-colors ${
                 statusFilter === s.value
-                  ? 'bg-gold/10 text-gold border border-gold/20'
-                  : 'bg-gray-900 text-gray-400 border border-gray-800 hover:text-white'
+                  ? 'bg-accent/12 text-accent-deep'
+                  : 'border border-border text-fg-muted hover:text-fg hover:bg-bg-alt'
               }`}
             >
               {s.label}
             </button>
           ))}
         </div>
+      }
+    />
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="font-display text-[28px] leading-tight text-fg">Orders</h1>
+          <p className="text-[13px] text-fg-muted">
+            {totalCount} total order{totalCount !== 1 ? 's' : ''}
+          </p>
+        </div>
+        <Link
+          href="/admin/orders/new"
+          className="inline-flex items-center gap-2 rounded-sm bg-accent px-4 py-2 text-[14px] font-medium text-bg transition-colors hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+        >
+          <Plus className="h-4 w-4" strokeWidth={1.5} />
+          Add order
+        </Link>
       </div>
 
-      {/* Table */}
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-        {loading ? (
-          <div className="p-8 text-center text-gray-400">Loading orders...</div>
-        ) : (
-          <OrdersTable orders={orders} onStatusChange={handleStatusChange} />
-        )}
-      </div>
+      <AdminTable
+        columns={columns}
+        rows={orders}
+        keyExtractor={(row) => row.id}
+        loading={loading}
+        emptyText="No orders match your filters."
+        toolbar={toolbar}
+      />
 
-      {/* Pagination */}
-      {totalPages > 1 && (
+      {totalPages > 1 ? (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-400">
+          <p className="text-[13px] text-fg-muted">
             Page {page + 1} of {totalPages}
           </p>
           <div className="flex gap-2">
             <button
-              onClick={() => setPage(p => Math.max(0, p - 1))}
+              type="button"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="px-3 py-1.5 text-sm bg-gray-900 border border-gray-800 rounded-lg text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-sm border border-border px-3 py-1.5 text-[13px] text-fg-muted hover:text-fg hover:bg-bg-alt disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
             <button
-              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              type="button"
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="px-3 py-1.5 text-sm bg-gray-900 border border-gray-800 rounded-lg text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-sm border border-border px-3 py-1.5 text-[13px] text-fg-muted hover:text-fg hover:bg-bg-alt disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
