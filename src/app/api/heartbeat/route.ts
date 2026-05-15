@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createPublicClient } from '@/lib/supabase/public';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
 
@@ -22,7 +22,9 @@ export async function POST(request: NextRequest) {
     }
     const { sessionId, page } = result.data;
 
-    const supabase = createAdminClient();
+    // SEC-02: use anon client (no service-role). Stale-row cleanup is now
+    // handled by pg_cron — see supabase/migrations/20260515000000_heartbeat_pg_cron_cleanup.sql
+    const supabase = createPublicClient();
 
     // Hash the IP for privacy
     const forwarded = request.headers.get('x-forwarded-for');
@@ -37,7 +39,7 @@ export async function POST(request: NextRequest) {
     const userAgent = request.headers.get('user-agent')?.slice(0, 256) || null;
     const country = request.headers.get('x-vercel-ip-country') || null;
 
-    // Upsert visitor
+    // Upsert visitor (anon client; RLS policies allow INSERT + UPDATE for anon role)
     await supabase.from('site_visitors').upsert(
       {
         session_id: sessionId,
@@ -49,10 +51,6 @@ export async function POST(request: NextRequest) {
       },
       { onConflict: 'session_id' }
     );
-
-    // Cleanup stale records (>24h old) — piggyback on heartbeat
-    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    await supabase.from('site_visitors').delete().lt('last_seen', cutoff);
 
     return NextResponse.json({ ok: true });
   } catch (error) {
