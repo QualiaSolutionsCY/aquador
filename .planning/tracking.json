@@ -19,30 +19,33 @@
       "closed_at": "2026-05-14T23:08:03.132Z"
     }
   ],
-  "phase": 1,
-  "phase_name": "Homepage",
+  "phase": 2,
+  "phase_name": "Product Detail Page",
   "total_phases": 5,
-  "status": "built",
+  "status": "planned",
   "wave": 3,
-  "tasks_done": 4,
-  "tasks_total": 4,
+  "tasks_done": 0,
+  "tasks_total": 0,
   "verification": "pending",
-  "gap_cycles": {},
+  "gap_cycles": {
+    "1": 0
+  },
   "blockers": [],
   "session_started_at": "2026-05-14T23:11:24.244Z",
-  "last_updated": "2026-05-15T03:16:33Z",
-  "last_pushed_at": "2026-05-15T03:16:33Z",
-  "last_commit": "a6dece5",
+  "last_updated": "2026-05-15T03:34:50Z",
+  "last_pushed_at": "2026-05-15T03:34:50Z",
+  "last_commit": "8672cfa",
   "build_count": 4,
   "deploy_count": 0,
   "deployed_url": "",
   "notes": "",
   "submitted_by": "",
   "lifetime": {
-    "tasks_completed": 13,
-    "phases_completed": 3,
+    "tasks_completed": 17,
+    "phases_completed": 4,
     "milestones_completed": 1,
     "total_phases": 3,
     "last_closed_milestone": 1
-  }
+  },
+  "report_seq": 0
 }
