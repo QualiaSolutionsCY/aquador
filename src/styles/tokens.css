@@ -211,6 +211,53 @@
   animation: fade-in-up var(--duration-fast) var(--ease-out-quart) both;
 }
 
+/* ==========================================================================
+   §7. KEN BURNS — slow scale drift used by the homepage Hero photo. Subtle,
+   18s loop, no parallax, no rotation. Reduced motion via the global
+   prefers-reduced-motion block below.
+   ========================================================================== */
+
+@keyframes ken-burns {
+  0% {
+    transform: scale(1.05) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.12) translate3d(-1.5%, -1%, 0);
+  }
+  100% {
+    transform: scale(1.05) translate3d(0, 0, 0);
+  }
+}
+
+.animate-ken-burns {
+  animation: ken-burns 18s ease-in-out infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* ==========================================================================
+   §7. MARQUEE — horizontal scrolling strip used by the homepage brand bar
+   below the Hero. Pauses on hover. Reduced motion zeros the animation.
+   ========================================================================== */
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
 .animate-fade-out-down {
   animation: fade-out-down var(--duration-fast) var(--ease-out-quart) both;
 }

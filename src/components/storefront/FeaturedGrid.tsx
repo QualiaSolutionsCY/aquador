@@ -25,6 +25,7 @@ import Image from 'next/image';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { Product } from '@/lib/supabase/types';
+import FadeUp from './FadeUp';
 
 export interface FeaturedGridProps {
   products: Product[];
@@ -75,23 +76,24 @@ export default function FeaturedGrid({ products }: FeaturedGridProps) {
 
   return (
     <section className="border-t border-border py-16 md:py-24 px-[var(--page-px)]">
-      <div className="mb-12 max-w-[var(--container-narrow)]">
+      <FadeUp className="mb-12 max-w-[var(--container-narrow)]">
         <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted">
           04 / Featured
         </p>
         <h2 className="mt-6 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-h1)]">
           Six the desk is wearing this week.
         </h2>
-      </div>
+      </FadeUp>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {items.map((product, index) => {
           const secondary = product.images?.[0];
           const isLead = index === 0;
           return (
-            <div
+            <FadeUp
               key={product.id}
               className={`relative ${SPAN_CLASSES[index] ?? 'md:col-span-4'}`}
+              delay={index * 90}
             >
               <div className="relative">
                 <ProductCard product={product} priority={isLead} />
@@ -103,7 +105,7 @@ export default function FeaturedGrid({ products }: FeaturedGridProps) {
                   />
                 )}
               </div>
-            </div>
+            </FadeUp>
           );
         })}
       </div>

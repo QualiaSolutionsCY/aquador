@@ -93,23 +93,85 @@ export async function getProductsByCategory(category: string): Promise<Product[]
   return data || [];
 }
 
-// Get featured products (active + in stock only)
+// Curator's mix for the homepage featured grid. Without this the newest-first
+// fallback pulls a single category (whichever was imported last) and the page
+// reads as a one-brand catalogue instead of an editorial. The mix surfaces
+// Aquad'or's own + curated lines alongside one Lattafa pick.
+const FEATURED_MIX: ReadonlyArray<{ category: ProductCategory; take: number }> = [
+  { category: 'niche', take: 2 },
+  { category: 'essence-oil', take: 1 },
+  { category: 'women', take: 1 },
+  { category: 'men', take: 1 },
+  { category: 'lattafa-original', take: 1 },
+];
+
+// Get featured products (active + in stock only, curated category mix).
 export async function getFeaturedProducts(count: number = 6): Promise<Product[]> {
   const supabase = createPublicClient();
-  const { data, error } = await supabase
-    .from('products')
-    .select(PRODUCT_COLUMNS)
-    .eq('in_stock', true)
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-    .limit(count);
 
-  if (error) {
-    Sentry.addBreadcrumb({ category: 'product-service', message: 'Error fetching featured products', level: 'error', data: { error } });
-    return [];
+  const queries = FEATURED_MIX.map(({ category, take }) =>
+    supabase
+      .from('products')
+      .select(PRODUCT_COLUMNS)
+      .eq('in_stock', true)
+      .eq('is_active', true)
+      .eq('category', category)
+      .order('created_at', { ascending: false })
+      .limit(take),
+  );
+
+  const results = await Promise.all(queries);
+  const picked: Product[] = [];
+  const seen = new Set<string>();
+
+  for (let i = 0; i < results.length; i++) {
+    const { data, error } = results[i];
+    if (error) {
+      Sentry.addBreadcrumb({
+        category: 'product-service',
+        message: 'Error fetching featured products (slot)',
+        level: 'error',
+        data: { error, slot: FEATURED_MIX[i].category },
+      });
+      continue;
+    }
+    for (const product of data ?? []) {
+      if (seen.has(product.id)) continue;
+      seen.add(product.id);
+      picked.push(product);
+      if (picked.length >= count) return picked;
+    }
   }
 
-  return data || [];
+  // Backfill from newest-overall if a category was empty and the mix came up
+  // short. Keeps the grid full without re-introducing single-category bias.
+  if (picked.length < count) {
+    const { data, error } = await supabase
+      .from('products')
+      .select(PRODUCT_COLUMNS)
+      .eq('in_stock', true)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(count * 2);
+
+    if (error) {
+      Sentry.addBreadcrumb({
+        category: 'product-service',
+        message: 'Error fetching featured-products backfill',
+        level: 'error',
+        data: { error },
+      });
+    }
+
+    for (const product of data ?? []) {
+      if (seen.has(product.id)) continue;
+      seen.add(product.id);
+      picked.push(product);
+      if (picked.length >= count) break;
+    }
+  }
+
+  return picked;
 }
 
 // Get all product slugs for static generation

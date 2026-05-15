@@ -17,9 +17,11 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 export interface FadeUpProps {
   children: ReactNode;
   className?: string;
+  /** Optional milliseconds of stagger delay before the reveal kicks in. */
+  delay?: number;
 }
 
-export default function FadeUp({ children, className = '' }: FadeUpProps) {
+export default function FadeUp({ children, className = '', delay = 0 }: FadeUpProps) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
 
@@ -44,6 +46,7 @@ export default function FadeUp({ children, className = '' }: FadeUpProps) {
   return (
     <div
       ref={ref}
+      style={delay > 0 ? { transitionDelay: `${delay}ms` } : undefined}
       className={`transition-[opacity,transform] duration-[var(--duration-base)] ease-[var(--ease-out-quart)] ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       } ${className}`}

@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { getFeaturedProducts } from '@/lib/supabase/product-service';
 import Hero from '@/components/storefront/Hero';
+import BrandMarquee from '@/components/storefront/BrandMarquee';
 import NotesStory from '@/components/storefront/NotesStory';
 import BrandStory from '@/components/storefront/BrandStory';
 import JournalTeaser from '@/components/storefront/JournalTeaser';
@@ -138,6 +139,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: safeStringify(localBusinessSchema) }}
       />
       <Hero />
+      <BrandMarquee />
       <Suspense fallback={<FeaturedGridSkeleton />}>
         <FeaturedGridLoader />
       </Suspense>
