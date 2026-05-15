@@ -9,6 +9,7 @@ import {
   getRelatedProducts,
 } from '@/lib/supabase/product-service';
 import ProductGallery from '@/components/storefront/ProductGallery';
+import ProductNotesStory from '@/components/storefront/ProductNotesStory';
 import RelatedCarousel from '@/components/storefront/RelatedCarousel';
 import SocialProof from '@/components/storefront/SocialProof';
 import TrustBar from '@/components/storefront/TrustBar';
@@ -284,10 +285,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </aside>
           </div>
 
-          {/* PDP notes story slot — full editorial rebuild in M2 Phase 2.2 (PDP).
-              The homepage version of NotesStory is now the editorial section with
-              no props (locked voice constants), so this exploration-era prop-driven
-              usage is parked until 2.2 ships its own PDP composition surface. */}
+          <ProductNotesStory
+            topNotes={notes.topNotes}
+            heartNotes={notes.heartNotes}
+            baseNotes={notes.baseNotes}
+            fragranceFamily={getFragranceFamily(product)}
+            description={product.description}
+          />
 
           <RelatedCarousel products={relatedProducts} />
         </article>
