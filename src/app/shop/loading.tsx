@@ -1,37 +1,23 @@
-import {
-  LuxuryHeroSkeleton,
-  LuxuryFilterSkeleton,
-  LuxuryProductGridSkeleton,
-  LuxurySkeleton,
-} from '@/components/ui/LuxurySkeleton';
+/**
+ * Shop route-segment loading state (M2 Phase 2.3 Task 3, SHOP-03).
+ *
+ * Mirrors the `<Suspense fallback={<ShopGridFallback />}>` body used inside
+ * each `/shop/*` page so the route-segment loading boundary and the RSC
+ * stream are visually continuous: a hero placeholder above the same skeleton
+ * grid the page hydrates into.
+ */
+
+import { Skeleton } from '@/components/ui/Skeleton';
+import ShopGridFallback from '@/components/storefront/ShopGridFallback';
 
 export default function ShopLoading() {
   return (
-    <main className="min-h-screen bg-gold-ambient pt-20 md:pt-24 pb-16">
-      {/* Hero skeleton */}
-      <LuxuryHeroSkeleton />
-
-      {/* Search bar skeleton */}
-      <div className="container-wide pb-10 pt-8">
-        <div className="max-w-md mx-auto mb-8">
-          <LuxurySkeleton className="h-12 w-full" />
-        </div>
-
-        {/* Filter skeletons */}
-        <div className="flex flex-col items-center gap-6">
-          <LuxuryFilterSkeleton />
-          <div className="flex gap-2">
-            <LuxurySkeleton className="h-8 w-20" />
-            <LuxurySkeleton className="h-8 w-24" />
-            <LuxurySkeleton className="h-8 w-28" />
-          </div>
-        </div>
-      </div>
-
-      {/* Products grid skeleton */}
-      <div className="container-wide pb-20">
-        <LuxuryProductGridSkeleton count={12} />
-      </div>
+    <main className="pt-32 md:pt-40 lg:pt-44 pb-20 bg-bg min-h-screen">
+      <header className="border-b border-border pb-12 mb-12 px-[var(--page-px)]">
+        <Skeleton variant="text" className="h-4 w-16 mb-2" />
+        <Skeleton variant="text" className="h-12 w-2/3" />
+      </header>
+      <ShopGridFallback />
     </main>
   );
 }

@@ -1,13 +1,16 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { getProductsByCategory } from '@/lib/supabase/product-service';
-import LattafaContent from './LattafaContent';
+import ProductGrid from '@/components/storefront/ProductGrid';
+import ShopGridFallback from '@/components/storefront/ShopGridFallback';
 
-export const revalidate = 1800;
+export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Lattafa Originals Perfumes",
-  description: 'Discover our original Lattafa Perfumes collection - authentic Arabian fragrances crafted with the finest ingredients. Shop online at Aquad\'or Cyprus.',
+  title: 'Lattafa Originals Perfumes',
+  description: "Discover our original Lattafa Perfumes collection. Authentic Arabian fragrances crafted with the finest ingredients. Shop online at Aquad'or Cyprus.",
   openGraph: {
     title: "Lattafa Originals Perfumes | Aquad'or Cyprus",
     description: 'Authentic Arabian fragrances crafted with the finest ingredients. Original Lattafa Perfumes collection.',
@@ -30,15 +33,45 @@ export default async function LattafaPage() {
 
   if (products.length === 0) {
     return (
-      <div className="pt-32 md:pt-40 lg:pt-44 pb-16 min-h-screen bg-dark text-center">
-        <h1 className="text-4xl font-playfair text-black">No products found</h1>
-        <p className="text-gray-400 mt-4">Lattafa Originals collection is currently empty.</p>
-        <Link href="/shop" className="text-gold mt-4 inline-block">
-          &larr; Back to Shop
-        </Link>
-      </div>
+      <main className="pt-32 md:pt-40 lg:pt-44 pb-20 bg-bg min-h-screen">
+        <header className="border-b border-border pb-12 mb-12 px-[var(--page-px)]">
+          <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
+            Shop / Lattafa Originals
+          </p>
+          <h1 className="font-display text-fg mt-2 text-[length:var(--font-display-2xl)] leading-[1.05]">
+            The Lattafa collection is resting.
+          </h1>
+          <p className="text-fg-muted mt-4 max-w-prose text-[length:var(--font-size-body)]">
+            Browse the full shop in the meantime.
+          </p>
+          <Link
+            href="/shop"
+            className="mt-8 inline-flex min-h-[44px] items-center gap-2 font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-accent-deep underline-offset-4 transition-colors duration-[var(--duration-fast)] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Back to shop
+          </Link>
+        </header>
+      </main>
     );
   }
 
-  return <LattafaContent products={products} />;
+  return (
+    <main className="pt-32 md:pt-40 lg:pt-44 pb-20 bg-bg min-h-screen">
+      <header className="border-b border-border pb-12 mb-12 px-[var(--page-px)]">
+        <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
+          Shop / Lattafa Originals
+        </p>
+        <h1 className="font-display text-fg mt-2 text-[length:var(--font-display-2xl)] leading-[1.05]">
+          Lattafa Originals
+        </h1>
+        <p className="text-fg-muted mt-4 max-w-prose text-[length:var(--font-size-body)]">
+          Authentic Arabian fragrances. Filter by family or price.
+        </p>
+      </header>
+      <Suspense fallback={<ShopGridFallback />}>
+        <ProductGrid products={products} />
+      </Suspense>
+    </main>
+  );
 }

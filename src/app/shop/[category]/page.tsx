@@ -1,9 +1,11 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getProductsByCategory, categories, getCategoryBySlug } from '@/lib/supabase/product-service';
-import CategoryContent from './CategoryContent';
+import ProductGrid from '@/components/storefront/ProductGrid';
+import ShopGridFallback from '@/components/storefront/ShopGridFallback';
 
-export const revalidate = 1800;
+export const revalidate = 60;
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
@@ -64,8 +66,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   }
 
   const allProducts = await getProductsByCategory(categorySlug);
-  // Only show perfumes — oils/lotions are variants on the product page, not separate listings
-  const products = allProducts.filter(p => p.product_type === 'perfume');
+  // Only show perfumes. Oils and lotions are variants on the product page, not separate listings.
+  const products = allProducts.filter((p) => p.product_type === 'perfume');
 
   // BreadcrumbList structured data
   const breadcrumbSchema = {
@@ -99,7 +101,22 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c') }}
       />
-      <CategoryContent category={category} products={products} />
+      <main className="pt-32 md:pt-40 lg:pt-44 pb-20 bg-bg min-h-screen">
+        <header className="border-b border-border pb-12 mb-12 px-[var(--page-px)]">
+          <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
+            Shop / {category.name}
+          </p>
+          <h1 className="font-display text-fg mt-2 text-[length:var(--font-display-2xl)] leading-[1.05]">
+            {category.name}
+          </h1>
+          <p className="text-fg-muted mt-4 max-w-prose text-[length:var(--font-size-body)]">
+            {category.description}
+          </p>
+        </header>
+        <Suspense fallback={<ShopGridFallback />}>
+          <ProductGrid products={products} categorySlug={categorySlug} />
+        </Suspense>
+      </main>
     </>
   );
 }

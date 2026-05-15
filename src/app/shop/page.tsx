@@ -1,12 +1,13 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { getAllProducts, categories } from '@/lib/supabase/product-service';
-import ShopContent from './ShopContent';
+import { getAllProducts } from '@/lib/supabase/product-service';
+import ProductGrid from '@/components/storefront/ProductGrid';
+import ShopGridFallback from '@/components/storefront/ShopGridFallback';
 
-export const revalidate = 1800;
+export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Dubai Shop | Aquad'or Cyprus — Luxury Fragrances",
+  title: "Dubai Shop | Aquad'or Cyprus, Luxury Fragrances",
   description: "Browse our curated Dubai collection of luxury perfumes, niche fragrances, and exclusive scents. Free shipping on orders over €35 in Cyprus.",
   openGraph: {
     title: "Dubai Shop | Aquad'or Cyprus",
@@ -29,11 +30,26 @@ export default async function ShopPage() {
   const allProducts = await getAllProducts();
 
   // Dubai Shop: exclude Lattafa (own page) and non-perfume types (oils/lotions are variants, not separate listings)
-  const products = allProducts.filter(p => p.category !== 'lattafa-original' && p.product_type === 'perfume');
+  const products = allProducts.filter(
+    (p) => p.category !== 'lattafa-original' && p.product_type === 'perfume',
+  );
 
   return (
-    <Suspense fallback={<div className="pt-32 md:pt-40 lg:pt-44 pb-20 bg-white min-h-screen" />}>
-      <ShopContent products={products} categories={categories} />
-    </Suspense>
+    <main className="pt-32 md:pt-40 lg:pt-44 pb-20 bg-bg min-h-screen">
+      <header className="border-b border-border pb-12 mb-12 px-[var(--page-px)]">
+        <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
+          Shop
+        </p>
+        <h1 className="font-display text-fg mt-2 text-[length:var(--font-display-2xl)] leading-[1.05]">
+          The full collection
+        </h1>
+        <p className="text-fg-muted mt-4 max-w-prose text-[length:var(--font-size-body)]">
+          Refine by family, brand, or price.
+        </p>
+      </header>
+      <Suspense fallback={<ShopGridFallback />}>
+        <ProductGrid products={products} />
+      </Suspense>
+    </main>
   );
 }
