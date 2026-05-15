@@ -34,3 +34,11 @@ Append-only as terms emerge. Every road agent loads this BEFORE PROJECT.md and D
 - **Shipping:** always free in v3.0. Don't ask the user; never show a calculation.
 - **Stock:** binary in-stock / out-of-stock at the variant level. No quantity-on-hand exposed to users.
 - **Returns:** referenced in trust microcopy; specific policy lives in `docs/policies/` (created in M4 if not already present).
+
+## Shop filtering threshold
+
+The shop page filter bar (SHOP-01) and sort dropdown (SHOP-02) operate client-side against the full RSC-fetched product list. This is correct at the current catalog size (~100 SKUs) but stops being correct once the catalog grows past the threshold below.
+
+- **Current strategy:** the shop RSC fetches every active product via `getAllProducts()` and hands the array to `applyShopFilters` and `applyShopSort` in `src/lib/shop/filter-schema.ts`. The URL drives state; no DB round-trip per filter change.
+- **Trigger threshold:** when the active SKU count crosses 500, the client-side strategy stops being acceptable (initial HTML payload bloat, hydration cost, search latency).
+- **Migration path:** add `getFilteredProducts(filters, sort)` to `src/lib/supabase/product-service.ts` that pushes the filter set into a Supabase query (use `.in()` for multi-value, `.gte()` / `.lt()` for price bands). Switch the shop page to dynamic rendering by accepting `searchParams` as a page prop (or via `connection()`), and call the new service. The URL contract in `filter-schema.ts` stays unchanged.
