@@ -39,18 +39,16 @@ export async function POST(request: NextRequest) {
     const userAgent = request.headers.get('user-agent')?.slice(0, 256) || null;
     const country = request.headers.get('x-vercel-ip-country') || null;
 
-    // Upsert visitor (anon client; RLS policies allow INSERT + UPDATE for anon role)
-    await supabase.from('site_visitors').upsert(
-      {
-        session_id: sessionId,
-        page: page || null,
-        user_agent: userAgent,
-        country,
-        ip_hash: ipHash,
-        last_seen: new Date().toISOString(),
-      },
-      { onConflict: 'session_id' }
-    );
+    // SEC-02 + gap-D: pure INSERT (anon role has no UPDATE on site_visitors).
+    // Multiple inserts per session are benign churn — pg_cron sweeps every 5m.
+    await supabase.from('site_visitors').insert({
+      session_id: sessionId,
+      page: page || null,
+      user_agent: userAgent,
+      country,
+      ip_hash: ipHash,
+      last_seen: new Date().toISOString(),
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {

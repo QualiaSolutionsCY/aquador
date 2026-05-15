@@ -6,7 +6,7 @@ import { NextRequest } from 'next/server';
 // Mock dependencies before imports
 const mockCheckRateLimit = jest.fn();
 const mockSupabaseFrom = jest.fn();
-const mockSupabaseUpsert = jest.fn();
+const mockSupabaseInsert = jest.fn();
 
 // Mock rate limiter
 jest.mock('@/lib/rate-limit', () => ({
@@ -60,12 +60,12 @@ describe('POST /api/heartbeat', () => {
     mockCheckRateLimit.mockResolvedValue(null);
 
     // Default Supabase responses
-    mockSupabaseUpsert.mockResolvedValue({ data: null, error: null });
+    mockSupabaseInsert.mockResolvedValue({ data: null, error: null });
 
     mockSupabaseFrom.mockImplementation((table: string) => {
       if (table === 'site_visitors') {
         return {
-          upsert: mockSupabaseUpsert,
+          insert: mockSupabaseInsert,
         };
       }
       return {};
@@ -86,7 +86,7 @@ describe('POST /api/heartbeat', () => {
       expect(data.ok).toBe(true);
     });
 
-    it('should upsert visitor data', async () => {
+    it('should insert visitor data', async () => {
       const request = createMockRequest({
         sessionId: 'sess_test_visitor',
         page: '/create-perfume',
@@ -94,12 +94,11 @@ describe('POST /api/heartbeat', () => {
 
       await POST(request);
 
-      expect(mockSupabaseUpsert).toHaveBeenCalledWith(
+      expect(mockSupabaseInsert).toHaveBeenCalledWith(
         expect.objectContaining({
           session_id: 'sess_test_visitor',
           page: '/create-perfume',
-        }),
-        { onConflict: 'session_id' }
+        })
       );
     });
 
@@ -111,10 +110,10 @@ describe('POST /api/heartbeat', () => {
 
       await POST(request);
 
-      const upsertCall = mockSupabaseUpsert.mock.calls[0][0];
-      expect(upsertCall.ip_hash).toBeDefined();
-      expect(upsertCall.ip_hash).toHaveLength(64); // SHA-256 hex string
-      expect(upsertCall.ip_hash).not.toContain('123.456.789.012');
+      const insertCall = mockSupabaseInsert.mock.calls[0][0];
+      expect(insertCall.ip_hash).toBeDefined();
+      expect(insertCall.ip_hash).toHaveLength(64); // SHA-256 hex string
+      expect(insertCall.ip_hash).not.toContain('123.456.789.012');
     });
 
     it('should include user agent and country', async () => {
@@ -128,9 +127,9 @@ describe('POST /api/heartbeat', () => {
 
       await POST(request);
 
-      const upsertCall = mockSupabaseUpsert.mock.calls[0][0];
-      expect(upsertCall.user_agent).toBe('Chrome/100 Test');
-      expect(upsertCall.country).toBe('CY');
+      const insertCall = mockSupabaseInsert.mock.calls[0][0];
+      expect(insertCall.user_agent).toBe('Chrome/100 Test');
+      expect(insertCall.country).toBe('CY');
     });
 
   });
@@ -199,7 +198,7 @@ describe('POST /api/heartbeat', () => {
 
   describe('Error Handling', () => {
     it('should return 500 for database errors', async () => {
-      mockSupabaseUpsert.mockRejectedValue(new Error('Database connection failed'));
+      mockSupabaseInsert.mockRejectedValue(new Error('Database connection failed'));
 
       const request = createMockRequest({
         sessionId: 'sess_error_test',

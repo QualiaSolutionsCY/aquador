@@ -4,9 +4,10 @@
 -- ============================================================
 -- Purpose:
 --   1. Remove the heartbeat route's dependency on the service-role
---      key by allowing the anon role to INSERT/UPDATE site_visitors
---      through RLS policies (limited to the columns the upsert uses;
---      site_visitors has no admin-only column we need to guard here).
+--      key by allowing the anon role to INSERT into site_visitors
+--      through an RLS policy (insert-only; anon has no UPDATE on
+--      this table, so analytics rows cannot be overwritten by a
+--      caller who guesses another session_id).
 --   2. Move the stale-row DELETE that previously ran inline on every
 --      POST /api/heartbeat call into a database-internal pg_cron job
 --      so the privileged DELETE is never reachable from a public
@@ -17,12 +18,13 @@
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 
 -- ------------------------------------------------------------
--- RLS policies on public.site_visitors for the anon role
+-- RLS policy on public.site_visitors for the anon role
 -- ------------------------------------------------------------
--- Supabase's PostgREST translates .upsert({...}, { onConflict: 'session_id' })
--- into INSERT ... ON CONFLICT (session_id) DO UPDATE SET ..., which requires
--- BOTH the INSERT and UPDATE policies to permit anon. RLS is already enabled
--- on this table by supabase/migrations/20260302_enable_rls_all_tables.sql.
+-- The heartbeat route inserts only (gap-D: no anon UPDATE on
+-- site_visitors). Multiple inserts per session are intentional —
+-- the pg_cron job below deletes rows older than 10 minutes, so
+-- duplicates self-prune within one cleanup cycle. RLS is already
+-- enabled on this table by 20260302_enable_rls_all_tables.sql.
 
 DO $$
 BEGIN
@@ -33,18 +35,6 @@ BEGIN
       AND schemaname = 'public'
   ) THEN
     EXECUTE 'CREATE POLICY site_visitors_insert_anon ON public.site_visitors FOR INSERT TO anon WITH CHECK (true)';
-  END IF;
-END $$;
-
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies
-    WHERE policyname = 'site_visitors_update_anon'
-      AND tablename  = 'site_visitors'
-      AND schemaname = 'public'
-  ) THEN
-    EXECUTE 'CREATE POLICY site_visitors_update_anon ON public.site_visitors FOR UPDATE TO anon USING (true) WITH CHECK (true)';
   END IF;
 END $$;
 
