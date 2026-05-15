@@ -1,35 +1,41 @@
+import { Suspense } from 'react';
 import { Metadata } from 'next';
-import dynamic from 'next/dynamic';
 import { getFeaturedProducts } from '@/lib/supabase/product-service';
-import Hero from '@/components/home/Hero';
-import Categories from '@/components/home/Categories';
-import CreateSection from '@/components/home/CreateSection';
-import CTASection from '@/components/home/CTASection';
+import Hero from '@/components/storefront/Hero';
+import NotesStory from '@/components/storefront/NotesStory';
+import BrandStory from '@/components/storefront/BrandStory';
+import JournalTeaser from '@/components/storefront/JournalTeaser';
+import EmailCapture from '@/components/storefront/EmailCapture';
+import AiConciergeEntry from '@/components/storefront/AiConciergeEntry';
+import FeaturedGrid, {
+  FeaturedGridSkeleton,
+} from '@/components/storefront/FeaturedGrid';
 
 export const metadata: Metadata = {
   title: "Aquad'or | Luxury Perfumes & Niche Fragrances Cyprus",
-  description: "Where Luxury Meets Distinction. Discover our curated collection of high-end and niche perfumes, or create your own signature fragrance at Aquad'or Cyprus, Nicosia.",
+  description:
+    "Where Luxury Meets Distinction. Discover our curated collection of high-end and niche perfumes, or create your own signature fragrance at Aquad'or Cyprus, Nicosia.",
   alternates: {
     canonical: 'https://aquadorcy.com',
   },
 };
 
-const FeaturedProducts = dynamic(() => import('@/components/home/FeaturedProducts'), {
-  ssr: true,
-});
-
 export const revalidate = 600;
 
-export default async function Home() {
-  const featuredProducts = await getFeaturedProducts(6);
+async function FeaturedGridLoader() {
+  const products = await getFeaturedProducts(6);
+  return <FeaturedGrid products={products} />;
+}
 
+export default function Home() {
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: "Aquad'or",
     url: 'https://aquadorcy.com',
     logo: 'https://aquadorcy.com/aquador.webp',
-    description: "Cyprus's premier luxury fragrance house offering curated niche perfumes and bespoke fragrance creation.",
+    description:
+      "Cyprus's premier luxury fragrance house offering curated niche perfumes and bespoke fragrance creation.",
     address: {
       '@type': 'PostalAddress',
       streetAddress: 'Ledra 145',
@@ -121,10 +127,14 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: safeStringify(localBusinessSchema) }}
       />
       <Hero />
-      <Categories />
-      <CreateSection />
-      <FeaturedProducts products={featuredProducts} />
-      <CTASection />
+      <Suspense fallback={<FeaturedGridSkeleton />}>
+        <FeaturedGridLoader />
+      </Suspense>
+      <NotesStory />
+      <BrandStory />
+      <JournalTeaser />
+      <EmailCapture />
+      <AiConciergeEntry />
     </>
   );
 }
