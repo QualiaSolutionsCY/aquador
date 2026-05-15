@@ -77,10 +77,8 @@ export default function FeaturedGrid({ products }: FeaturedGridProps) {
   return (
     <section className="border-t border-border py-16 md:py-24 px-[var(--page-px)]">
       <FadeUp className="mb-12 max-w-[var(--container-narrow)]">
-        <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted">
-          04 / Featured
-        </p>
-        <h2 className="mt-6 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-h1)]">
+        <span aria-hidden="true" className="block h-px w-12 bg-border-strong" />
+        <h2 className="mt-8 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-h1)]">
           Six the desk is wearing this week.
         </h2>
       </FadeUp>
@@ -117,10 +115,8 @@ export function FeaturedGridSkeleton() {
   return (
     <section className="border-t border-border py-16 md:py-24 px-[var(--page-px)]">
       <div className="mb-12 max-w-[var(--container-narrow)]">
-        <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted">
-          04 / Featured
-        </p>
-        <h2 className="mt-6 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-h1)]">
+        <span aria-hidden="true" className="block h-px w-12 bg-border-strong" />
+        <h2 className="mt-8 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-h1)]">
           Six the desk is wearing this week.
         </h2>
       </div>

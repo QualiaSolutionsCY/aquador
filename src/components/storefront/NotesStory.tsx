@@ -16,10 +16,8 @@ export default function NotesStory() {
     <section className="border-t border-border py-16 md:py-24 px-[var(--page-px)]">
       <div className="max-w-[var(--container-narrow)]">
         <FadeUp>
-          <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted">
-            01 / Notes
-          </p>
-          <h2 className="mt-6 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-h1)]">
+          <span aria-hidden="true" className="block h-px w-12 bg-border-strong" />
+          <h2 className="mt-8 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-h1)]">
             The pyramid, read top to base.
           </h2>
         </FadeUp>

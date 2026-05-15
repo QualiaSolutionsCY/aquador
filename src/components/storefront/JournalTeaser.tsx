@@ -21,10 +21,8 @@ export default function JournalTeaser() {
   return (
     <section className="border-t border-border py-16 md:py-24 px-[var(--page-px)]">
       <FadeUp>
-        <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
-          03 / Letters
-        </p>
-        <h2 className="mt-6 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-display-2xl)] max-w-[var(--container-prose)]">
+        <span aria-hidden="true" className="block h-px w-12 bg-border-strong" />
+        <h2 className="mt-8 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-display-2xl)] max-w-[var(--container-prose)]">
           Recent letters from the desk.
         </h2>
       </FadeUp>

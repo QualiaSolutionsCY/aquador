@@ -373,3 +373,334 @@ export async function getRecentOrders(limit = 10): Promise<RecentOrderRow[]> {
     return [];
   }
 }
+
+// -----------------------------------------------------------------------------
+// Products namespace
+// -----------------------------------------------------------------------------
+
+type ProductRow = Database['public']['Tables']['products']['Row'];
+type ProductInsert = Database['public']['Tables']['products']['Insert'];
+type ProductUpdate = Database['public']['Tables']['products']['Update'];
+
+/** Filters accepted by `getAdminProducts`. */
+export type AdminProductFilters = {
+  search?: string;
+  category?: string;
+  limit?: number;
+};
+
+/** Escape PostgREST `ilike` special characters (mirror of products list page). */
+function escapeIlike(query: string): string {
+  return query.replace(/[%_\\*()[\]!,]/g, '\\$&');
+}
+
+/**
+ * List products for the admin grid. service-role: operator needs every product
+ * regardless of `is_active` so they can manage hidden listings.
+ */
+export async function getAdminProducts(
+  filters: AdminProductFilters = {}
+): Promise<{ data: ProductRow[]; error: string | null }> {
+  try {
+    const supabase = createAdminClient();
+    let query = supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(filters.limit ?? 200);
+
+    if (filters.search) query = query.ilike('name', `%${escapeIlike(filters.search)}%`);
+    if (filters.category) {
+      query = query.eq('category', filters.category as ProductRow['category']);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      reportSafe('getAdminProducts', error);
+      return { data: [], error: error.message };
+    }
+    return { data: data ?? [], error: null };
+  } catch (err) {
+    reportSafe('getAdminProducts unexpected', err);
+    return { data: [], error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/** Read a single product by id. service-role: admin sees hidden products too. */
+export async function getAdminProductById(
+  id: string
+): Promise<{ data: ProductRow | null; error: string | null }> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) {
+      reportSafe('getAdminProductById', error, { id });
+      return { data: null, error: error.message };
+    }
+    return { data: data ?? null, error: null };
+  } catch (err) {
+    reportSafe('getAdminProductById unexpected', err);
+    return { data: null, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/** Insert a new product. service-role: bypass RLS for admin writes. */
+export async function createProduct(
+  input: ProductInsert
+): Promise<{ data: ProductRow | null; error: string | null }> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('products')
+      .insert(input)
+      .select()
+      .single();
+    if (error) {
+      reportSafe('createProduct', error);
+      return { data: null, error: error.message };
+    }
+    return { data, error: null };
+  } catch (err) {
+    reportSafe('createProduct unexpected', err);
+    return { data: null, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/** Update a product in place. service-role: bypass RLS for admin writes. */
+export async function updateProduct(
+  id: string,
+  input: ProductUpdate
+): Promise<{ data: ProductRow | null; error: string | null }> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('products')
+      .update(input)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) {
+      reportSafe('updateProduct', error, { id });
+      return { data: null, error: error.message };
+    }
+    return { data, error: null };
+  } catch (err) {
+    reportSafe('updateProduct unexpected', err);
+    return { data: null, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/** Delete a product. service-role: bypass RLS for admin destructive op. */
+export async function deleteProduct(
+  id: string
+): Promise<{ data: { id: string } | null; error: string | null }> {
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) {
+      reportSafe('deleteProduct', error, { id });
+      return { data: null, error: error.message };
+    }
+    return { data: { id }, error: null };
+  } catch (err) {
+    reportSafe('deleteProduct unexpected', err);
+    return { data: null, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Orders namespace (consumed by Task 2, exposed here per plan §35 serialization)
+// -----------------------------------------------------------------------------
+
+export type AdminOrderFilters = {
+  status?: OrderStatus;
+  search?: string;
+  limit?: number;
+};
+
+/** List orders for the admin grid. service-role: operator sees every customer's orders. */
+export async function getAdminOrders(
+  filters: AdminOrderFilters = {}
+): Promise<{ data: OrderRow[]; error: string | null }> {
+  try {
+    const supabase = createAdminClient();
+    let query = supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(filters.limit ?? 200);
+
+    if (filters.status) query = query.eq('status', filters.status);
+    if (filters.search) {
+      const escaped = escapeIlike(filters.search);
+      query = query.or(`customer_email.ilike.%${escaped}%,customer_name.ilike.%${escaped}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      reportSafe('getAdminOrders', error);
+      return { data: [], error: error.message };
+    }
+    return { data: data ?? [], error: null };
+  } catch (err) {
+    reportSafe('getAdminOrders unexpected', err);
+    return { data: [], error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/** Read a single order by id. */
+export async function getAdminOrderById(
+  id: string
+): Promise<{ data: OrderRow | null; error: string | null }> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) {
+      reportSafe('getAdminOrderById', error, { id });
+      return { data: null, error: error.message };
+    }
+    return { data: data ?? null, error: null };
+  } catch (err) {
+    reportSafe('getAdminOrderById unexpected', err);
+    return { data: null, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/** Update an order's fulfillment status. service-role: admin-only mutation. */
+export async function updateOrderStatus(
+  id: string,
+  status: OrderStatus
+): Promise<{ data: OrderRow | null; error: string | null }> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) {
+      reportSafe('updateOrderStatus', error, { id, status });
+      return { data: null, error: error.message };
+    }
+    return { data, error: null };
+  } catch (err) {
+    reportSafe('updateOrderStatus unexpected', err);
+    return { data: null, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Customers namespace (consumed by Task 3)
+// -----------------------------------------------------------------------------
+
+export type AdminCustomerFilters = {
+  search?: string;
+  cohort?: string;
+  limit?: number;
+};
+
+/** List customers for the admin grid. service-role: full directory access. */
+export async function getAdminCustomers(
+  filters: AdminCustomerFilters = {}
+): Promise<{ data: CustomerRow[]; error: string | null }> {
+  try {
+    const supabase = createAdminClient();
+    let query = supabase
+      .from('customers')
+      .select('*')
+      .order('last_order_at', { ascending: false, nullsFirst: false })
+      .limit(filters.limit ?? 200);
+
+    if (filters.search) {
+      const escaped = escapeIlike(filters.search);
+      query = query.or(`email.ilike.%${escaped}%,name.ilike.%${escaped}%`);
+    }
+    // `cohort` filter is a placeholder until Task 3 lands the customer_cohorts
+    // table; the column doesn't exist yet so we just no-op the filter.
+
+    const { data, error } = await query;
+    if (error) {
+      reportSafe('getAdminCustomers', error);
+      return { data: [], error: error.message };
+    }
+    return { data: data ?? [], error: null };
+  } catch (err) {
+    reportSafe('getAdminCustomers unexpected', err);
+    return { data: [], error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/** Read a single customer by id. */
+export async function getAdminCustomerById(
+  id: string
+): Promise<{ data: CustomerRow | null; error: string | null }> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) {
+      reportSafe('getAdminCustomerById', error, { id });
+      return { data: null, error: error.message };
+    }
+    return { data: data ?? null, error: null };
+  } catch (err) {
+    reportSafe('getAdminCustomerById unexpected', err);
+    return { data: null, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Read every order placed by a customer. Orders are joined by
+ * `customer_email` (the orders table doesn't carry a customer FK; the
+ * existing schema denormalizes the email as the linking key).
+ */
+export async function getCustomerOrderHistory(
+  customerId: string
+): Promise<{ data: OrderRow[]; error: string | null }> {
+  try {
+    const supabase = createAdminClient();
+
+    // Resolve email from the customers row first; orders.customer_email is
+    // the only column that ties an order back to a customer.
+    const { data: customer, error: custErr } = await supabase
+      .from('customers')
+      .select('email')
+      .eq('id', customerId)
+      .maybeSingle();
+
+    if (custErr) {
+      reportSafe('getCustomerOrderHistory customer lookup', custErr, { customerId });
+      return { data: [], error: custErr.message };
+    }
+    if (!customer?.email) {
+      return { data: [], error: null };
+    }
+
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('customer_email', customer.email)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      reportSafe('getCustomerOrderHistory orders', error, { customerId });
+      return { data: [], error: error.message };
+    }
+    return { data: data ?? [], error: null };
+  } catch (err) {
+    reportSafe('getCustomerOrderHistory unexpected', err);
+    return { data: [], error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}

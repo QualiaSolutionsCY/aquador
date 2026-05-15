@@ -24,10 +24,8 @@ export default function BrandStory() {
       <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-8 px-[var(--page-px)]">
         <div>
           <FadeUp>
-            <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
-              02 / House
-            </p>
-            <h2 className="mt-6 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-display-2xl)]">
+            <span aria-hidden="true" className="block h-px w-12 bg-border-strong" />
+            <h2 className="mt-8 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-display-2xl)]">
               Cyprus by way of Levantine paperwork.
             </h2>
           </FadeUp>
