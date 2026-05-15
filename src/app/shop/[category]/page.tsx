@@ -1,7 +1,13 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import { getProductsByCategory, categories, getCategoryBySlug } from '@/lib/supabase/product-service';
+import {
+  getProductsByCategory,
+  categories,
+  getCategoryBySlug,
+  getAllProductBrands,
+} from '@/lib/supabase/product-service';
+import { CATEGORY_OPTIONS } from '@/lib/constants';
 import ProductGrid from '@/components/storefront/ProductGrid';
 import ShopGridFallback from '@/components/storefront/ShopGridFallback';
 
@@ -65,7 +71,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     notFound();
   }
 
-  const allProducts = await getProductsByCategory(categorySlug);
+  const [allProducts, brandOptions] = await Promise.all([
+    getProductsByCategory(categorySlug),
+    getAllProductBrands(),
+  ]);
   // Only show perfumes. Oils and lotions are variants on the product page, not separate listings.
   const products = allProducts.filter((p) => p.product_type === 'perfume');
 
@@ -114,7 +123,12 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           </p>
         </header>
         <Suspense fallback={<ShopGridFallback />}>
-          <ProductGrid products={products} categorySlug={categorySlug} />
+          <ProductGrid
+            products={products}
+            brandOptions={brandOptions}
+            categoryOptions={CATEGORY_OPTIONS}
+            categorySlug={categorySlug}
+          />
         </Suspense>
       </main>
     </>

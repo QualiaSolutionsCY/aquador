@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { getAllProducts } from '@/lib/supabase/product-service';
+import { getAllProducts, getAllProductBrands } from '@/lib/supabase/product-service';
+import { CATEGORY_OPTIONS } from '@/lib/constants';
 import ProductGrid from '@/components/storefront/ProductGrid';
 import ShopGridFallback from '@/components/storefront/ShopGridFallback';
 
@@ -27,7 +28,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ShopPage() {
-  const allProducts = await getAllProducts();
+  const [allProducts, brandOptions] = await Promise.all([
+    getAllProducts(),
+    getAllProductBrands(),
+  ]);
 
   // Dubai Shop: exclude Lattafa (own page) and non-perfume types (oils/lotions are variants, not separate listings)
   const products = allProducts.filter(
@@ -44,11 +48,15 @@ export default async function ShopPage() {
           The full collection
         </h1>
         <p className="text-fg-muted mt-4 max-w-prose text-[length:var(--font-size-body)]">
-          Refine by family, brand, or price.
+          Refine by category, brand, or price.
         </p>
       </header>
       <Suspense fallback={<ShopGridFallback />}>
-        <ProductGrid products={products} />
+        <ProductGrid
+          products={products}
+          brandOptions={brandOptions}
+          categoryOptions={CATEGORY_OPTIONS}
+        />
       </Suspense>
     </main>
   );

@@ -1,18 +1,23 @@
 'use client';
 
 /**
- * SortControl. Inline horizontal sort row for the shop storefront (SHOP-02).
+ * SortControl. Inline horizontal sort row for the shop storefront.
  *
  * Editorial spec (DESIGN.md §10b): NO Card wrapper. A `font-micro` "Order by"
- * label sits left of a `Tabs` row with four options. Each tab carries an
- * underline micro-shift on hover and a persistent underline when active so
- * the change-of-order moment reads as a typographic cue, not a chrome toggle.
+ * label sits left of a `Tabs` row with four options. The active tab carries
+ * a persistent underline so the current sort reads as a typographic cue.
  *
- * Motion: 150ms (`--duration-fast`) transform on the underline span, eased
- * with `--ease-out-quart`. `prefers-reduced-motion` is zeroed by tokens.css.
+ * The previous build animated an underline span sliding in from the left on
+ * hover. That micro-shift competed with the FilterPanel for attention and,
+ * combined with the broken filter sections, made the whole row feel like
+ * decoration rather than control. We drop the slide and rely on the
+ * data-state=active underline plus a subtle color shift on hover for state.
+ *
+ * Motion: `--duration-fast` color transition only. `prefers-reduced-motion`
+ * is zeroed by tokens.css.
  *
  * Props are controlled: caller owns the sort value and the URL-write side
- * effect. This keeps `SortControl` reusable on /shop and /shop/[category].
+ * effect. This keeps `SortControl` reusable across the shop route family.
  */
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
@@ -34,18 +39,14 @@ export default function SortControl({ value, onChange }: SortControlProps) {
         value={value}
         onValueChange={(v) => onChange(v as SortKey)}
       >
-        <TabsList className="flex flex-wrap gap-x-2 gap-y-1 overflow-x-auto border-b-0">
+        <TabsList className="flex flex-wrap gap-x-4 gap-y-1 overflow-x-auto border-b-0">
           {SORT_OPTIONS.map((option) => (
             <TabsTrigger
               key={option.id}
               value={option.id}
-              className="group relative overflow-hidden min-h-[44px]"
+              className="min-h-[44px] text-fg-muted transition-colors duration-[var(--duration-fast)] hover:text-fg data-[state=active]:text-fg"
             >
-              <span>{option.label}</span>
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-accent -translate-x-full transition-transform duration-[var(--duration-fast)] ease-[var(--ease-out-quart)] group-hover:translate-x-0 group-data-[state=active]:translate-x-0"
-              />
+              {option.label}
             </TabsTrigger>
           ))}
         </TabsList>

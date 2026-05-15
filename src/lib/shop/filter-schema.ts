@@ -1,29 +1,32 @@
 /**
  * Shop filter + sort schema.
  *
- * Owns the URL contract for the shop page. The shop filter bar (SHOP-01)
- * and sort dropdown (SHOP-02) both read and write filters via these helpers
- * so the URL stays the single source of truth across back/forward navigation
- * and share links.
+ * Owns the URL contract for the shop page. The shop filter bar and sort
+ * dropdown both read and write filters via these helpers so the URL stays
+ * the single source of truth across back/forward navigation and share links.
  *
  * URL shape:
- *   /shop?category=women&gender=women&brand=lattafa,al-haramain
- *        &family=floral,oriental&price=0-30,30-60&sort=price-asc&search=oud
+ *   /shop?category=women&gender=women&brand=lattafa,tom-ford
+ *        &price=0-30,30-60&sort=price-asc&search=oud&in_stock=1
  *
- * Multi-value params (brand, family, price) are comma-separated. Unknown
- * keys and invalid values are stripped silently rather than thrown, so a
- * malformed share link still renders a working shop page.
+ * Multi-value params (brand, price) are comma-separated. Unknown keys and
+ * invalid values are stripped silently rather than thrown, so a malformed
+ * share link still renders a working shop page.
+ *
+ * Brand IDs are dynamic kebab-case slugs derived from the live catalogue
+ * (see getAllProductBrands in product-service). The schema validates that
+ * each entry is non-empty kebab-case but does not enum-check against a
+ * fixed list, since the catalogue grows.
  */
 
 import { z } from 'zod';
 import type { ReadonlyURLSearchParams } from 'next/navigation';
 import {
-  BRAND_OPTIONS,
   CATEGORY_OPTIONS,
   GENDER_OPTIONS,
-  NOTES_FAMILY_OPTIONS,
   PRICE_BANDS,
 } from '@/lib/constants';
+import { slugify } from '@/lib/utils';
 import type { Product } from '@/lib/supabase/types';
 
 /** Sort keys for the shop sort dropdown. */
@@ -31,9 +34,10 @@ export type SortKey = 'featured' | 'price-asc' | 'price-desc' | 'newest';
 
 const CATEGORY_IDS = CATEGORY_OPTIONS.map((c) => c.id);
 const GENDER_IDS = GENDER_OPTIONS.map((g) => g.id) as readonly string[];
-const BRAND_IDS = BRAND_OPTIONS.map((b) => b.id) as readonly string[];
-const FAMILY_IDS = NOTES_FAMILY_OPTIONS.map((f) => f.id) as readonly string[];
 const PRICE_BAND_IDS = PRICE_BANDS.map((b) => b.id) as readonly string[];
+
+/** Loose kebab-case slug: lowercase a-z, 0-9, single hyphens. */
+const KEBAB_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /**
  * Zod schema that validates the parsed filter object. Invalid array entries
@@ -52,17 +56,17 @@ export const ShopFiltersSchema = z.object({
     .optional()
     .catch(undefined),
   brand: z
-    .array(z.string().refine((v) => BRAND_IDS.includes(v)))
-    .default([])
-    .catch([]),
-  family: z
-    .array(z.string().refine((v) => FAMILY_IDS.includes(v)))
+    .array(z.string().refine((v) => KEBAB_SLUG.test(v)))
     .default([])
     .catch([]),
   price: z
     .array(z.string().refine((v) => PRICE_BAND_IDS.includes(v)))
     .default([])
     .catch([]),
+  inStock: z
+    .boolean()
+    .optional()
+    .catch(undefined),
   sort: z
     .enum(['featured', 'price-asc', 'price-desc', 'newest'])
     .default('featured')
@@ -83,12 +87,14 @@ export function parseShopFilters(
   const splitMulti = (key: string): string[] =>
     params.get(key)?.split(',').map((s) => s.trim()).filter(Boolean) ?? [];
 
+  const inStockParam = params.get('in_stock');
+
   const raw = {
     category: params.get('category') ?? undefined,
     gender: params.get('gender') ?? undefined,
     brand: splitMulti('brand'),
-    family: splitMulti('family'),
     price: splitMulti('price'),
+    inStock: inStockParam === '1' ? true : undefined,
     sort: params.get('sort') ?? undefined,
     search: params.get('search') ?? undefined,
   };
@@ -108,8 +114,8 @@ export function stringifyShopFilters(filters: ShopFilters): URLSearchParams {
   if (filters.category) out.set('category', filters.category);
   if (filters.gender) out.set('gender', filters.gender);
   if (filters.brand.length > 0) out.set('brand', filters.brand.join(','));
-  if (filters.family.length > 0) out.set('family', filters.family.join(','));
   if (filters.price.length > 0) out.set('price', filters.price.join(','));
+  if (filters.inStock === true) out.set('in_stock', '1');
   if (filters.sort && filters.sort !== 'featured') out.set('sort', filters.sort);
   if (filters.search && filters.search.length > 0) out.set('search', filters.search);
   return out;
@@ -134,6 +140,11 @@ function bandMatchesPrice(bandId: string, price: number): boolean {
 /**
  * Apply every filter dimension to the product list. Empty arrays mean
  * "no filter on this dimension" (pass-through).
+ *
+ * Brand matching: the brand filter array carries kebab-case slugs. Each
+ * product's `brand` text column is slugified the same way and compared
+ * for equality. This is exact-match-on-slug rather than substring so
+ * "tom-ford" picks up "Tom Ford" without also pulling in "Tom Ford Private".
  */
 export function applyShopFilters(
   products: Product[],
@@ -144,40 +155,9 @@ export function applyShopFilters(
     if (filters.gender && p.gender !== filters.gender) return false;
 
     if (filters.brand.length > 0) {
-      const productBrand = p.brand?.toLowerCase().trim() ?? '';
-      // Match either the slug ('lattafa') or the label ('Lattafa') against
-      // the free-text brand column. 'other' matches anything that does not
-      // match the named brands.
-      const namedBrandIds = BRAND_OPTIONS.filter((b) => b.id !== 'other').map(
-        (b) => b.id,
-      );
-      const namedBrandLabels = BRAND_OPTIONS.filter((b) => b.id !== 'other').map(
-        (b) => b.label.toLowerCase(),
-      );
-      const matched = filters.brand.some((bid) => {
-        if (bid === 'other') {
-          // 'other' = brand is set but does not match any named brand
-          const matchesNamed = namedBrandIds.some(
-            (id) => productBrand.includes(id) || productBrand === id,
-          ) || namedBrandLabels.some((label) => productBrand.includes(label));
-          return productBrand.length > 0 && !matchesNamed;
-        }
-        const option = BRAND_OPTIONS.find((b) => b.id === bid);
-        if (!option) return false;
-        const label = option.label.toLowerCase();
-        return (
-          productBrand === bid ||
-          productBrand.includes(bid) ||
-          productBrand.includes(label)
-        );
-      });
-      if (!matched) return false;
-    }
-
-    if (filters.family.length > 0) {
-      const tags = (p.tags ?? []).map((t) => t.toLowerCase());
-      const matched = filters.family.some((f) => tags.includes(f));
-      if (!matched) return false;
+      const productBrandSlug = p.brand ? slugify(p.brand) : '';
+      if (!productBrandSlug) return false;
+      if (!filters.brand.includes(productBrandSlug)) return false;
     }
 
     if (filters.price.length > 0) {
@@ -185,6 +165,8 @@ export function applyShopFilters(
       const matched = filters.price.some((bid) => bandMatchesPrice(bid, price));
       if (!matched) return false;
     }
+
+    if (filters.inStock === true && !p.in_stock) return false;
 
     if (filters.search && filters.search.length > 0) {
       const needle = filters.search.toLowerCase();

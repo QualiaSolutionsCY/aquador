@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * ProductGrid. Numbered-editorial shop grid container (SHOP-01..04).
+ * ProductGrid. Numbered-editorial shop grid container.
  *
  * Owns the URL contract for the shop route family. Reads `ShopFilters`
  * from `useSearchParams`, applies `applyShopFilters` + `applyShopSort`
@@ -17,8 +17,13 @@
  * Skeleton. All motion is zeroed under `prefers-reduced-motion` by
  * tokens.css.
  *
- * Voice: "Refine", "Order by", "Results", "Clear filters",
- * "Nothing matches yet.", "Loosen a filter, or try a different family.".
+ * Brand and category options are passed in from the server-side data
+ * load so the FilterPanel reflects the live catalogue rather than a
+ * hardcoded enum. The "family" filter has been removed because the
+ * catalogue never carried the family tags it was supposed to match.
+ *
+ * Voice: "Refine", "Order by", "Results", "Clear all",
+ * "Nothing matches yet.", "Loosen a filter, or try a different price band.".
  * No em-dashes, no emoji.
  */
 
@@ -31,7 +36,10 @@ import {
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { Skeleton } from '@/components/ui/Skeleton';
-import FilterPanel from './FilterPanel';
+import FilterPanel, {
+  type BrandOption,
+  type CategoryOption,
+} from './FilterPanel';
 import SortControl from './SortControl';
 import {
   applyShopFilters,
@@ -44,7 +52,12 @@ import type { Product } from '@/lib/supabase/types';
 
 export interface ProductGridProps {
   products: Product[];
-  /** When set, hides the category-pivot UI in the filter panel. */
+  /** Brand list derived from the live catalogue (getAllProductBrands). */
+  brandOptions: BrandOption[];
+  /** Category list (CATEGORY_OPTIONS). Hidden when categorySlug is set. */
+  categoryOptions: CategoryOption[];
+  /** When set, hides the category section in the filter panel because the URL
+   * path already constrains it. */
   categorySlug?: string;
 }
 
@@ -53,6 +66,8 @@ const FADE_UP_LIMIT = 8;
 
 export default function ProductGrid({
   products,
+  brandOptions,
+  categoryOptions,
   categorySlug,
 }: ProductGridProps) {
   const router = useRouter();
@@ -125,7 +140,7 @@ export default function ProductGrid({
 
   return (
     <section className="border-t border-border">
-      {/* 01 / Refine */}
+      {/* 01 / Refine + Order by. One editorial cluster, not two. */}
       <div className="border-b border-border py-10 md:py-12 px-[var(--page-px)]">
         <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
           01 / Refine
@@ -134,17 +149,12 @@ export default function ProductGrid({
           <FilterPanel
             filters={filters}
             onChange={setFilters}
+            brandOptions={brandOptions}
+            categoryOptions={categoryOptions}
             hideCategoryFilter={Boolean(categorySlug)}
           />
         </div>
-      </div>
-
-      {/* 02 / Order by */}
-      <div className="border-b border-border py-8 px-[var(--page-px)]">
-        <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
-          02 / Order by
-        </p>
-        <div className="mt-4">
+        <div className="mt-10 border-t border-border pt-6">
           <SortControl
             value={filters.sort ?? 'featured'}
             onChange={(sort) => setFilters({ ...filters, sort })}
@@ -152,10 +162,10 @@ export default function ProductGrid({
         </div>
       </div>
 
-      {/* 03 / Results */}
+      {/* 02 / Results */}
       <div className="py-10 md:py-12 px-[var(--page-px)]">
         <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
-          03 / Results
+          02 / Results
           <span className="ml-2 text-fg">{showSkeletons ? '' : visible.length}</span>
         </p>
 
@@ -165,24 +175,24 @@ export default function ProductGrid({
               Nothing matches yet.
             </p>
             <p className="mt-3 text-fg-muted text-[length:var(--font-size-body)]">
-              Loosen a filter, or try a different family.
+              Loosen a filter, or try a different price band.
             </p>
             <button
               type="button"
               onClick={() =>
                 setFilters({
-                  category: filters.category,
+                  category: categorySlug ? filters.category : undefined,
                   sort: filters.sort,
                   brand: [],
-                  family: [],
                   price: [],
                   gender: undefined,
+                  inStock: undefined,
                   search: undefined,
                 })
               }
               className="mt-6 inline-flex min-h-[44px] items-center font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-accent-deep underline-offset-4 transition-colors duration-[var(--duration-fast)] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
             >
-              Clear filters
+              Clear all
             </button>
           </div>
         ) : (

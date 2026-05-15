@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/nextjs';
 import { createPublicClient } from './public';
 import type { Product, ProductCategory } from './types';
 import { categories } from '../categories';
+import { slugify } from '../utils';
 
 // Re-export categories since they're static
 export { categories };
@@ -270,6 +271,62 @@ export async function searchProducts(query: string): Promise<Product[]> {
 
   return data || [];
 }
+
+/**
+ * Distinct brand list for the shop filter, derived from the live catalogue.
+ *
+ * Returns every non-empty `brand` value on active in-stock perfumes, slugified
+ * for the URL contract, with display labels (original casing) and the
+ * per-brand product count. Sorted by count desc, then label asc. Empty brand
+ * cells are dropped — they would produce an unnameable filter row.
+ *
+ * Cached per server request via `react.cache` so the shop page header,
+ * filter panel, and any other consumer all hit one query per render.
+ */
+export const getAllProductBrands = cache(async (): Promise<
+  Array<{ id: string; label: string; count: number }>
+> => {
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select('brand')
+    .eq('is_active', true)
+    .eq('in_stock', true)
+    .not('brand', 'is', null);
+
+  if (error) {
+    Sentry.addBreadcrumb({
+      category: 'product-service',
+      message: 'Error fetching brand list',
+      level: 'error',
+      data: { error },
+    });
+    return [];
+  }
+
+  // Group by slug, keep the first-seen label so casing matches the catalogue
+  // even when individual rows are inconsistent ("LATTAFA" vs "Lattafa").
+  const buckets = new Map<string, { label: string; count: number }>();
+  for (const row of data ?? []) {
+    const raw = (row.brand ?? '').trim();
+    if (!raw) continue;
+    const id = slugify(raw);
+    if (!id) continue;
+    const existing = buckets.get(id);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      buckets.set(id, { label: raw, count: 1 });
+    }
+  }
+
+  return Array.from(buckets.entries())
+    .map(([id, { label, count }]) => ({ id, label, count }))
+    .sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      return a.label.localeCompare(b.label);
+    });
+});
 
 // Get category by slug
 export function getCategoryBySlug(slug: string) {

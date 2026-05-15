@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { getProductsByCategory } from '@/lib/supabase/product-service';
+import { getProductsByCategory, getAllProductBrands } from '@/lib/supabase/product-service';
+import { CATEGORY_OPTIONS } from '@/lib/constants';
 import ProductGrid from '@/components/storefront/ProductGrid';
 import ShopGridFallback from '@/components/storefront/ShopGridFallback';
 
@@ -29,7 +30,10 @@ export const metadata: Metadata = {
 };
 
 export default async function LattafaPage() {
-  const products = await getProductsByCategory('lattafa-original');
+  const [products, brandOptions] = await Promise.all([
+    getProductsByCategory('lattafa-original'),
+    getAllProductBrands(),
+  ]);
 
   if (products.length === 0) {
     return (
@@ -66,11 +70,16 @@ export default async function LattafaPage() {
           Lattafa Originals
         </h1>
         <p className="text-fg-muted mt-4 max-w-prose text-[length:var(--font-size-body)]">
-          Authentic Arabian fragrances. Filter by family or price.
+          Authentic Arabian fragrances. Filter by brand, gender, or price.
         </p>
       </header>
       <Suspense fallback={<ShopGridFallback />}>
-        <ProductGrid products={products} />
+        <ProductGrid
+          products={products}
+          brandOptions={brandOptions}
+          categoryOptions={CATEGORY_OPTIONS}
+          categorySlug="lattafa-original"
+        />
       </Suspense>
     </main>
   );
