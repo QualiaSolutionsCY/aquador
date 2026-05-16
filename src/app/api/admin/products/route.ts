@@ -117,7 +117,8 @@ export async function POST(request: NextRequest) {
     }
 
     const insert = bodyToProductRow(parsed.data);
-    const { data, error } = await createProduct(insert);
+    const supabase = await createClient();
+    const { data, error } = await createProduct(insert, supabase);
     if (error || !data) {
       return NextResponse.json({ error: error ?? 'Failed to create product' }, { status: 500 });
     }
@@ -146,7 +147,8 @@ export async function PATCH(request: NextRequest) {
     }
 
     const update = bodyToProductRow(parsed.data);
-    const { data, error } = await updateProduct(parsed.data.id, update);
+    const supabase = await createClient();
+    const { data, error } = await updateProduct(parsed.data.id, update, supabase);
     if (error || !data) {
       return NextResponse.json({ error: error ?? 'Failed to update product' }, { status: 500 });
     }
@@ -167,7 +169,8 @@ export async function DELETE(request: NextRequest) {
     if (!id) {
       return NextResponse.json({ error: 'Missing product id' }, { status: 400 });
     }
-    const { error } = await deleteProduct(id);
+    const supabase = await createClient();
+    const { error } = await deleteProduct(id, supabase);
     if (error) {
       return NextResponse.json({ error }, { status: 500 });
     }

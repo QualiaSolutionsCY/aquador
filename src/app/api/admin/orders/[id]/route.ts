@@ -19,8 +19,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { updateOrderStatus, getAdminOrderById } from '@/lib/supabase/admin-service';
+import {
+  updateOrderStatus,
+  updateOrderNotes,
+  getAdminOrderById,
+} from '@/lib/supabase/admin-service';
 
 export const maxDuration = 10;
 
@@ -101,8 +104,13 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
 
     const { status, notes } = parsed.data;
 
+    // Cookie-bound client: RLS gates the write via `is_admin()` and the
+    // operator's `auth.uid()` is preserved in the audit trail (POLISH-09,
+    // OPTIMIZE.md H12/H13/M15). Service-role would bypass both.
+    const supabase = await createClient();
+
     if (status !== undefined) {
-      const { data, error } = await updateOrderStatus(id, status);
+      const { data, error } = await updateOrderStatus(id, status, supabase);
       if (error || !data) {
         Sentry.addBreadcrumb({
           category: 'admin-orders',
@@ -118,29 +126,21 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
     }
 
     if (notes !== undefined) {
-      // Notes are stored on orders.tags.notes — see file docstring.
-      const { data: existing } = await getAdminOrderById(id);
-      if (!existing) {
-        return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-      }
-      const currentTags =
-        existing.tags && typeof existing.tags === 'object' && !Array.isArray(existing.tags)
-          ? (existing.tags as Record<string, string>)
-          : {};
-      const nextTags = { ...currentTags, notes };
-      const supabase = createAdminClient();
-      const { error: noteErr } = await supabase
-        .from('orders')
-        .update({ tags: nextTags })
-        .eq('id', id);
-      if (noteErr) {
+      const { data, error: noteErr } = await updateOrderNotes(id, notes, supabase);
+      if (noteErr || !data) {
+        if (noteErr === 'Order not found') {
+          return NextResponse.json({ error: noteErr }, { status: 404 });
+        }
         Sentry.addBreadcrumb({
           category: 'admin-orders',
           message: 'updateOrderNotes failed',
           level: 'error',
-          data: { orderId: id, error: noteErr.message },
+          data: { orderId: id, error: noteErr },
         });
-        return NextResponse.json({ error: noteErr.message }, { status: 500 });
+        return NextResponse.json(
+          { error: noteErr ?? 'Failed to update notes' },
+          { status: 500 },
+        );
       }
     }
 

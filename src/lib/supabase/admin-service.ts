@@ -1,8 +1,20 @@
 import 'server-only';
 
 import * as Sentry from '@sentry/nextjs';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from './admin';
 import type { Database, Json } from './types';
+
+/**
+ * Caller-supplied Supabase client for write operations. Routes pass their
+ * cookie-bound `createClient()` instance through to keep `auth.uid()`
+ * non-null in the audit trail and let RLS gate the write (the
+ * `is_admin()` predicate added in 20260515110000_security_hardening_from_optimize.sql
+ * is dormant when callers use service-role). When omitted, the writer
+ * falls back to `createAdminClient()` for back-compat with any code path
+ * not yet migrated.
+ */
+export type AdminWriteClient = SupabaseClient<Database>;
 
 /**
  * admin-service.ts — Deep module owning every admin dashboard query.
@@ -448,12 +460,18 @@ export async function getAdminProductById(
   }
 }
 
-/** Insert a new product. service-role: bypass RLS for admin writes. */
+/**
+ * Insert a new product. When a cookie-bound `client` is supplied (route
+ * handlers pass `createClient()` from `lib/supabase/server.ts`), the write
+ * is gated by RLS and `auth.uid()` is recorded in the audit trail. With no
+ * client argument, falls back to service-role for legacy callers.
+ */
 export async function createProduct(
-  input: ProductInsert
+  input: ProductInsert,
+  client?: AdminWriteClient
 ): Promise<{ data: ProductRow | null; error: string | null }> {
   try {
-    const supabase = createAdminClient();
+    const supabase = client ?? createAdminClient();
     const { data, error } = await supabase
       .from('products')
       .insert(input)
@@ -470,13 +488,18 @@ export async function createProduct(
   }
 }
 
-/** Update a product in place. service-role: bypass RLS for admin writes. */
+/**
+ * Update a product in place. Pass a cookie-bound `client` from a route to
+ * preserve `auth.uid()` in the audit trail; omit for legacy service-role
+ * callers.
+ */
 export async function updateProduct(
   id: string,
-  input: ProductUpdate
+  input: ProductUpdate,
+  client?: AdminWriteClient
 ): Promise<{ data: ProductRow | null; error: string | null }> {
   try {
-    const supabase = createAdminClient();
+    const supabase = client ?? createAdminClient();
     const { data, error } = await supabase
       .from('products')
       .update(input)
@@ -494,12 +517,16 @@ export async function updateProduct(
   }
 }
 
-/** Delete a product. service-role: bypass RLS for admin destructive op. */
+/**
+ * Delete a product. Pass a cookie-bound `client` from a route to preserve
+ * `auth.uid()` in the audit trail; omit for legacy service-role callers.
+ */
 export async function deleteProduct(
-  id: string
+  id: string,
+  client?: AdminWriteClient
 ): Promise<{ data: { id: string } | null; error: string | null }> {
   try {
-    const supabase = createAdminClient();
+    const supabase = client ?? createAdminClient();
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) {
       reportSafe('deleteProduct', error, { id });
@@ -574,13 +601,19 @@ export async function getAdminOrderById(
   }
 }
 
-/** Update an order's fulfillment status. service-role: admin-only mutation. */
+/**
+ * Update an order's fulfillment status. Pass a cookie-bound `client` from
+ * a route to preserve `auth.uid()` in the audit trail (RLS gates the
+ * write via the `is_admin()` predicate); omit for legacy service-role
+ * callers.
+ */
 export async function updateOrderStatus(
   id: string,
-  status: OrderStatus
+  status: OrderStatus,
+  client?: AdminWriteClient
 ): Promise<{ data: OrderRow | null; error: string | null }> {
   try {
-    const supabase = createAdminClient();
+    const supabase = client ?? createAdminClient();
     const { data, error } = await supabase
       .from('orders')
       .update({ status })
@@ -594,6 +627,64 @@ export async function updateOrderStatus(
     return { data, error: null };
   } catch (err) {
     reportSafe('updateOrderStatus unexpected', err);
+    return { data: null, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Merge operator-supplied notes into the `orders.tags` JSONB bag. The
+ * schema doesn't have a dedicated `fulfillment_notes` column yet (that
+ * lands in a later milestone), so notes ride along on the existing tags
+ * object under the `notes` key — the storefront never reads tags so this
+ * is operator-private metadata.
+ *
+ * Reads the current `tags` first to merge non-destructively (preserving
+ * any other keys the operator might have placed there). Pass a
+ * cookie-bound `client` from the route handler so RLS gates both the read
+ * and the write and `auth.uid()` is recorded in the audit trail.
+ */
+export async function updateOrderNotes(
+  id: string,
+  notes: string,
+  client?: AdminWriteClient
+): Promise<{ data: OrderRow | null; error: string | null }> {
+  try {
+    const supabase = client ?? createAdminClient();
+
+    const { data: existing, error: readErr } = await supabase
+      .from('orders')
+      .select('tags')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (readErr) {
+      reportSafe('updateOrderNotes read', readErr, { id });
+      return { data: null, error: readErr.message };
+    }
+    if (!existing) {
+      return { data: null, error: 'Order not found' };
+    }
+
+    const currentTags =
+      existing.tags && typeof existing.tags === 'object' && !Array.isArray(existing.tags)
+        ? (existing.tags as Record<string, unknown>)
+        : {};
+    const nextTags = { ...currentTags, notes };
+
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ tags: nextTags as Json })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      reportSafe('updateOrderNotes write', error, { id });
+      return { data: null, error: error.message };
+    }
+    return { data, error: null };
+  } catch (err) {
+    reportSafe('updateOrderNotes unexpected', err);
     return { data: null, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
