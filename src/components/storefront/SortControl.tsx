@@ -20,7 +20,7 @@
  * effect. This keeps `SortControl` reusable across the shop route family.
  */
 
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
 import { SORT_OPTIONS } from '@/lib/constants';
 import type { SortKey } from '@/lib/shop/filter-schema';
 
@@ -50,6 +50,20 @@ export default function SortControl({ value, onChange }: SortControlProps) {
             </TabsTrigger>
           ))}
         </TabsList>
+        {/* Hidden TabsContent stubs. Radix TabsTrigger always renders
+            `aria-controls` pointing at the paired content panel id; without
+            the panel in the DOM, axe-core flags it as
+            `aria-valid-attr-value` (critical). The sort UX is URL-driven —
+            the actual result list lives outside this Tabs root — so we
+            mount empty panels to satisfy the ARIA contract. */}
+        {SORT_OPTIONS.map((option) => (
+          <TabsContent
+            key={option.id}
+            value={option.id}
+            className="sr-only mt-0"
+            aria-hidden="true"
+          />
+        ))}
       </Tabs>
     </div>
   );
