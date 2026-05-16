@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { Metadata } from 'next';
+import { buildPageMetadata } from '@/lib/seo/metadata';
 import { getFeaturedProducts } from '@/lib/supabase/product-service';
 import Hero from '@/components/storefront/Hero';
 import BrandMarquee from '@/components/storefront/BrandMarquee';
@@ -14,14 +15,13 @@ import FeaturedGrid, {
   FeaturedGridSkeleton,
 } from '@/components/storefront/FeaturedGrid';
 
-export const metadata: Metadata = {
-  title: "Aquad'or | Luxury Perfumes & Niche Fragrances Cyprus",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Aquad’or, niche and original fragrance in Cyprus",
   description:
-    "Where Luxury Meets Distinction. Discover our curated collection of high-end and niche perfumes, or create your own signature fragrance at Aquad'or Cyprus, Nicosia.",
-  alternates: {
-    canonical: 'https://aquadorcy.com',
-  },
-};
+    "Niche and original fragrance, plainly shown. Curated for the Levant, prepared from a Nicosia desk. Browse the catalogue or build a perfume in three layers.",
+  path: '/',
+  ogImage: '/og/home.jpg',
+});
 
 export const revalidate = 600;
 

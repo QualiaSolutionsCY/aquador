@@ -8,6 +8,7 @@ import {
   getAllProductBrands,
 } from '@/lib/supabase/product-service';
 import { CATEGORY_OPTIONS } from '@/lib/constants';
+import { buildPageMetadata } from '@/lib/seo/metadata';
 import ProductGrid from '@/components/storefront/ProductGrid';
 import ShopGridFallback from '@/components/storefront/ShopGridFallback';
 
@@ -24,43 +25,26 @@ export async function generateStaticParams() {
   }));
 }
 
-// Generate metadata for SEO
+// Generate metadata for SEO via the per-route helper (M4 P2 T1).
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { category: categorySlug } = await params;
   const category = getCategoryBySlug(categorySlug);
 
   if (!category) {
-    return {
-      title: 'Category Not Found | Aquad\'or',
-    };
+    return buildPageMetadata({
+      title: 'Category not found',
+      description:
+        "This category is unavailable. Browse the full Aquad’or collection, or open the journal for guidance on women, men, niche, and original houses.",
+      path: `/shop/${categorySlug}`,
+    });
   }
 
-  return {
-    title: `${category.name} Perfumes`,
+  return buildPageMetadata({
+    title: category.name,
     description: category.description,
-    openGraph: {
-      title: `${category.name} Perfumes | Aquad'or Cyprus`,
-      description: category.description,
-      url: `https://aquadorcy.com/shop/${categorySlug}`,
-      images: [
-        {
-          url: category.image,
-          width: 800,
-          height: 600,
-          alt: category.name,
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${category.name} Perfumes | Aquad'or Cyprus`,
-      description: category.description,
-      images: [category.image],
-    },
-    alternates: {
-      canonical: `https://aquadorcy.com/shop/${categorySlug}`,
-    },
-  };
+    path: `/shop/${categorySlug}`,
+    ogImage: category.image || '/og/shop.jpg',
+  });
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {

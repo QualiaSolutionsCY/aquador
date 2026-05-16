@@ -1,28 +1,16 @@
 import { Metadata } from 'next';
 import { getBlogPosts, getBlogCategories, getFeaturedPost } from '@/lib/blog';
+import { buildPageMetadata } from '@/lib/seo/metadata';
 import BlogListContent from './BlogListContent';
 
 export const revalidate = 60; // Revalidate every 60 seconds (ISR)
 
-export const metadata: Metadata = {
-  title: 'Blog | The Art of Scent',
-  description: 'Stories, guides, and inspiration from the world of luxury fragrance. Expert tips on perfumes, reviews, and scent stories from Aquad\'or Cyprus.',
-  openGraph: {
-    title: 'Blog | The Art of Scent | Aquad\'or Cyprus',
-    description: 'Stories, guides, and inspiration from the world of luxury fragrance.',
-    url: 'https://aquadorcy.com/blog',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Blog | The Art of Scent | Aquad\'or Cyprus',
-    description: 'Stories, guides, and inspiration from the world of luxury fragrance.',
-    images: ['/aquador.webp'],
-  },
-  alternates: {
-    canonical: 'https://aquadorcy.com/blog',
-  },
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Journal',
+  description:
+    "Stories from the desk. Slow guides to fragrance pyramids, layering, ingredient sourcing, and the Levant houses we carry at Aquad’or Cyprus.",
+  path: '/blog',
+});
 
 export default async function BlogPage({
   searchParams,

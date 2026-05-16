@@ -2,30 +2,19 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getAllProducts, getAllProductBrands } from '@/lib/supabase/product-service';
 import { CATEGORY_OPTIONS } from '@/lib/constants';
+import { buildPageMetadata } from '@/lib/seo/metadata';
 import ProductGrid from '@/components/storefront/ProductGrid';
 import ShopGridFallback from '@/components/storefront/ShopGridFallback';
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  title: "Dubai Shop | Aquad'or Cyprus, Luxury Fragrances",
-  description: "Browse our curated Dubai collection of luxury perfumes, niche fragrances, and exclusive scents. Free shipping on orders over €35 in Cyprus.",
-  openGraph: {
-    title: "Dubai Shop | Aquad'or Cyprus",
-    description: "Browse our curated Dubai collection of luxury perfumes and niche fragrances.",
-    url: 'https://aquadorcy.com/shop',
-    images: [{ url: '/aquador.webp', width: 800, height: 600, alt: "Aquad'or Perfume Collection" }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: "Dubai Shop | Aquad'or Cyprus",
-    description: "Browse our curated Dubai collection of luxury perfumes and niche fragrances.",
-    images: ['/aquador.webp'],
-  },
-  alternates: {
-    canonical: 'https://aquadorcy.com/shop',
-  },
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: 'The collection',
+  description:
+    "The full Aquad’or collection. Women, men, niche houses, Lattafa and Al-Haramain originals. Refine by category, brand, or price and read the notes.",
+  path: '/shop',
+  ogImage: '/og/shop.jpg',
+});
 
 export default async function ShopPage() {
   const [allProducts, brandOptions] = await Promise.all([

@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getBlogPostBySlug, getRelatedPosts } from '@/lib/blog';
+import { buildPageMetadata } from '@/lib/seo/metadata';
 import BlogPostContent from './BlogPostContent';
 
 export const revalidate = 60; // Revalidate every 60 seconds (ISR)
@@ -14,39 +15,27 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const post = await getBlogPostBySlug(slug);
 
   if (!post) {
-    return { title: 'Post Not Found | Aquad\'or' };
+    return buildPageMetadata({
+      title: 'Journal entry not found',
+      description:
+        "This journal entry is unavailable. Open the journal index for current writing on fragrance, layering, and the houses we carry.",
+      path: `/blog/${slug}`,
+    });
   }
 
-  const canonicalUrl = `https://aquadorcy.com/blog/${post.slug}`;
+  // Prefer the editor-set meta_title / meta_description when present; fall back
+  // to the post title + excerpt. Clip the title to 65 chars so the helper's
+  // dev-time assertion never fires from a long editorial title.
+  const rawTitle = post.meta_title || post.title;
+  const safeTitle = rawTitle.length > 65 ? `${rawTitle.slice(0, 62)}...` : rawTitle;
+  const description = post.meta_description || post.excerpt || `Read ${post.title} in the Aquad’or journal.`;
 
-  return {
-    title: post.meta_title || `${post.title} | Aquad'or Blog`,
-    description: post.meta_description || post.excerpt || '',
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      title: post.meta_title || post.title,
-      description: post.meta_description || post.excerpt || '',
-      type: 'article',
-      url: canonicalUrl,
-      siteName: 'Aquad\'or Cyprus',
-      publishedTime: post.published_at || undefined,
-      authors: [post.author_name],
-      images: post.cover_image ? [{
-        url: post.cover_image,
-        width: 1200,
-        height: 630,
-        alt: post.title,
-      }] : [],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: post.meta_title || post.title,
-      description: post.meta_description || post.excerpt || '',
-      images: post.cover_image ? [post.cover_image] : [],
-    },
-  };
+  return buildPageMetadata({
+    title: safeTitle,
+    description,
+    path: `/blog/${post.slug}`,
+    ogImage: post.cover_image || '/og/default.jpg',
+  });
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {

@@ -8,6 +8,7 @@ import {
   getProductOrdersCount,
   getRelatedProducts,
 } from '@/lib/supabase/product-service';
+import { buildPageMetadata } from '@/lib/seo/metadata';
 import ProductGallery from '@/components/storefront/ProductGallery';
 import ProductNotesStory from '@/components/storefront/ProductNotesStory';
 import RelatedCarousel from '@/components/storefront/RelatedCarousel';
@@ -72,50 +73,32 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }));
 }
 
-// Generate metadata for SEO
+// Generate metadata for SEO via the per-route helper (M4 P2 T1). Title is the
+// product name (safely truncated to the helper's 65-char cap if needed); OG
+// image is the product hero with a brand-fallback for products without one.
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
 
   if (!product) {
-    return {
-      title: 'Product Not Found | Aquad\'or',
-    };
+    return buildPageMetadata({
+      title: 'Product not found',
+      description:
+        "This bottle is no longer listed. Browse the rest of the catalogue or write to us at the Nicosia desk for a recommendation in the same family.",
+      path: `/products/${slug}`,
+    });
   }
 
-  return {
-    title: `${product.name}`,
+  // Product names occasionally exceed 65 chars (long edition titles). Clip
+  // server-side so the helper's dev-time assertion never fires from real data.
+  const safeName = product.name.length > 65 ? `${product.name.slice(0, 62)}...` : product.name;
+
+  return buildPageMetadata({
+    title: safeName,
     description: product.description,
-    openGraph: {
-      title: `${product.name} | Aquad'or`,
-      description: product.description,
-      url: `https://aquadorcy.com/products/${slug}`,
-      images: [
-        {
-          url: product.image,
-          width: 800,
-          height: 800,
-          alt: product.name,
-        },
-        ...(product.images ?? []).map((img: string) => ({
-          url: img,
-          width: 800,
-          height: 800,
-          alt: product.name,
-        })),
-      ],
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${product.name} | Aquad'or`,
-      description: product.description,
-      images: [product.image],
-    },
-    alternates: {
-      canonical: `https://aquadorcy.com/products/${slug}`,
-    },
-  };
+    path: `/products/${slug}`,
+    ogImage: product.image || '/og/default.jpg',
+  });
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
