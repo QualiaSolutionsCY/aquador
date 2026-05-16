@@ -1,111 +1,161 @@
-'use client';
+/**
+ * Shipping and returns page for Aquad'or (M4 P2 T4).
+ *
+ * Server component. Metadata in `./layout.tsx`. Hairline-stack layout per
+ * DESIGN.md §10b. Voice: editorial, restrained. No em-dashes, no emoji,
+ * no exclamations.
+ */
 
-import { motion } from 'framer-motion';
-import { Truck, RotateCcw, Clock, Package } from 'lucide-react';
-import { PageHero } from '@/components/ui/Section';
+const sections: Array<{ id: string; eyebrow: string; title: string; body: React.ReactNode }> = [
+  {
+    id: 'cyprus',
+    eyebrow: '01 / Cyprus',
+    title: 'Two to three working days.',
+    body: (
+      <>
+        <p className="font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed">
+          Orders placed before 16:00 ship the same day. Anything later goes
+          out the next morning. Nicosia and Limassol typically arrive in one
+          to two working days. The rest of Cyprus arrives in two to three.
+          The courier is ACS for the island and DHL for any order over one
+          hundred euros, which adds tracking and insurance.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'eu',
+    eyebrow: '02 / European Union',
+    title: 'Five to seven working days.',
+    body: (
+      <>
+        <p className="font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed">
+          We ship to all twenty seven EU member states. The carrier is DHL
+          Express. Delivery to Greece, Italy, and Germany typically lands in
+          five working days. The Baltics and Scandinavia run closer to seven.
+          You receive a tracking link the moment the parcel is collected.
+        </p>
+        <p className="mt-6 font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed">
+          We are unable to ship outside the EU at present. We are working on
+          adding the United Kingdom and the GCC in 2026.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'cost',
+    eyebrow: '03 / Cost',
+    title: 'Free over thirty five euros.',
+    body: (
+      <>
+        <p className="font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed">
+          Standard shipping across Cyprus is six euros, and free on any order
+          over thirty five euros. EU shipping is twelve euros, and free on any
+          order over one hundred euros. The threshold is applied to the
+          subtotal before tax. The price you see at checkout is the price you
+          pay, with no customs added on EU orders.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'packaging',
+    eyebrow: '04 / Packaging',
+    title: 'Wrapped to travel.',
+    body: (
+      <>
+        <p className="font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed">
+          Every order is double boxed: the bottle in its retail box, then in a
+          shipping box with shaped inserts. Glass damage in transit is rare.
+          When it happens, we ship a replacement the same day, no
+          photographic evidence required.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'returns',
+    eyebrow: '05 / Returns',
+    title: 'Fourteen days, unopened.',
+    body: (
+      <>
+        <p className="font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed">
+          You have fourteen days from the day you receive an order to ask for
+          a return. The bottle must be unopened, with the cellophane intact,
+          in its retail box. We refund the full purchase price to the original
+          payment method within seven working days of receiving the return.
+          Shipping is not refunded unless the order arrived damaged or wrong.
+        </p>
+        <p className="mt-6 font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed">
+          Custom perfumes from the builder are made to order and cannot be
+          returned, unless the blend does not match the composition you chose,
+          in which case we replace it.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'starting',
+    eyebrow: '06 / Starting a return',
+    title: 'Write us first.',
+    body: (
+      <>
+        <p className="font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed">
+          Email info@aquadorcy.com with your order number and the reason for
+          the return. We send a return label and instructions. Drop the parcel
+          with any ACS or DHL point. Once it reaches us, the refund is
+          processed within seven working days.
+        </p>
+      </>
+    ),
+  },
+];
 
 export default function ShippingPage() {
   return (
-    <div className="min-h-screen bg-gold-ambient">
-      <PageHero title="Shipping & Returns" />
-
-      <section className="section-sm">
-        <div className="container-wide">
-          <div className="max-w-4xl mx-auto">
-            {/* Quick info cards */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-12"
-            >
-              {[
-                { icon: Clock, label: '24h Processing' },
-                { icon: Truck, label: 'Fast Delivery' },
-                { icon: RotateCcw, label: '14-Day Returns' },
-                { icon: Package, label: 'Secure Packaging' },
-              ].map((item, i) => (
-                <div key={i} className="glass-card p-5 md:p-6 text-center group hover:border-gold/25 transition-colors duration-300">
-                  <div className="w-12 h-12 mx-auto mb-3 border border-gold/20 bg-gold/5 flex items-center justify-center group-hover:border-gold/40 transition-colors duration-300">
-                    <item.icon className="w-5 h-5 text-gold" />
-                  </div>
-                  <span className="text-xs text-gray-500 uppercase tracking-[0.1em]">{item.label}</span>
-                </div>
-              ))}
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="glass-card p-8 space-y-8">
-            <section>
-              <h2 className="text-2xl font-playfair text-gold mb-4">Shipping Information</h2>
-              <div className="space-y-4 text-gray-400">
-                <p>
-                  Thank you for shopping at Aquad&apos;or Cyprus! We understand that receiving your order promptly and securely is important. This policy outlines our shipping and return processes.
-                </p>
-                <h3 className="text-lg text-black">Order Processing</h3>
-                <p>
-                  We strive to process and ship all orders within 24 business hours (excluding Sundays and public holidays) after receiving your order confirmation.
-                </p>
-                <h3 className="text-lg text-black">Delivery Times</h3>
-                <ul className="list-disc pl-6 space-y-2">
-                  <li><strong className="text-black">Nicosia Area:</strong> Same-day delivery for orders placed before noon, next-day delivery for orders placed after noon.</li>
-                  <li><strong className="text-black">Major Cities in Cyprus:</strong> Within 1-2 business days.</li>
-                  <li><strong className="text-black">Other Areas in Cyprus:</strong> Within 2-3 business days.</li>
-                </ul>
-                <h3 className="text-lg text-black">Tracking Your Order</h3>
-                <p>
-                  Once your order is shipped, you&apos;ll receive a notification email with a tracking number that allows you to monitor your package&apos;s progress.
-                </p>
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-playfair text-gold mb-4">International Shipping</h2>
-              <p className="text-gray-400">
-                We currently do not offer international shipping. However, we&apos;re constantly evaluating our services and may introduce international options in the future. Stay tuned for updates!
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-playfair text-gold mb-4">Returns & Exchanges</h2>
-              <div className="space-y-4 text-gray-400">
-                <p>
-                  We want you to be completely satisfied with your purchase. If, for any reason, you&apos;re not happy with your order, we offer returns and exchanges within 14 days of receiving your package.
-                </p>
-                <h3 className="text-lg text-black">Eligibility for Return/Exchange</h3>
-                <ul className="list-disc pl-6 space-y-2">
-                  <li>Unopened, unused, and undamaged items in their original packaging with all tags attached are eligible.</li>
-                  <li>For hygiene reasons, we cannot accept returns of opened perfumes.</li>
-                  <li>Items damaged during shipping must be reported within 24 hours of receipt for a replacement.</li>
-                </ul>
-                <h3 className="text-lg text-black">Return Process</h3>
-                <ol className="list-decimal pl-6 space-y-2">
-                  <li>Contact our Customer Service team at +357 99 980809 or info@aquadorcy.com to initiate a return.</li>
-                  <li>We&apos;ll provide you with a return authorization number (RAN) and instructions.</li>
-                  <li>Pack the item securely in its original packaging and include the RAN slip.</li>
-                  <li>Ship the package to the address we provide. You are responsible for return shipping costs.</li>
-                </ol>
-                <h3 className="text-lg text-black">Refunds</h3>
-                <p>
-                  Once we receive your returned item and verify it meets the return criteria, we&apos;ll initiate a refund to your original payment method within 5-7 business days. Shipping costs will not be refunded.
-                </p>
-              </div>
-            </section>
-
-            <section className="pt-6 border-t border-gold/20">
-              <p className="text-gray-500 text-sm">
-                For any questions about our shipping and return policy, please contact our Customer Service team. We&apos;re happy to assist you!
-              </p>
-            </section>
-              </div>
-            </motion.div>
+    <div className="min-h-screen bg-bg text-fg">
+      {/* Opening */}
+      <section className="border-t border-border px-[var(--page-px)] py-16 md:py-24">
+        <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-8">
+          <div>
+            <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
+              Shipping and returns
+            </p>
+            <span aria-hidden="true" className="mt-8 block h-px w-12 bg-border-strong" />
+            <h1 className="mt-8 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-display-2xl)]">
+              Cyprus by Friday. The EU within the week.
+            </h1>
+          </div>
+          <div>
+            <p className="font-body text-fg-muted text-[length:var(--font-size-body-lg)] leading-relaxed max-w-[var(--container-narrow)]">
+              Orders ship six days a week from Nicosia. Free shipping kicks in
+              at thirty five euros across Cyprus and at one hundred across the
+              EU. Returns are accepted within fourteen days on unopened
+              bottles.
+            </p>
           </div>
         </div>
       </section>
+
+      {sections.map((s) => (
+        <section
+          key={s.id}
+          className="border-t border-border px-[var(--page-px)] py-16 md:py-24"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-8">
+            <div>
+              <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
+                {s.eyebrow}
+              </p>
+              <span aria-hidden="true" className="mt-8 block h-px w-12 bg-border-strong" />
+              <h2 className="mt-8 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-display-xl)]">
+                {s.title}
+              </h2>
+            </div>
+            <div className="max-w-[var(--container-narrow)]">{s.body}</div>
+          </div>
+        </section>
+      ))}
     </div>
   );
 }
