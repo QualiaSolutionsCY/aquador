@@ -1,38 +1,112 @@
 'use client';
 
 /**
- * AiConciergeEntry. Editorial inline trigger that opens the concierge Drawer
- * (HOME-04). Phase 2.5 Task 3 replaced the placeholder body with the actual
- * chat surface (`AiConciergeDrawer`); this file only owns the trigger button
- * and the open/close state.
+ * AiConciergeEntry. Promoted from buried inline trigger to a magazine-split
+ * section (HOME-04). Visual weight now matches BrandStory — the concierge is
+ * the conversion surface for browse-mode buyers (Khaled persona in
+ * PRODUCT.md), and burying it under EmailCapture was wasting it.
+ *
+ * Layout: 40/60 grid at lg+. Left column is the editorial invitation +
+ * primary CTA; right column is a single italicized rhetorical line that
+ * mimics how a perfumer would actually pitch the concierge in conversation.
+ * Mobile collapses to a stack with the rhetorical line below the CTA.
  *
  * Spec: .planning/DESIGN.md §10b. Hairline-divider section, type-led layout,
- * NO Card wrapper. Explicitly NOT a chatbot widget: no MessageCircle icon, no
- * floating viewport-bottom-right bubble, no chat input box. Just an editorial
- * inline button (font-micro, uppercase, underline-on-hover) that opens a
- * standard Drawer with the concierge body.
+ * NO Card wrapper. Explicitly NOT a chatbot widget: opens a standard Drawer
+ * (`AiConciergeDrawer`) when the CTA is clicked.
+ *
+ * Motion: RevealHeader cascade for the title; the italicised side line drifts
+ * in via FadeUp with a 250ms delay so the eye lands on the title first.
+ *
+ * Voice: PRODUCT.md brand voice — editorial, restrained, sensual. No em-dash,
+ * no emoji, no "Need help? Ask our chatbot!" sales-floor tone.
  */
 
 import { useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import AiConciergeDrawer from '@/components/ai/AiConciergeDrawer';
+import FadeUp from './FadeUp';
+
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 export default function AiConciergeEntry() {
   const [open, setOpen] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   return (
     <>
-      <section className="border-t border-border py-24 md:py-32 px-[var(--page-px)] text-center scroll-mt-24">
-        <p className="mx-auto max-w-[var(--container-narrow)] font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed">
-          A perfumer reads your message and replies within a day.
-        </p>
-        <button
-          type="button"
-          data-testid="concierge-trigger"
-          onClick={() => setOpen(true)}
-          className="mt-8 font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg underline-offset-4 hover:underline focus-visible:underline outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg transition-colors duration-150"
-        >
-          Ask the desk
-        </button>
+      <section
+        id="concierge"
+        className="border-t border-border bg-bg py-20 md:py-28 px-[var(--page-px)] scroll-mt-24"
+      >
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[40%_60%] lg:gap-16">
+          <div>
+            <span aria-hidden="true" className="block h-px w-12 bg-border-strong" />
+            <p className="mt-6 font-micro uppercase tracking-[0.16em] text-[length:var(--font-size-micro)] text-fg-muted">
+              The concierge
+            </p>
+            <h2 className="mt-6 font-display text-fg leading-[1.05] tracking-[-0.02em] text-[length:var(--font-display-2xl)]">
+              Tell us what you&apos;re after.
+            </h2>
+
+            <p className="mt-8 max-w-[var(--container-narrow)] font-body text-fg-muted text-[length:var(--font-size-body-lg)] leading-relaxed">
+              A perfumer reads your message and replies within a day. Describe
+              a memory, a mood, a moment you want to bottle. We&apos;ll send back
+              two or three picks from the desk, with notes on why each one
+              earns the recommendation.
+            </p>
+
+            <div className="mt-10">
+              <button
+                type="button"
+                data-testid="concierge-trigger"
+                onClick={() => setOpen(true)}
+                className="group relative inline-flex min-h-12 items-center gap-3 border border-fg bg-fg px-6 py-3 font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.12em] text-bg transition-all duration-[var(--duration-base)] ease-[var(--ease-out-quart)] hover:bg-bg hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+              >
+                <span>Open the concierge</span>
+                <span
+                  aria-hidden="true"
+                  className="inline-block transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:translate-x-1"
+                >
+                  →
+                </span>
+              </button>
+            </div>
+
+            <p className="mt-6 font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted">
+              No bots. No scripts. No newsletter follow-ups.
+            </p>
+          </div>
+
+          <FadeUp
+            className="relative flex items-center lg:border-l lg:border-border lg:pl-16"
+            delay={reducedMotion ? 0 : 250}
+          >
+            <motion.div
+              initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={{ duration: 1.1, delay: 0.15, ease: EASE }}
+              className="w-full"
+            >
+              <p
+                aria-hidden="true"
+                className="font-display text-fg leading-[1.15] tracking-[-0.01em] text-[length:var(--font-display-xl)] lg:text-[length:var(--font-display-2xl)]"
+              >
+                <span className="text-fg-muted">&ldquo;</span>
+                I want something that smells like
+                <br />
+                <span className="italic text-accent-deep">
+                  a library on a rainy afternoon.
+                </span>
+                <span className="text-fg-muted">&rdquo;</span>
+              </p>
+              <p className="mt-8 font-micro uppercase tracking-[0.18em] text-[length:var(--font-size-micro)] text-fg-muted">
+                Maria, Limassol. Wrote on a Tuesday. Khamrah, by lunch.
+              </p>
+            </motion.div>
+          </FadeUp>
+        </div>
       </section>
 
       <AiConciergeDrawer isOpen={open} onClose={() => setOpen(false)} />

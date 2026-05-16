@@ -8,6 +8,8 @@ import BrandStory from '@/components/storefront/BrandStory';
 import JournalTeaser from '@/components/storefront/JournalTeaser';
 import EmailCapture from '@/components/storefront/EmailCapture';
 import AiConciergeEntry from '@/components/storefront/AiConciergeEntry';
+import CategoryTriptych from '@/components/storefront/CategoryTriptych';
+import RitualStrip from '@/components/storefront/RitualStrip';
 import FeaturedGrid, {
   FeaturedGridSkeleton,
 } from '@/components/storefront/FeaturedGrid';
@@ -138,16 +140,26 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeStringify(localBusinessSchema) }}
       />
+      {/* Section flow (M4 P1 polish, 2026-05-15): the page now reads as a
+          narrative arc rather than a flat stack. Hero introduces the desk;
+          BrandMarquee proves breadth; FeaturedGrid is the catalogue wall;
+          CategoryTriptych converts "what is this?" into "which family?";
+          NotesStory + RitualStrip pair the education with the brand promise;
+          BrandStory + JournalTeaser deepen the why; AiConciergeEntry sits
+          above EmailCapture so the high-intent conversion surface gets the
+          attention, and the soft email capture closes the visit. */}
       <Hero />
       <BrandMarquee />
       <Suspense fallback={<FeaturedGridSkeleton />}>
         <FeaturedGridLoader />
       </Suspense>
+      <CategoryTriptych />
       <NotesStory />
+      <RitualStrip />
       <BrandStory />
       <JournalTeaser />
-      <EmailCapture />
       <AiConciergeEntry />
+      <EmailCapture />
     </>
   );
 }

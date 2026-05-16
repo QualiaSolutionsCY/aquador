@@ -31,7 +31,17 @@ import { useEffect, useRef } from 'react';
 import { buttonVariants } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
-const CROSSFADE_S = 1.2;
+/**
+ * Crossfade window for the seamless video loop. Short enough to be visually
+ * imperceptible (~400ms is below the threshold most viewers register as a
+ * transition), long enough to mask the boundary between the active video's
+ * final frame and the inactive's first frame.
+ *
+ * The previous 1.2s window read as a deliberate dip; tightening to 0.4s makes
+ * the swap invisible while still surviving the second video's playback
+ * latency on slow mobile devices.
+ */
+const CROSSFADE_S = 0.4;
 
 export default function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -52,44 +62,71 @@ export default function Hero() {
     const b = videoBRef.current;
     if (!a || !b) return;
 
+    // Two preloaded videos stacked at the same position. At any given moment
+    // exactly one is at opacity 1 (the "active" frame the viewer sees) and the
+    // other is at opacity 0, paused, reset to t=0. When the active gets within
+    // CROSSFADE_S of its end, we kick off the inactive at t=0 and drive a
+    // 60fps opacity crossfade via requestAnimationFrame. On `ended`, we
+    // hard-swap roles so the next iteration starts from a clean state.
     a.style.opacity = '1';
     b.style.opacity = '0';
     let active: HTMLVideoElement = a;
     let inactive: HTMLVideoElement = b;
     let handoffStarted = false;
+    let rafId = 0;
     void a.play().catch(() => {});
 
     const tick = () => {
-      const remaining = active.duration - active.currentTime;
-      if (!handoffStarted && remaining < CROSSFADE_S && Number.isFinite(remaining)) {
-        handoffStarted = true;
-        inactive.currentTime = 0;
-        void inactive.play().catch(() => {});
+      const dur = active.duration;
+      if (Number.isFinite(dur) && dur > 0) {
+        const remaining = dur - active.currentTime;
+
+        if (!handoffStarted && remaining < CROSSFADE_S) {
+          handoffStarted = true;
+          inactive.currentTime = 0;
+          // play() is async; the ramp below tolerates the inactive being
+          // momentarily not-yet-playing by clamping opacity to its raf-driven
+          // value rather than depending on a frame from the inactive being
+          // composited.
+          void inactive.play().catch(() => {});
+        }
+
+        if (handoffStarted) {
+          // Linear ramp on remaining/CROSSFADE_S. Active fades from 1→0 as it
+          // exits; inactive fades from 0→1 in lockstep so the total visible
+          // luminance is preserved (no perceptible "dip" through the loop).
+          const t = Math.max(0, Math.min(1, remaining / CROSSFADE_S));
+          active.style.opacity = String(t);
+          inactive.style.opacity = String(1 - t);
+        }
       }
-      if (handoffStarted) {
-        const t = Math.max(0, Math.min(1, remaining / CROSSFADE_S));
-        active.style.opacity = String(t);
-        inactive.style.opacity = String(1 - t);
-      }
+      rafId = window.requestAnimationFrame(tick);
     };
 
     const onEnded = () => {
+      // Hard-swap at the loop boundary. The inactive is already mid-play and
+      // visible (opacity 1 from the final ramp tick); the just-ended video
+      // goes invisible, rewinds, pauses, and waits to be the next inactive.
       handoffStarted = false;
-      active.pause();
-      active.currentTime = 0;
       active.style.opacity = '0';
       inactive.style.opacity = '1';
+      try {
+        active.pause();
+        active.currentTime = 0;
+      } catch {
+        // Some browsers throw on currentTime set before metadata loads; ignore.
+      }
       const tmp = active;
       active = inactive;
       inactive = tmp;
     };
 
-    const interval = window.setInterval(tick, 80);
     a.addEventListener('ended', onEnded);
     b.addEventListener('ended', onEnded);
+    rafId = window.requestAnimationFrame(tick);
 
     return () => {
-      window.clearInterval(interval);
+      window.cancelAnimationFrame(rafId);
       a.removeEventListener('ended', onEnded);
       b.removeEventListener('ended', onEnded);
     };
@@ -177,7 +214,7 @@ export default function Hero() {
       >
         <video
           ref={videoARef}
-          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
+          className="absolute inset-0 h-full w-full object-cover"
           src="/videos/hero.mp4"
           poster="/images/aquadour1.jpg"
           muted
@@ -187,7 +224,7 @@ export default function Hero() {
         />
         <video
           ref={videoBRef}
-          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
+          className="absolute inset-0 h-full w-full object-cover"
           src="/videos/hero.mp4"
           muted
           playsInline
