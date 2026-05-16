@@ -124,33 +124,38 @@ async function pickPdpSlug() {
 }
 
 // ---------------- Dev server boot + wait ----------------
-function startDevServer() {
-  const child = spawn('npm', ['run', 'dev'], {
+function startProdServer() {
+  // Run against `next start` (production build), not `next dev`. Dev server
+  // is uncompiled + unminified; Lighthouse perf scores on dev are meaningless
+  // (perf 0.3–0.6, LCP 10–12s) and not what production users experience.
+  // Caller MUST ensure `npm run build` has been run before invoking this
+  // script (the script asserts the `.next` build dir exists below).
+  const child = spawn('npm', ['run', 'start'], {
     cwd: PROJECT_ROOT,
     stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, PORT: String(DEV_PORT) },
     detached: false,
   });
   child.stdout.on('data', (chunk) => {
-    // Mirror dev server boot lines so failures surface in the operator log.
     const text = chunk.toString();
     if (
       text.includes('Ready') ||
+      text.includes('ready') ||
+      text.includes('started') ||
       text.includes('error') ||
-      text.includes('Error') ||
-      text.includes('compiled')
+      text.includes('Error')
     ) {
-      process.stdout.write(`[dev] ${text}`);
+      process.stdout.write(`[prod] ${text}`);
     }
   });
   child.stderr.on('data', (chunk) => {
-    process.stderr.write(`[dev:err] ${chunk.toString()}`);
+    process.stderr.write(`[prod:err] ${chunk.toString()}`);
   });
   child.on('exit', (code, signal) => {
     if (code !== null && code !== 0) {
-      console.error(`[dev] exited with code ${code}`);
+      console.error(`[prod] exited with code ${code}`);
     } else if (signal) {
-      console.log(`[dev] terminated by signal ${signal}`);
+      console.log(`[prod] terminated by signal ${signal}`);
     }
   });
   return child;
@@ -301,8 +306,7 @@ function writeMarkdown(rows, slug) {
   lines.push(`PDP slug used: \`${slug}\``);
   lines.push('');
   lines.push(
-    'Note: numbers below are from `npm run dev` (uncompiled, unminified). Production-build scores via ' +
-      '`next build && next start` will be substantially higher; treat these as a regression baseline only.',
+    'Server: production build via `next start` after `npm run build`. Run `npm run build && npm run lighthouse`.',
   );
   lines.push('');
   lines.push('| Route | Viewport | Performance | Accessibility | LCP (ms) | CLS | TBT (ms) | Pass |');
@@ -337,18 +341,30 @@ async function main() {
     { label: '/', path: '/' },
     { label: `/products/${slug}`, path: `/products/${slug}` },
     { label: '/shop', path: '/shop' },
-    { label: '/cart', path: '/cart' },
+    // /cart does not exist as a route — the cart is a Radix drawer overlay
+    // mounted at every layout. QA-02 names "checkout"; the second payment
+    // surface (custom-perfume PaymentIntent) is `/create-perfume`, the
+    // honest fourth route to audit.
+    { label: '/create-perfume', path: '/create-perfume' },
   ];
 
-  // If a dev server is already serving :3000 (operator's foreground server),
+  // If a server is already serving :3000 (operator's foreground server),
   // reuse it rather than spawn a duplicate that will fight for the port.
   const alreadyUp = await pingOnce(DEV_URL);
   let dev = null;
   if (alreadyUp) {
     console.log('[boot] reusing existing server on :3000 (will not spawn or kill it)');
   } else {
-    console.log('[boot] starting dev server...');
-    dev = startDevServer();
+    // Production build required for meaningful Lighthouse scores. Fail loudly
+    // if .next does not exist — operator must `npm run build` first.
+    const buildDir = path.join(PROJECT_ROOT, '.next');
+    if (!fs.existsSync(buildDir)) {
+      throw new Error(
+        `.next build dir not found at ${buildDir}. Run \`npm run build\` before \`npm run lighthouse\`.`,
+      );
+    }
+    console.log('[boot] starting prod server (next start)...');
+    dev = startProdServer();
   }
 
   // Pre-warm rows so the markdown is always writable even on early failure.
