@@ -170,6 +170,7 @@ export type Database = {
           created_at: string
           currency: string
           customer_email: string
+          customer_id: string | null
           customer_name: string | null
           customer_phone: string | null
           id: string
@@ -186,6 +187,7 @@ export type Database = {
           created_at?: string
           currency?: string
           customer_email: string
+          customer_id?: string | null
           customer_name?: string | null
           customer_phone?: string | null
           id?: string
@@ -202,6 +204,7 @@ export type Database = {
           created_at?: string
           currency?: string
           customer_email?: string
+          customer_id?: string | null
           customer_name?: string | null
           customer_phone?: string | null
           id?: string
@@ -214,7 +217,15 @@ export type Database = {
           total?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       product_categories: {
         Row: {

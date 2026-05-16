@@ -753,9 +753,15 @@ export async function getAdminCustomerById(
 }
 
 /**
- * Read every order placed by a customer. Orders are joined by
- * `customer_email` (the orders table doesn't carry a customer FK; the
- * existing schema denormalizes the email as the linking key).
+ * Read every order placed by a customer, joined via the
+ * `orders.customer_id` FK (added in
+ * 20260516000002_orders_customer_id_backfill.sql per OPTIMIZE H16). The
+ * prior implementation resolved the customer's email then queried
+ * orders by `customer_email` — a denormalized join that silently
+ * disconnects history if the email is ever edited on the customers
+ * row. The webhook now populates `customer_id` on every new order
+ * (src/app/api/webhooks/stripe/route.ts) so this single-step query is
+ * canonical.
  */
 export async function getCustomerOrderHistory(
   customerId: string
@@ -763,30 +769,14 @@ export async function getCustomerOrderHistory(
   try {
     const supabase = createAdminClient();
 
-    // Resolve email from the customers row first; orders.customer_email is
-    // the only column that ties an order back to a customer.
-    const { data: customer, error: custErr } = await supabase
-      .from('customers')
-      .select('email')
-      .eq('id', customerId)
-      .maybeSingle();
-
-    if (custErr) {
-      reportSafe('getCustomerOrderHistory customer lookup', custErr, { customerId });
-      return { data: [], error: custErr.message };
-    }
-    if (!customer?.email) {
-      return { data: [], error: null };
-    }
-
     const { data, error } = await supabase
       .from('orders')
       .select('*')
-      .eq('customer_email', customer.email)
+      .eq('customer_id', customerId)
       .order('created_at', { ascending: false });
 
     if (error) {
-      reportSafe('getCustomerOrderHistory orders', error, { customerId });
+      reportSafe('getCustomerOrderHistory', error, { customerId });
       return { data: [], error: error.message };
     }
     return { data: data ?? [], error: null };

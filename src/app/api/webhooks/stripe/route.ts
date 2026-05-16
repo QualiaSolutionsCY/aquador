@@ -41,10 +41,44 @@ async function persistOrder(
 
     if (!customerEmail) return { isNewOrder: false };
 
+    // Resolve customer_id BEFORE the orders insert so the FK lands on the
+    // first write (M4 P1 T2 / OPTIMIZE H16). We upsert by email so a
+    // repeat buyer reuses their existing customers.id. Aggregate fields
+    // (total_orders, total_spent, ...) are updated below in the customer
+    // namespace once we know whether this is a duplicate webhook.
+    //
+    // If the upsert fails, we log via the existing reportSafe pattern
+    // and continue with customer_id = null — the order MUST land in the
+    // DB even if the customers table glitches; admin can manually
+    // reconcile from customer_email later.
+    let customerId: string | null = null;
+    const { data: customerUpsert, error: customerUpsertError } = await supabase
+      .from('customers')
+      .upsert(
+        {
+          email: customerEmail,
+          name: customerName || null,
+          ...(customerPhone ? { phone: customerPhone } : {}),
+        },
+        { onConflict: 'email' }
+      )
+      .select('id')
+      .single();
+
+    if (customerUpsertError) {
+      Sentry.captureMessage('Customer upsert (FK link) failed — proceeding with customer_id=null', {
+        level: 'warning',
+        extra: { error: customerUpsertError.message, sessionId: session.id },
+      });
+    } else if (customerUpsert?.id) {
+      customerId = customerUpsert.id;
+    }
+
     // Insert order (idempotent via unique stripe_session_id)
     const { data: orderData, error: orderError } = await supabase.from('orders').upsert(
       {
         stripe_session_id: session.id,
+        customer_id: customerId,
         customer_email: customerEmail,
         customer_name: customerName || null,
         customer_phone: customerPhone,

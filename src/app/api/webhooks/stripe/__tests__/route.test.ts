@@ -182,6 +182,18 @@ describe('Stripe Webhook Handler', () => {
       }
       if (table === 'customers') {
         return {
+          // FK-adoption upsert (M4 P1 T2 / OPTIMIZE H16): the webhook now
+          // upserts the customer BEFORE the orders insert so customer_id
+          // lands on the order row on first write. Returns the customer
+          // UUID via .select('id').single().
+          upsert: jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: { id: 'cust_default_mock' },
+                error: null,
+              }),
+            }),
+          }),
           select: jest.fn().mockReturnValue({
             eq: jest.fn().mockReturnValue({
               single: jest.fn().mockResolvedValue({ data: null, error: null }),
@@ -348,6 +360,26 @@ describe('Stripe Webhook Handler', () => {
 
   describe('Idempotency - Duplicate Events', () => {
     it('should handle duplicate webhook events gracefully', async () => {
+      // Re-used customers mock that satisfies BOTH the FK-adoption
+      // upsert step and the downstream aggregate read/update.
+      const customersMock = () => ({
+        upsert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: { id: 'cust_idempotency_test' },
+              error: null,
+            }),
+          }),
+        }),
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({ data: null, error: null }),
+          }),
+        }),
+        insert: jest.fn().mockResolvedValue({ data: null, error: null }),
+        update: jest.fn().mockResolvedValue({ data: null, error: null }),
+      });
+
       // First call - new order
       mockSupabaseFrom.mockImplementation((table: string) => {
         if (table === 'orders') {
@@ -361,15 +393,7 @@ describe('Stripe Webhook Handler', () => {
           };
         }
         if (table === 'customers') {
-          return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                single: jest.fn().mockResolvedValue({ data: null, error: null }),
-              }),
-            }),
-            insert: jest.fn().mockResolvedValue({ data: null, error: null }),
-            update: jest.fn().mockResolvedValue({ data: null, error: null }),
-          };
+          return customersMock();
         }
         return { select: mockSupabaseSelect, insert: mockSupabaseInsert, update: mockSupabaseUpdate };
       });
@@ -393,15 +417,7 @@ describe('Stripe Webhook Handler', () => {
           };
         }
         if (table === 'customers') {
-          return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                single: jest.fn().mockResolvedValue({ data: null, error: null }),
-              }),
-            }),
-            insert: jest.fn().mockResolvedValue({ data: null, error: null }),
-            update: jest.fn().mockResolvedValue({ data: null, error: null }),
-          };
+          return customersMock();
         }
         return { select: mockSupabaseSelect, insert: mockSupabaseInsert, update: mockSupabaseUpdate };
       });
@@ -558,6 +574,24 @@ describe('Stripe Webhook Handler', () => {
             }),
           };
         }
+        if (table === 'customers') {
+          // FK-adoption upsert succeeds so the orders insert is the
+          // failure under test (not blocked by an earlier customers
+          // upsert glitch).
+          return {
+            upsert: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({
+                  data: { id: 'cust_for_failing_order_test' },
+                  error: null,
+                }),
+              }),
+            }),
+            select: mockSupabaseSelect,
+            insert: mockSupabaseInsert,
+            update: mockSupabaseUpdate,
+          };
+        }
         return { select: mockSupabaseSelect, insert: mockSupabaseInsert, update: mockSupabaseUpdate };
       });
 
@@ -582,6 +616,16 @@ describe('Stripe Webhook Handler', () => {
         }
         if (table === 'customers') {
           return {
+            // Upsert (FK-adoption step) returns an error — webhook must
+            // log and continue with customer_id=null.
+            upsert: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({
+                  data: null,
+                  error: { message: 'Customer upsert failed' },
+                }),
+              }),
+            }),
             select: mockSupabaseSelect.mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
             single: jest.fn().mockResolvedValue({
