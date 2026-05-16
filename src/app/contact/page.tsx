@@ -110,7 +110,7 @@ export default function ContactPage() {
       {/* 02 / Form and details */}
       <section className="border-t border-border px-[var(--page-px)] py-16 md:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-12 lg:gap-16">
-          <div>
+          <div className="min-w-0">
             <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
               02 / Send a message
             </p>
@@ -259,7 +259,7 @@ export default function ContactPage() {
             )}
           </div>
 
-          <aside>
+          <aside className="min-w-0">
             <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
               03 / The desk
             </p>
