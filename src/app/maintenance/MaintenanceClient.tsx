@@ -76,7 +76,7 @@ export default function MaintenanceClient() {
       {/* Background bottle image — full cover */}
       <Image
         src="/images/aquadour1.jpg"
-        alt=""
+        alt="Aquad'or signature perfume bottle softly faded into the page background"
         fill
         className="object-cover opacity-[0.07] pointer-events-none select-none"
         priority

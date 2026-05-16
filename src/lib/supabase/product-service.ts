@@ -191,6 +191,21 @@ export async function getAllProductSlugs(): Promise<string[]> {
   return (data || []).map(p => p.id);
 }
 
+// Get all product slugs with their updated_at timestamp for sitemap lastModified
+export async function getAllProductSlugsForSitemap(): Promise<Array<{ id: string; updated_at: string | null }>> {
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select('id, updated_at');
+
+  if (error) {
+    Sentry.addBreadcrumb({ category: 'product-service', message: 'Error fetching product slugs for sitemap', level: 'error', data: { error } });
+    return [];
+  }
+
+  return (data || []).map(p => ({ id: p.id, updated_at: p.updated_at }));
+}
+
 // Get related products (same category, excluding current, active only)
 // Requires category parameter to avoid N+1 query (caller must pass product.category)
 export async function getRelatedProducts(

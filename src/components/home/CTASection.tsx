@@ -53,7 +53,7 @@ export default function CTASection() {
       <ParallaxSection speed={0.25} className="absolute inset-0">
         <Image
           src="/images/aquadour1.jpg"
-          alt=""
+          alt="Aquad'or perfume bottle bathed in warm gold light"
           fill
           className="object-cover"
           style={{ filter: 'brightness(0.3) saturate(0.6) contrast(1.1)' }}

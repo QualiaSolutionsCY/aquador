@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 import { createPublicClient } from '@/lib/supabase/public';
-import { getAllProductSlugs } from '@/lib/supabase/product-service';
+import { getAllProductSlugsForSitemap } from '@/lib/supabase/product-service';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -21,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { route: '/blog', priority: 0.8, changeFrequency: 'daily' as const },
     { route: '/about', priority: 0.6, changeFrequency: 'monthly' as const },
     { route: '/contact', priority: 0.6, changeFrequency: 'monthly' as const },
+    { route: '/faq', priority: 0.5, changeFrequency: 'monthly' as const },
     { route: '/privacy', priority: 0.3, changeFrequency: 'yearly' as const },
     { route: '/terms', priority: 0.3, changeFrequency: 'yearly' as const },
     { route: '/shipping', priority: 0.5, changeFrequency: 'monthly' as const },
@@ -33,11 +34,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority,
   }));
 
-  // Product pages
-  const productSlugs = await getAllProductSlugs();
-  const productPages = productSlugs.map((slug) => ({
-    url: `${baseUrl}/products/${slug}`,
-    lastModified: new Date(),
+  // Product pages - use real updated_at from each row for accurate lastModified
+  const products = await getAllProductSlugsForSitemap();
+  const productPages = products.map((product) => ({
+    url: `${baseUrl}/products/${product.id}`,
+    lastModified: new Date(product.updated_at || new Date().toISOString()),
     changeFrequency: 'weekly' as const,
     priority: 0.7,
   }));
