@@ -25,6 +25,7 @@
  */
 
 import { useCallback, useId, useRef, useState, type DragEvent, type ChangeEvent } from 'react';
+import Image from 'next/image';
 import {
   uploadImage,
   StorageError,
@@ -183,18 +184,25 @@ export function ImageUploader({
         }}
       >
         {previewUrl ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={previewUrl}
-            alt="Uploaded preview"
+          <div
             style={{
+              position: 'relative',
               width: 96,
               height: 96,
-              objectFit: 'cover',
               borderRadius: 'var(--radius-sm, 4px)',
               border: '1px solid var(--border-strong)',
+              overflow: 'hidden',
             }}
-          />
+          >
+            <Image
+              src={previewUrl}
+              alt="Uploaded preview"
+              fill
+              sizes="96px"
+              unoptimized
+              style={{ objectFit: 'cover' }}
+            />
+          </div>
         ) : null}
 
         <span

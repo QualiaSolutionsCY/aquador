@@ -8,28 +8,22 @@
  * Responsibilities:
  *   - Take generic `<T>` rows + a `columns` shape and render a token-driven
  *     `<table>` with hairline borders, sticky uppercase micro headers, and
- *     hover row tint. NO `<Card>` wrap — admin chrome is hairline-first.
+ *     hover row tint. NO `<Card>` wrap, admin chrome is hairline-first.
  *   - Render an empty state (`emptyText`, default "No rows yet.") and a
  *     skeleton-row loading state when `loading` is true.
  *   - Optional `toolbar` slot rendered above the table (used by pages to host
  *     search + filter chips). Optional `onRowClick` makes a row interactive
  *     (keyboard + mouse).
  *
- * Phase 3 extension points (props typed, not yet implemented here — pages can
- * already declare `sortable: true` on a column and pass `onSort` without the
- * wrapper barking at them; the wrapper just forwards the flag downstream once
- * the sort engine lands):
- *   - `column.sortable?: boolean`, `column.sortFn?: (a, b) => number`
- *   - `onSort?: (key, direction) => void`
- *   - `selectable?: boolean`, `onSelectionChange?: (ids) => void`
- *   - `filters?: ReactNode` — toolbar inserts filter chips
- *   - `bulkActions?: ReactNode` — toolbar bulk action row
+ * Sort / selection note (M4 P1 T3, POLISH-11): the original Phase-2 stub
+ * exposed `sortable`, `sortFn`, `onSort`, `sortState`, `selectable`,
+ * `onSelectionChange` props as Phase-3 hooks. None of those props had a
+ * caller at audit time. They were removed from the public surface so the
+ * component contract matches the implementation; if sort or selection
+ * lands later, callers should reach for `Table.SortHeader` directly or
+ * extend this wrapper with a working state machine in the same PR.
  *
- * These props are accepted today but produce a static render; Phase 3.3 will
- * wire sort state, selection state, and URL-sync without changing the public
- * shape.
- *
- * Token map (no raw hex / no bg-gray-*):
+ * Token map (no raw hex, no bg-gray-*):
  *   bg / border / text  →  --bg, --bg-alt, --border, --fg, --fg-muted
  */
 
@@ -41,13 +35,11 @@ import { Table } from '@/components/ui/Table';
 import { Skeleton } from '@/components/ui/Skeleton';
 
 // ---------------------------------------------------------------------------
-// Public column + props contracts (kept stable for Phase 3.3 consumers).
+// Public column + props contracts.
 // ---------------------------------------------------------------------------
 
-export type AdminTableSortDirection = 'asc' | 'desc' | null;
-
 export interface AdminTableColumn<T> {
-  /** Stable key — used for React lists, sort state, and aria semantics. */
+  /** Stable key — used for React lists and aria semantics. */
   key: string;
   /** Header label rendered in the <thead> micro row. No emoji in admin UI. */
   header: string;
@@ -55,10 +47,6 @@ export interface AdminTableColumn<T> {
   accessor: (row: T) => ReactNode;
   /** Right-align numeric columns (prices, counts, dates rendered as numbers). */
   align?: 'left' | 'right' | 'center';
-  /** Phase 3 hook — declare a column sortable. Today it renders as static. */
-  sortable?: boolean;
-  /** Phase 3 hook — caller-supplied comparator. */
-  sortFn?: (a: T, b: T) => number;
   /** Optional column width hint (e.g. '120px', '20%'). */
   width?: string;
 }
@@ -80,16 +68,6 @@ export interface AdminTableProps<T> {
   loading?: boolean;
   /** Skeleton row count when `loading` is true (default 5). */
   skeletonRows?: number;
-
-  // -------- Phase 3 extension points (accepted, not yet implemented) --------
-  /** Phase 3 hook — sort change callback. */
-  onSort?: (key: string, direction: AdminTableSortDirection) => void;
-  /** Phase 3 hook — current sort state (display only today). */
-  sortState?: { key: string; direction: AdminTableSortDirection };
-  /** Phase 3 hook — selectable rows (renders checkbox column). */
-  selectable?: boolean;
-  /** Phase 3 hook — selection change callback. */
-  onSelectionChange?: (selectedIds: Set<string>) => void;
 }
 
 // ---------------------------------------------------------------------------

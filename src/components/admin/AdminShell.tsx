@@ -67,12 +67,12 @@ export default function AdminShell({ children }: AdminShellProps) {
   return (
     <div
       data-admin-shell
-      className="flex min-h-screen bg-[var(--bg)] text-[var(--fg)]"
+      className="flex min-h-screen bg-bg text-fg"
     >
-      {/* Desktop sidebar — sticky, hairline-right against content. */}
+      {/* Desktop sidebar, sticky, hairline-right against content. */}
       <aside
         aria-label="Admin sidebar"
-        className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-[var(--border)] md:block"
+        className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-border md:block"
       >
         <AdminSidebar />
       </aside>
@@ -94,7 +94,7 @@ export default function AdminShell({ children }: AdminShellProps) {
           userEmail={userEmail}
           onMobileMenuOpen={() => setMobileOpen(true)}
         />
-        <main className="flex-1 overflow-x-hidden bg-[var(--bg)] px-4 py-6 md:px-8 md:py-8">
+        <main className="flex-1 overflow-x-hidden bg-bg px-4 py-6 md:px-8 md:py-8">
           {children}
         </main>
       </div>

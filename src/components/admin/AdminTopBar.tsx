@@ -80,13 +80,18 @@ export default function AdminTopBar({
       </h1>
 
       <div className="ml-auto flex items-center gap-3">
-        {userEmail && (
+        {userEmail ? (
           <span
             className="hidden font-micro text-[12px] uppercase tracking-[0.08em] text-[var(--fg-muted)] sm:inline"
             title={userEmail}
           >
             {userEmail}
           </span>
+        ) : (
+          <div
+            aria-hidden="true"
+            className="hidden h-4 w-32 animate-pulse rounded-sm bg-bg-alt sm:inline-block"
+          />
         )}
         <Button
           variant="ghost"
