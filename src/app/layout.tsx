@@ -15,6 +15,7 @@ import { AnimationBudgetProvider } from "@/lib/performance/animation-budget";
 import { ScrollDepthTracker } from "@/components/analytics/ScrollDepthTracker";
 // v3.0 overlay primitives (Phase 3, PRIM-05 barrel).
 import { TooltipProvider, Toaster } from '@/components/ui';
+import { organizationJsonLd, websiteJsonLd } from '@/lib/seo/jsonld';
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -100,6 +101,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Site-wide JSON-LD (M4 P2 T2, SEO-02): Organization + WebSite schemas emit
+  // on every route so deep-link visitors (PDPs, blog posts, etc.) carry the
+  // org context Google expects. Escape `<` to neutralize the `</script>`
+  // injection vector even though the source objects are statically authored.
+  const orgLd = JSON.stringify(organizationJsonLd()).replace(/</g, '\\u003c');
+  const siteLd = JSON.stringify(websiteJsonLd()).replace(/</g, '\\u003c');
+
   return (
     <html lang="en">
       <head>
@@ -109,6 +117,14 @@ export default function RootLayout({
         <link rel="preconnect" href="https://js.stripe.com" />
         <link rel="dns-prefetch" href="https://hznpuxplqgszbacxzbhv.supabase.co" />
         <link rel="dns-prefetch" href="https://js.stripe.com" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: orgLd }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: siteLd }}
+        />
       </head>
       <body
         className={`${cormorant.variable} ${newsreader.variable} ${GeistSans.variable} antialiased`}

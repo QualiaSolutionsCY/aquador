@@ -42,49 +42,10 @@ async function FeaturedGridLoader() {
 }
 
 export default function Home() {
-  const organizationSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: "Aquad'or",
-    url: 'https://aquadorcy.com',
-    logo: 'https://aquadorcy.com/aquador.webp',
-    description:
-      "Cyprus's premier luxury fragrance house offering curated niche perfumes and bespoke fragrance creation.",
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: 'Ledra 145',
-      addressLocality: 'Nicosia',
-      postalCode: '1011',
-      addressCountry: 'CY',
-    },
-    contactPoint: {
-      '@type': 'ContactPoint',
-      telephone: '+357-99-980809',
-      contactType: 'customer service',
-      email: 'info@aquadorcy.com',
-      availableLanguage: ['English', 'Greek', 'Arabic'],
-    },
-    sameAs: [
-      'https://instagram.com/aquadorcy',
-      'https://facebook.com/aquadorcy',
-    ],
-  };
-
-  const websiteSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: "Aquad'or",
-    url: 'https://aquadorcy.com',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: 'https://aquadorcy.com/shop?q={search_term_string}',
-      },
-      'query-input': 'required name=search_term_string',
-    },
-  };
-
+  // Organization + WebSite schemas now emit from src/app/layout.tsx so every
+  // route carries them (M4 P2 T2, SEO-02). Only the homepage-scoped
+  // LocalBusiness / Store schema lives here, because it describes the
+  // storefront's physical presence which only `/` canonically represents.
   const localBusinessSchema = {
     '@context': 'https://schema.org',
     '@type': 'Store',
@@ -128,14 +89,6 @@ export default function Home() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeStringify(organizationSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeStringify(websiteSchema) }}
-      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeStringify(localBusinessSchema) }}
