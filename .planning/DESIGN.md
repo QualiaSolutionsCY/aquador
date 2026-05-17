@@ -2,11 +2,13 @@
 
 ## §1. Direction (the commit)
 
-**Aesthetic direction:** `editorial-luxury, Levant-coded`
+**Aesthetic direction:** `editorial-luxury, Levant-coded — atelier-ledger commit (2026-05-17)`
 
 Not "modern luxury", not "minimal premium". Editorial means the page reads like a journal spread — generous margins, considered type hierarchy, ornament used sparingly. Levant-coded means the warmth and geometric restraint of Beirut / Limassol design culture, not Parisian glacial minimalism and not Vegas casino gold.
 
-**Color strategy:** `Committed` — one signature warm-gold tone, neutrals tinted toward it (chroma 0.005-0.015), one supporting accent for editorial moments (oxblood for sale prices and accents), no third anchor.
+**2026-05-17 pivot — atelier ledger:** the same direction, sharper commitment. Sepia ink on aged-paper bone (warmer `--fg`), gold-deep pushed richer for a committed signature stamp, oxblood promoted from edge-only to a *working* editorial accent (price colour, "Popular this season" stamp, sale strike). Motion settles longer (`--duration-base` 250 → 320ms) to match the letter-press feel. Layout grid and JSX untouched.
+
+**Color strategy:** `Committed` — one signature warm-gold tone (deepened post-pivot), neutrals tinted toward it (chroma 0.005-0.015), oxblood now a working accent (not edges-only), no third anchor.
 
 **Scene sentence:**
 > A buyer at midday in Limassol, scrolling on an iPhone in a beachfront café, comparing three perfumes before choosing one as an anniversary gift. The page feels less like a shop and more like reading curated correspondence.

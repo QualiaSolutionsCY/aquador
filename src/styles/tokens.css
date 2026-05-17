@@ -26,12 +26,16 @@
   --color-bone-soft: oklch(0.94 0.012 80);
   --color-parchment: oklch(0.91 0.024 78);
 
-  /* Aged gold — signature accent (restrained; never neon) */
+  /* Aged gold — signature accent (atelier-ledger pivot: deeper commitment) */
   --color-gold: oklch(0.72 0.135 82);
   --color-gold-soft: oklch(0.82 0.090 82);
-  --color-gold-deep: oklch(0.58 0.130 78);
+  --color-gold-deep: oklch(0.54 0.148 75);
 
-  /* Oxblood — editorial accent, used SPARINGLY */
+  /* Sepia ink — atelier-ledger §1 pivot: warmer than --color-ink so body
+     copy reads as letterpressed on aged paper, not graphite on white. */
+  --color-sepia: oklch(0.24 0.055 60);
+
+  /* Oxblood — promoted to working editorial accent (atelier-ledger pivot) */
   --color-oxblood: oklch(0.40 0.140 25);
   --color-oxblood-soft: oklch(0.55 0.110 25);
 
@@ -56,7 +60,7 @@
   /* Semantic roles — components reference these, never raw colors */
   --bg: var(--color-bone);
   --bg-alt: var(--color-parchment);
-  --fg: var(--color-ink);
+  --fg: var(--color-sepia);
   --fg-muted: var(--color-neutral-500);
   --accent: var(--color-gold);
   --accent-deep: var(--color-gold-deep);
@@ -155,9 +159,9 @@
   --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
 
   --duration-fast: 150ms;
-  --duration-base: 250ms;
-  --duration-slow: 400ms;
-  --duration-slowest: 700ms;
+  --duration-base: 320ms;
+  --duration-slow: 480ms;
+  --duration-slowest: 760ms;
 
   /* ------------------------------------------------------------------ */
   /* §10. RADIUS — capped at 16px (editorial, not fintech-rounded)      */

@@ -13,7 +13,7 @@ export function SocialProof({ ordersCount }: SocialProofProps) {
     );
   }
 
-  return <Badge variant="neutral">Popular this season</Badge>;
+  return <Badge variant="critical">Popular this season</Badge>;
 }
 
 export default SocialProof;
