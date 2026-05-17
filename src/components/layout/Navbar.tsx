@@ -92,10 +92,10 @@ export default function Navbar() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className={`fixed left-0 right-0 top-0 z-50 bg-bg backdrop-blur-sm transition-shadow duration-300 border-b ${
+        className={`fixed left-0 right-0 top-0 z-50 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300 border-b ${
           isScrolled
-            ? 'border-border shadow-1'
-            : 'border-border/60'
+            ? 'bg-bg/95 backdrop-blur-md border-border shadow-1'
+            : 'bg-transparent backdrop-blur-0 border-transparent'
         }`}
       >
         <nav className="px-[var(--page-px)]">

@@ -140,12 +140,12 @@ export default function ProductGrid({
 
   return (
     <section className="border-t border-border">
-      {/* 01 / Refine + Order by. One editorial cluster, not two. */}
+      {/* Filter + sort cluster. Numbered editorial marker dropped per operator
+          direction: the controls themselves are self-evidently the refine UI;
+          adding "01 / Refine" above them was decorative chrome that the user
+          asked to remove on /shop and /shop/lattafa. */}
       <div className="border-b border-border py-10 md:py-12 px-[var(--page-px)]">
-        <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
-          01 / Refine
-        </p>
-        <div className="mt-6">
+        <div>
           <FilterPanel
             filters={filters}
             onChange={setFilters}
@@ -162,11 +162,11 @@ export default function ProductGrid({
         </div>
       </div>
 
-      {/* 02 / Results */}
+      {/* Results count strip — kept as a lightweight count label without the
+          "02 /" prefix so the page reads as catalogue, not as a workflow. */}
       <div className="py-10 md:py-12 px-[var(--page-px)]">
         <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
-          02 / Results
-          <span className="ml-2 text-fg">{showSkeletons ? '' : visible.length}</span>
+          {showSkeletons ? '' : `${visible.length} ${visible.length === 1 ? 'result' : 'results'}`}
         </p>
 
         {showEmpty ? (
