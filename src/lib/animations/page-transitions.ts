@@ -8,20 +8,24 @@ import type { Variants } from 'framer-motion'
  */
 
 /**
- * Main page transition with smooth fade
- * - Opacity-only (no y-axis movement to prevent layout shift)
- * - 300ms enter, 200ms exit for optimal perceived performance
- * - Custom cubic-bezier easing matching globals.css --ease-out-expo
+ * Main page transition with smooth fade + soft blur on enter/exit.
+ * - Opacity + filter:blur only, no y-axis movement so layout never shifts.
+ * - 380ms enter / 220ms exit — exit is slightly faster than enter so the
+ *   incoming route feels responsive while the outgoing one releases cleanly.
+ * - Cubic-bezier easing matches globals.css --ease-out-expo (enter) and a
+ *   classic ease-in (exit) so the curve direction reads as "moving away".
  */
 export const pageTransitionVariants: Variants = {
-  initial: { opacity: 0 },
+  initial: { opacity: 0, filter: 'blur(6px)' },
   animate: {
     opacity: 1,
-    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
+    filter: 'blur(0px)',
+    transition: { duration: 0.38, ease: [0.22, 1, 0.36, 1] }
   },
   exit: {
     opacity: 0,
-    transition: { duration: 0.2, ease: 'easeIn' }
+    filter: 'blur(6px)',
+    transition: { duration: 0.22, ease: [0.4, 0, 1, 1] }
   }
 }
 

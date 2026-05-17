@@ -6,6 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { CartProvider } from "@/components/cart";
 import { StorefrontChromeTop, StorefrontChromeBottom } from "@/components/layout/StorefrontChrome";
+import SplashScreen from "@/components/layout/SplashScreen";
 import { ErrorBoundary, AbortErrorSuppressor } from "@/components/providers/ErrorBoundary";
 import VisitorTracker from "@/components/VisitorTracker";
 import { PageTransition } from "@/components/providers/PageTransition";
@@ -135,6 +136,7 @@ export default function RootLayout({
           Skip to content
         </a>
         <AbortErrorSuppressor />
+        <SplashScreen />
         <ErrorBoundary>
           <TooltipProvider delayDuration={200}>
             <Toaster>

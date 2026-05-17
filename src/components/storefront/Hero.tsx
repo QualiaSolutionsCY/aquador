@@ -1,276 +1,204 @@
 'use client';
 
 /**
- * Hero. Homepage magazine-spread editorial moment.
+ * Hero — full-viewport video composition for the home page.
  *
- * Layout: 45/55 grid at lg+. Type column left, full-bleed video right with a
- * professional gradient overlay (warm scrim from bg-alt at the bottom +
- * subtle right-edge vignette) so the body type remains legible against
- * arbitrary video frames.
+ * The hero owns the entire top of the home page: video background, floating
+ * pill nav, brand wordmark, brand intro, and a single CTA. The global Navbar
+ * (src/components/layout/Navbar.tsx) is hidden over this section by
+ * `pathname === '/' && scrollY < threshold` inside that file, so the pill nav
+ * here is the only nav visible while the viewer is on the hero. After
+ * scrolling, the global Navbar fades in over the rest of the page.
  *
- * Seamless loop: two stacked <video> elements crossfade over a 1.2s window
- * before the first instance ends. The second instance pre-seeks to t=0 and
- * starts playing; both fade through opacity to hide the hard cut. The first
- * instance then resets to t=0 and waits to swap back. This avoids the
- * visible jump at the boundary of a single `<video loop>`.
+ * Editorial voice (Aquad'or, M2+):
+ *   - Wordmark "Aquad'or" set in the display serif (Cormorant Garamond),
+ *     huge, with a gold asterisk on the final word.
+ *   - Brand intro in body sans on cream, line-height tight.
+ *   - CTA pill — gold field, dark arrow well — opens the catalogue.
+ *   - No em-dashes, no emoji.
  *
- * Parallax: useScroll + useTransform from framer-motion drives a slow Y
- * translation on the video container and a counter-shift on the type column,
- * so scrolling pulls the type up while the imagery falls behind — a classic
- * magazine spread parallax. Reduced-motion users get static positions.
+ * Motion (DESIGN.md §7):
+ *   - WordsPullUp staggers the wordmark from below at 80ms per word.
+ *   - Description and CTA fade-up with 500ms / 700ms delays.
+ *   - All motion is zeroed under `prefers-reduced-motion` by tokens.css.
  *
- * Voice: shipping line stays factually accurate (free shipping over 35 euro
- * threshold matches the actual checkout policy at src/lib/constants.ts:34).
- * Title and supporting line refreshed per owner direction.
+ * Accessibility:
+ *   - Video is `aria-hidden` and the wordmark/copy carry the meaning.
+ *   - Pill nav links carry visible focus rings on the accent token.
+ *   - All hit targets are ≥ 44px tall.
  */
 
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
-import Image from 'next/image';
+import { motion, useInView } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useRef } from 'react';
-import { buttonVariants } from '@/components/ui/Button';
-import { cn } from '@/lib/utils';
+import { useRef } from 'react';
 
-/**
- * Crossfade window for the seamless video loop. Short enough to be visually
- * imperceptible (~400ms is below the threshold most viewers register as a
- * transition), long enough to mask the boundary between the active video's
- * final frame and the inactive's first frame.
- *
- * The previous 1.2s window read as a deliberate dip; tightening to 0.4s makes
- * the swap invisible while still surviving the second video's playback
- * latency on slow mobile devices.
- */
-const CROSSFADE_S = 0.4;
+const navLinks = [
+  { label: 'Dubai Shop', href: '/shop' },
+  { label: 'Lattafa', href: '/shop/lattafa' },
+  { label: 'Create Your Own', href: '/create-perfume' },
+  { label: 'About', href: '/about' },
+  { label: 'Contact', href: '/contact' },
+];
 
-export default function Hero() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const videoARef = useRef<HTMLVideoElement>(null);
-  const videoBRef = useRef<HTMLVideoElement>(null);
-  const reducedMotion = useReducedMotion();
+interface WordsPullUpProps {
+  text: string;
+  className?: string;
+  showAsterisk?: boolean;
+}
 
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end start'],
-  });
-  const videoY = useTransform(scrollYProgress, [0, 1], ['0%', reducedMotion ? '0%' : '18%']);
-  const textY = useTransform(scrollYProgress, [0, 1], ['0%', reducedMotion ? '0%' : '-10%']);
-  const overlayOpacity = useTransform(scrollYProgress, [0, 1], [0.35, 0.6]);
-
-  useEffect(() => {
-    const a = videoARef.current;
-    const b = videoBRef.current;
-    if (!a || !b) return;
-
-    // Two preloaded videos stacked at the same position. At any given moment
-    // exactly one is at opacity 1 (the "active" frame the viewer sees) and the
-    // other is at opacity 0, paused, reset to t=0. When the active gets within
-    // CROSSFADE_S of its end, we kick off the inactive at t=0 and drive a
-    // 60fps opacity crossfade via requestAnimationFrame. On `ended`, we
-    // hard-swap roles so the next iteration starts from a clean state.
-    a.style.opacity = '1';
-    b.style.opacity = '0';
-    let active: HTMLVideoElement = a;
-    let inactive: HTMLVideoElement = b;
-    let handoffStarted = false;
-    let rafId = 0;
-    void a.play().catch(() => {});
-
-    const tick = () => {
-      const dur = active.duration;
-      if (Number.isFinite(dur) && dur > 0) {
-        const remaining = dur - active.currentTime;
-
-        if (!handoffStarted && remaining < CROSSFADE_S) {
-          handoffStarted = true;
-          inactive.currentTime = 0;
-          // play() is async; the ramp below tolerates the inactive being
-          // momentarily not-yet-playing by clamping opacity to its raf-driven
-          // value rather than depending on a frame from the inactive being
-          // composited.
-          void inactive.play().catch(() => {});
-        }
-
-        if (handoffStarted) {
-          // Linear ramp on remaining/CROSSFADE_S. Active fades from 1→0 as it
-          // exits; inactive fades from 0→1 in lockstep so the total visible
-          // luminance is preserved (no perceptible "dip" through the loop).
-          const t = Math.max(0, Math.min(1, remaining / CROSSFADE_S));
-          active.style.opacity = String(t);
-          inactive.style.opacity = String(1 - t);
-        }
-      }
-      rafId = window.requestAnimationFrame(tick);
-    };
-
-    const onEnded = () => {
-      // Hard-swap at the loop boundary. The inactive is already mid-play and
-      // visible (opacity 1 from the final ramp tick); the just-ended video
-      // goes invisible, rewinds, pauses, and waits to be the next inactive.
-      handoffStarted = false;
-      active.style.opacity = '0';
-      inactive.style.opacity = '1';
-      try {
-        active.pause();
-        active.currentTime = 0;
-      } catch {
-        // Some browsers throw on currentTime set before metadata loads; ignore.
-      }
-      const tmp = active;
-      active = inactive;
-      inactive = tmp;
-    };
-
-    a.addEventListener('ended', onEnded);
-    b.addEventListener('ended', onEnded);
-    rafId = window.requestAnimationFrame(tick);
-
-    return () => {
-      window.cancelAnimationFrame(rafId);
-      a.removeEventListener('ended', onEnded);
-      b.removeEventListener('ended', onEnded);
-    };
-  }, []);
+function WordsPullUp({ text, className = '', showAsterisk = false }: WordsPullUpProps) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true });
+  const words = text.split(' ');
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative grid w-full grid-cols-1 overflow-hidden lg:grid-cols-[45%_55%] lg:min-h-[92vh]"
-    >
-      <motion.div
-        style={{ y: textY }}
-        className="relative order-2 z-10 flex items-end bg-bg-alt px-[var(--page-px)] py-16 lg:order-1 lg:py-[var(--page-py)]"
-      >
-        <div className="w-full max-w-[var(--container-prose)]">
-          <p className="font-micro uppercase tracking-[0.18em] text-[length:var(--font-size-micro)] text-fg-muted">
-            Aquad&apos;or, Nicosia.
-          </p>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-8 font-display text-fg leading-[0.95] tracking-[-0.02em] text-[length:var(--font-display-2xl)] lg:text-[length:var(--font-display-3xl)]"
+    <span ref={ref} className={`inline-flex flex-wrap ${className}`}>
+      {words.map((word, i) => {
+        const isLast = i === words.length - 1;
+        return (
+          <motion.span
+            key={i}
+            initial={{ y: 24, opacity: 0 }}
+            animate={isInView ? { y: 0, opacity: 1 } : {}}
+            transition={{
+              duration: 0.7,
+              delay: i * 0.08,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+            className="relative inline-block"
+            style={{ marginRight: isLast ? 0 : '0.18em' }}
           >
-            Perfume,
-            <br />
-            curated in
-            <br />
-            <span className="italic text-accent-deep">Nicosia.</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-10 max-w-[var(--container-narrow)] font-body text-fg-muted text-[length:var(--font-size-body-lg)] leading-relaxed"
-          >
-            Niche, Lattafa, and our own essence oils. One hundred fragrances on the desk, hand-curated and shipped from Cyprus.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-12"
-          >
-            <Link
-              href="/shop"
-              className={cn(
-                buttonVariants.base,
-                buttonVariants.variants.primary,
-                buttonVariants.sizes.lg,
-                'group relative',
-              )}
-            >
-              <span className="relative after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-current after:transition-[width] after:duration-[var(--duration-base)] after:ease-[var(--ease-out-quart)] group-hover:after:w-full">
-                Open the collection
+            {word}
+            {showAsterisk && isLast ? (
+              <span
+                aria-hidden="true"
+                className="absolute top-[0.65em] -right-[0.34em] text-[0.30em] text-accent"
+                style={{ lineHeight: 1 }}
+              >
+                *
               </span>
-            </Link>
-          </motion.div>
+            ) : null}
+          </motion.span>
+        );
+      })}
+    </span>
+  );
+}
 
-          <motion.ul
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.55 }}
-            className="mt-14 flex flex-wrap items-center gap-x-8 gap-y-3 font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted"
-          >
-            <li>Free shipping over 35 euro.</li>
-            <li aria-hidden="true" className="text-border-strong">
-              /
-            </li>
-            <li>No returns.</li>
-            <li aria-hidden="true" className="text-border-strong">
-              /
-            </li>
-            <li>Authenticity guaranteed.</li>
-          </motion.ul>
-        </div>
-      </motion.div>
+export default function Hero() {
+  return (
+    <section className="relative h-[100svh] min-h-[640px] w-full overflow-hidden">
+      {/* Background video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover"
+        src="/videos/home-hero.mp4"
+      />
 
-      <motion.div
-        style={{ y: videoY }}
-        className="relative order-1 min-h-[60vh] overflow-hidden bg-bg-alt lg:order-2 lg:min-h-full"
+      {/* Editorial film-grain noise — same SVG turbulence the magazine pages
+          use, so the video reads as printed paper rather than as a stock loop. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.10] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+        }}
+      />
+
+      {/* Vertical scrim so the copy at the bottom stays legible regardless of
+          which frame the loop is on. Top tint keeps the pill nav contrast. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/70"
+      />
+
+      {/* Floating pill nav. Centered, dark, hugged to the top edge. */}
+      <nav
+        aria-label="Primary"
+        className="absolute left-1/2 top-0 z-20 -translate-x-1/2 px-4 sm:px-6"
       >
-        <video
-          ref={videoARef}
-          className="absolute inset-0 h-full w-full object-cover"
-          src="/videos/hero.mp4"
-          muted
-          playsInline
-          preload="auto"
-          aria-hidden="true"
-        />
-        <video
-          ref={videoBRef}
-          className="absolute inset-0 h-full w-full object-cover"
-          src="/videos/hero.mp4"
-          muted
-          playsInline
-          preload="auto"
-          aria-hidden="true"
-        />
+        <motion.ul
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="flex items-center gap-3 rounded-b-2xl bg-black/85 px-4 py-3 backdrop-blur-sm sm:gap-6 sm:px-6 md:gap-10 md:rounded-b-3xl md:px-10 lg:gap-12"
+        >
+          {navLinks.map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                className="block min-h-[24px] font-micro uppercase tracking-[0.12em] text-[10px] sm:text-[11px] md:text-[12px] text-bg/75 transition-colors duration-[var(--duration-fast)] hover:text-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </motion.ul>
+      </nav>
 
-        <noscript>
-          <Image
-            src="/images/aquadour1.jpg"
-            alt="An Aquad'or perfume composition resting on the perfumer's desk."
-            fill
-            priority
-            sizes="(min-width: 1024px) 55vw, 100vw"
-            className="object-cover"
-          />
-        </noscript>
+      {/* Wordmark + copy + CTA. Pinned to the bottom of the hero so the
+          composition reads as poster, not as a card. */}
+      <div className="absolute inset-x-0 bottom-0 z-10 px-[var(--page-px)] pb-6 sm:pb-8 md:pb-10 lg:pb-12">
+        <div className="grid grid-cols-12 items-end gap-x-6 gap-y-6">
+          <div className="col-span-12 lg:col-span-8">
+            <h1
+              className="font-display font-medium text-bg leading-[0.85] tracking-[-0.04em] text-[24vw] sm:text-[22vw] md:text-[20vw] lg:text-[18vw] xl:text-[17vw] 2xl:text-[18vw]"
+              style={{ textShadow: '0 2px 24px oklch(0 0 0 / 0.25)' }}
+            >
+              <WordsPullUp text="Aquad'or" showAsterisk />
+            </h1>
+          </div>
 
-        {/* Editorial overlay — vertical scrim from the bottom in bg-alt, plus a
-            warm right-edge vignette that tucks the video into the page so it
-            doesn't read as a stock-footage loop. */}
-        <motion.div
-          aria-hidden="true"
-          style={{ opacity: overlayOpacity }}
-          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-alt via-bg-alt/30 to-transparent"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-gradient-to-l from-bg-alt/50 via-transparent to-transparent lg:from-bg-alt/30"
-        />
-        {/* Soft film grain so the overlay reads as paper, not as a flat sheet. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-[0.08] mix-blend-overlay"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-          }}
-        />
+          <div className="col-span-12 flex flex-col gap-6 pb-2 lg:col-span-4 lg:pb-10">
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{
+                duration: 0.8,
+                delay: 0.5,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="max-w-md font-body text-[length:var(--font-size-body-sm)] sm:text-[length:var(--font-size-body)] text-bg/85 leading-[1.4]"
+              style={{ textShadow: '0 1px 12px oklch(0 0 0 / 0.35)' }}
+            >
+              Niche, Lattafa, and our own essence oils. One hundred fragrances
+              on the desk, hand curated in Nicosia and shipped from Cyprus.
+            </motion.p>
 
-        <div className="absolute right-6 bottom-6 z-10 hidden items-center gap-3 lg:flex">
-          <span className="h-px w-12 bg-fg/40" aria-hidden="true" />
-          <p className="font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-bg/90 [text-shadow:0_1px_2px_oklch(0.10_0_0_/_0.4)]">
-            Composition no. 04, on bone linen.
-          </p>
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{
+                duration: 0.8,
+                delay: 0.7,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+            >
+              <Link
+                href="/shop"
+                aria-label="Open the collection"
+                className="group inline-flex items-center gap-2 rounded-full bg-accent py-1 pl-5 pr-1 font-micro uppercase tracking-[0.08em] text-[12px] sm:text-[13px] text-black transition-[gap,background-color] duration-[var(--duration-base)] ease-[var(--ease-out-quart)] hover:gap-3 hover:bg-accent-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-bg focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              >
+                Open the collection
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:scale-110 sm:h-10 sm:w-10">
+                  <ArrowRight
+                    aria-hidden="true"
+                    strokeWidth={1.5}
+                    className="h-4 w-4 text-bg"
+                  />
+                </span>
+              </Link>
+            </motion.div>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }
