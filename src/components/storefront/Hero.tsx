@@ -216,7 +216,6 @@ export default function Hero() {
           ref={videoARef}
           className="absolute inset-0 h-full w-full object-cover"
           src="/videos/hero.mp4"
-          poster="/images/aquadour1.jpg"
           muted
           playsInline
           preload="auto"

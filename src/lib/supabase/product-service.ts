@@ -219,7 +219,7 @@ export async function getFeaturedProducts(count: number = 12): Promise<Product[]
 
   // Cadence 2 puts a Lattafa card at positions 2, 5, 8, 11 (0-indexed),
   // matching the 8:4 ratio at 12 cards.
-  let picked = interleave(house, lattafa, 2).slice(0, count);
+  const picked = interleave(house, lattafa, 2).slice(0, count);
 
   // Backfill from newest-overall if any category came up short.
   if (picked.length < count) {
