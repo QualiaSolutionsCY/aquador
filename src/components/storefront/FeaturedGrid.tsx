@@ -1,26 +1,34 @@
 /**
- * FeaturedGrid. Homepage editorial product grid (HOME-03).
+ * FeaturedGrid. Homepage editorial product grid (HOME-03; redesigned M4 P2
+ * for an asymmetric magazine-spread layout + visible brand-family alternation).
  *
- * RSC-streamable as of M4 P1 T3 (POLISH-08): the section wrapper, header,
- * and grid container all render server-side. Each card is delegated to
- * `FeaturedCard` which carries the only client JS for this section
- * (FadeUp IntersectionObserver + HoverCrossfade group-hover swap).
+ * RSC-streamable: the section wrapper, header, and grid container all render
+ * server-side. Each card is delegated to the client `FeaturedCard` leaf which
+ * owns the per-card scroll motion + brand-family label + hover crossfade.
  *
- * Spec: .planning/DESIGN.md §10b. Hairline-divider section, type-led layout,
- * NO Card wrapper at section level. ProductCard internal use is explicitly
- * allowed by the §10b verifier (interior tile, not section container).
+ * Spec source: .planning/DESIGN.md §10b. No Card wrapper at section level.
+ * ProductCard internal use is explicitly allowed by §10b (interior tile).
  *
- * Layout: uniform editorial wall. 2 cols at sm, 3 at md, 4 at lg. Twelve
- * products visible, a richer mix of Aquad'or own + niche + Lattafa than
- * the prior six-tile spread. The cards are smaller so the eye reads the
- * catalogue as a curated wall, not a one-bottle magazine cover.
+ * Layout:
+ *   - sm / md: clean 2-col uniform grid. Mobile reads top-to-bottom; trying
+ *     to do magazine-asymmetric on a phone produces noise, not narrative.
+ *   - lg+: a 12-column editorial layout in four rows. The col-span pattern
+ *     was tuned so that the round-robin brand order (house, house, Lattafa,
+ *     house, house, Lattafa, ...) lands the Lattafa cards on emphasised
+ *     positions, giving the alternation visual weight.
  *
- * Motion (M3 polish, matches Hero parallax at e1676ca):
- *   - Header rule + h2 cascade in via RevealHeader.
- *   - Each card reveals via FadeUp with a 60ms stagger (capped at 540ms so
- *     the last card lands well inside 1s).
+ *     Pattern (12 cards across 4 rows):
+ *       row 1:  [6 hero] [3] [3]                . card 0 hero (house)
+ *       row 2:  [4]      [4] [4]                . card 3 standard (house)
+ *       row 3:  [6 wide] [6 wide]               . cards 6 + 7
+ *       row 4:  [3] [3] [6 hero]                . card 11 hero (Lattafa)
+ *
+ * Motion:
+ *   - Header rule + h2 cascade in via RevealHeader (now with a slow Y parallax
+ *     on the title at lg+ for an expensive-feeling drift).
+ *   - Each card reveals via scroll-driven opacity / y / scale (see FeaturedCard).
  *   - Image hover crossfade flips between primary and secondary photo.
- *   - Card micro-shift: each <li> lifts 4px on group-hover.
+ *   - Reduced-motion users skip both layers; the layout still reads.
  *
  * Named export `FeaturedGridSkeleton` mirrors the grid shape with `<Skeleton>`
  * blocks so the Suspense fallback ships zero cumulative layout shift.
@@ -28,7 +36,7 @@
 
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { Product } from '@/lib/supabase/types';
-import FeaturedCard from './FeaturedCard';
+import FeaturedCard, { type FeaturedEmphasis } from './FeaturedCard';
 import RevealHeader from './RevealHeader';
 
 export interface FeaturedGridProps {
@@ -39,6 +47,34 @@ export interface FeaturedGridProps {
     src/lib/supabase/product-service.ts → getFeaturedProducts. */
 const FEATURED_COUNT = 12;
 
+/**
+ * Asymmetric col-span pattern at lg+. Indexed by card position (0..11).
+ * Sum per row = 12 so the grid stays tight. The pattern keeps the same
+ * total bottom edge per row so mobile-to-desktop transition is clean.
+ */
+const LG_COL_SPANS: ReadonlyArray<string> = [
+  'lg:col-span-6', // 0 hero
+  'lg:col-span-3', // 1
+  'lg:col-span-3', // 2 (Lattafa)
+  'lg:col-span-4', // 3
+  'lg:col-span-4', // 4
+  'lg:col-span-4', // 5 (Lattafa)
+  'lg:col-span-6', // 6 wide
+  'lg:col-span-6', // 7 wide
+  'lg:col-span-3', // 8 (Lattafa)
+  'lg:col-span-3', // 9
+  'lg:col-span-6', // 10 hero
+  'lg:col-span-12', // 11 (Lattafa) closing full-bleed editorial slab
+];
+
+const EMPHASIS_BY_INDEX: ReadonlyArray<FeaturedEmphasis> = [
+  'hero', 'standard', 'standard',
+  'standard', 'standard', 'standard',
+  'wide', 'wide',
+  'standard', 'standard',
+  'hero', 'hero',
+];
+
 export default function FeaturedGrid({ products }: FeaturedGridProps) {
   const items = products.slice(0, FEATURED_COUNT);
 
@@ -47,11 +83,18 @@ export default function FeaturedGrid({ products }: FeaturedGridProps) {
       <RevealHeader
         className="mb-12 max-w-[var(--container-narrow)]"
         title="What the desk is wearing now."
+        parallax
       />
 
-      <ul className="grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-3 md:gap-x-6 lg:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-3 md:gap-x-6 lg:grid-cols-12 lg:gap-x-8 lg:gap-y-16">
         {items.map((product, index) => (
-          <FeaturedCard key={product.id} product={product} index={index} />
+          <FeaturedCard
+            key={product.id}
+            product={product}
+            index={index}
+            emphasis={EMPHASIS_BY_INDEX[index] ?? 'standard'}
+            className={LG_COL_SPANS[index] ?? 'lg:col-span-3'}
+          />
         ))}
       </ul>
     </section>
@@ -68,9 +111,13 @@ export function FeaturedGridSkeleton() {
         </h2>
       </div>
 
-      <ul className="grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-3 md:gap-x-6 lg:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-3 md:gap-x-6 lg:grid-cols-12 lg:gap-x-8">
         {Array.from({ length: FEATURED_COUNT }).map((_, index) => (
-          <li key={index} className="list-none">
+          <li
+            key={index}
+            className={`list-none ${LG_COL_SPANS[index] ?? 'lg:col-span-3'}`}
+          >
+            <Skeleton variant="text" className="mb-3 w-24" />
             <Skeleton variant="rect" className="w-full aspect-[4/5]" />
             <Skeleton variant="text" className="mt-4 w-1/3" />
             <Skeleton variant="text" className="mt-2 w-2/3" />

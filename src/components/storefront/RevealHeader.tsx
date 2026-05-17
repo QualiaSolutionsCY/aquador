@@ -21,8 +21,8 @@
  * locking a single scale here.
  */
 
-import { motion, useReducedMotion } from 'framer-motion';
-import type { ReactNode } from 'react';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { useRef, type ReactNode } from 'react';
 
 export interface RevealHeaderProps {
   /** Renders inside <h2>. Pass a string or a fragment with <br/> + <span> for italics. */
@@ -38,6 +38,12 @@ export interface RevealHeaderProps {
   bodyClassName?: string;
   /** Additional classes on the wrapping div (e.g. max-width). */
   className?: string;
+  /**
+   * When true, the title drifts upward at 0.7x scroll speed for a subtle
+   * editorial parallax. Used by FeaturedGrid so the heading "leaves the
+   * stage" as the grid below scrolls past at 1x. Reduced motion zeros it.
+   */
+  parallax?: boolean;
 }
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -48,14 +54,27 @@ export default function RevealHeader({
   titleClassName = 'mt-8 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-h1)]',
   bodyClassName = 'mt-8 font-body text-fg-muted text-[length:var(--font-size-body-lg)] leading-relaxed',
   className = '',
+  parallax = false,
 }: RevealHeaderProps) {
   const reducedMotion = useReducedMotion();
   const ruleInitial = reducedMotion ? { scaleX: 1 } : { scaleX: 0 };
   const titleInitial = reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 };
   const bodyInitial = reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 };
 
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const { scrollYProgress } = useScroll({
+    target: rootRef,
+    offset: ['start end', 'end start'],
+  });
+  // Drift the heading upward by up to 60px across the scroll window. Effect
+  // only applied when `parallax` is set AND the user hasn't asked for reduced
+  // motion. The transform is gated on the inline style below so non-parallax
+  // callers pay zero cost.
+  const parallaxY = useTransform(scrollYProgress, [0, 1], [0, -60]);
+  const titleStyle = parallax && !reducedMotion ? { y: parallaxY } : undefined;
+
   return (
-    <div className={className}>
+    <div ref={rootRef} className={className}>
       <motion.span
         aria-hidden="true"
         initial={ruleInitial}
@@ -65,15 +84,17 @@ export default function RevealHeader({
         style={{ transformOrigin: 'left center' }}
         className="block h-px w-12 bg-border-strong"
       />
-      <motion.h2
-        initial={titleInitial}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.4 }}
-        transition={{ duration: 0.9, delay: 0.1, ease: EASE }}
-        className={titleClassName}
-      >
-        {title}
-      </motion.h2>
+      <motion.div style={titleStyle} className="will-change-transform">
+        <motion.h2
+          initial={titleInitial}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.9, delay: 0.1, ease: EASE }}
+          className={titleClassName}
+        >
+          {title}
+        </motion.h2>
+      </motion.div>
       {body ? (
         <motion.p
           initial={bodyInitial}
