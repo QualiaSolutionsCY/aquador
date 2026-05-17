@@ -124,9 +124,12 @@
   --space-24: 6rem;     /*  96px */
   --space-32: 8rem;     /* 128px */
 
-  /* Page padding (fluid) */
-  --page-px: clamp(1rem, 4vw, 4rem);   /* horizontal */
-  --page-py: clamp(2rem, 6vw, 6rem);   /* vertical */
+  /* Page padding (fluid). Max bumped to 6rem at wide viewports so 1440px+
+     screens get real breathing room on shop + PDP grids rather than reading
+     as edge-hugged. Existing sections that opted into --page-px get the
+     larger padding automatically. */
+  --page-px: clamp(1rem, 4.5vw, 6rem);   /* horizontal */
+  --page-py: clamp(2rem, 6vw, 6rem);     /* vertical */
 
   /* Container widths */
   --container-narrow: 42rem;   /* editorial reading width — blog, copy-heavy */

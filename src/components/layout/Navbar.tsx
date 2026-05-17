@@ -92,14 +92,14 @@ export default function Navbar() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className={`fixed left-0 right-0 top-0 z-50 bg-bg/96 backdrop-blur-sm transition-shadow duration-300 ${
+        className={`fixed left-0 right-0 top-0 z-50 bg-bg backdrop-blur-sm transition-shadow duration-300 border-b ${
           isScrolled
-            ? 'border-b border-border shadow-1'
-            : 'border-b border-transparent'
+            ? 'border-border shadow-1'
+            : 'border-border/60'
         }`}
       >
         <nav className="px-[var(--page-px)]">
-          <div className="relative flex items-center justify-between h-16 md:h-18 lg:h-20">
+          <div className="relative flex items-center justify-between h-20 md:h-24 lg:h-28">
             {/* Left: Hamburger (mobile) + Left nav links (desktop) */}
             <div className="flex items-center h-full">
               <button
@@ -147,9 +147,9 @@ export default function Navbar() {
               <Image
                 src="/aquador.webp"
                 alt="Aquad'or"
-                width={400}
-                height={120}
-                className="h-12 md:h-14 lg:h-16 w-auto object-contain"
+                width={520}
+                height={160}
+                className="h-16 md:h-20 lg:h-24 w-auto object-contain"
                 priority
               />
             </Link>

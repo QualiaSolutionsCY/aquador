@@ -51,29 +51,34 @@ export interface ButtonProps
  */
 export const buttonVariants = {
   base: cn(
-    'relative inline-flex items-center justify-center gap-2',
-    'font-micro uppercase tracking-[0.05em] font-medium',
+    'group/btn relative inline-flex items-center justify-center gap-2.5',
+    'font-micro uppercase tracking-[0.14em] font-medium',
     'rounded-sm border border-transparent',
-    'transition-all duration-150 ease-[cubic-bezier(0.25,1,0.5,1)]',
+    'transition-[background,color,border-color,box-shadow,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
     'outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
     'active:translate-y-px',
     'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
     'select-none whitespace-nowrap',
+    // Subtle inset hairline + soft elevation on hover — gives every variant
+    // an editorial-jewel feel without resorting to gold-on-black.
+    'shadow-[inset_0_1px_0_oklch(1_0_0_/_0.04)] hover:shadow-[inset_0_1px_0_oklch(1_0_0_/_0.04),0_8px_20px_-12px_oklch(0.20_0.010_80_/_0.35)]',
   ),
   variants: {
-    primary: 'bg-accent text-bg hover:bg-accent-deep hover:shadow-1',
+    primary:
+      'bg-fg text-bg hover:bg-accent-deep hover:text-bg',
     secondary:
-      'bg-bg-alt text-fg border border-border hover:border-border-strong',
-    ghost: 'bg-transparent text-fg hover:bg-bg-alt',
+      'bg-bg-alt text-fg border border-border hover:border-border-strong hover:bg-bg',
+    ghost:
+      'bg-transparent text-fg border border-border hover:border-fg hover:bg-transparent',
     destructive: 'bg-critical text-bg hover:opacity-90',
     // Legacy alias — pre-v3.0 callers using variant="outline".
     outline:
-      'bg-transparent text-fg border border-border-strong hover:bg-bg-alt',
+      'bg-transparent text-fg border border-border-strong hover:border-fg hover:bg-bg-alt',
   } as const satisfies Record<LegacyButtonVariant, string>,
   sizes: {
-    sm: 'px-4 py-2 min-h-9 text-[11px]', // 36px
-    md: 'px-6 py-3 min-h-11 text-[12px]', // 44px
-    lg: 'px-8 py-4 min-h-12 text-[13px]', // 48px (≥ 44px touch target)
+    sm: 'px-5 py-2.5 min-h-10 text-[11px]', // 40px
+    md: 'px-7 py-3.5 min-h-12 text-[12px]', // 48px
+    lg: 'px-10 py-4.5 min-h-14 text-[13px]', // 56px
     // Legacy alias — pre-v3.0 callers using size="icon".
     icon: 'min-h-11 min-w-11 px-3 py-3 text-[12px]',
   } as const satisfies Record<LegacyButtonSize, string>,

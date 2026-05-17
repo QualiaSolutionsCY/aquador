@@ -4,10 +4,8 @@ import { GeistSans } from "geist/font/sans";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import { CartProvider, CartDrawer } from "@/components/cart";
-import CookieConsent from "@/components/ui/CookieConsent";
+import { CartProvider } from "@/components/cart";
+import { StorefrontChromeTop, StorefrontChromeBottom } from "@/components/layout/StorefrontChrome";
 import { ErrorBoundary, AbortErrorSuppressor } from "@/components/providers/ErrorBoundary";
 import VisitorTracker from "@/components/VisitorTracker";
 import { PageTransition } from "@/components/providers/PageTransition";
@@ -142,15 +140,13 @@ export default function RootLayout({
             <Toaster>
               <AnimationBudgetProvider>
                 <CartProvider>
-                  <Navbar />
+                  <StorefrontChromeTop />
                   <PageTransition>
                     <main id="main-content" className="min-h-screen">
                       {children}
                     </main>
                   </PageTransition>
-                  <Footer />
-                  <CartDrawer />
-                  <CookieConsent />
+                  <StorefrontChromeBottom />
                   <ScrollDepthTracker />
                   <VisitorTracker />
                 </CartProvider>

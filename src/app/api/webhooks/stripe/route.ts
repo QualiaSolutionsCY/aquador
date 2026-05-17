@@ -14,6 +14,16 @@ interface OrderItem {
   quantity: number;
   price: number;
   productType?: string;
+  // Admin-Customer-Service fields. Carried so /admin/orders/[id] can
+  // surface the full point-of-sale snapshot a CS operator needs without
+  // joining back to the products table (which may have moved on by the
+  // time CS opens the ticket).
+  productId?: string;
+  slug?: string;
+  image?: string;
+  brand?: string;
+  size?: string;
+  category?: string;
 }
 
 interface ShippingAddress {
@@ -459,6 +469,15 @@ export async function POST(request: NextRequest) {
                 quantity: shortItem.qty,
                 price: product.sale_price || product.price,
                 productType: product.product_type,
+                productId: product.id,
+                // The `id` column doubles as the URL slug — see
+                // src/lib/supabase/product-service.ts `getProductBySlug` which
+                // calls `getProductById(slug)`. No separate `slug` column.
+                slug: product.id,
+                image: product.image,
+                brand: product.brand ?? undefined,
+                size: product.size,
+                category: product.category,
               });
             }
           }

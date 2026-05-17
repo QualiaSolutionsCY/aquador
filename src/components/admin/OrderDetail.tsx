@@ -22,7 +22,18 @@ import { formatPrice, fromCents } from '@/lib/currency';
 import { AdminTable, type AdminTableColumn } from '@/components/admin/AdminTable';
 import type { Customer, Order, OrderStatus } from '@/lib/supabase/types';
 
-interface OrderLineItem { name: string; quantity: number; price: number }
+interface OrderLineItem {
+  name: string;
+  quantity: number;
+  price: number;
+  // Admin-Customer-Service fields. Persisted by the Stripe webhook for new
+  // orders; older orders that pre-date the schema bump leave these undefined.
+  slug?: string;
+  image?: string;
+  brand?: string;
+  size?: string;
+  productType?: string;
+}
 interface OrderDetailProps { order: Order; customer: Customer | null }
 
 const STATUS_OPTIONS: OrderStatus[] = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
@@ -50,7 +61,16 @@ function parseItems(raw: Order['items']): OrderLineItem[] {
     const quantity = Number(o.quantity);
     const price = Number(o.price ?? o.unitPrice);
     if (!name || !Number.isFinite(quantity) || !Number.isFinite(price)) continue;
-    out.push({ name, quantity, price });
+    out.push({
+      name,
+      quantity,
+      price,
+      slug: typeof o.slug === 'string' ? o.slug : undefined,
+      image: typeof o.image === 'string' ? o.image : undefined,
+      brand: typeof o.brand === 'string' ? o.brand : undefined,
+      size: typeof o.size === 'string' ? o.size : undefined,
+      productType: typeof o.productType === 'string' ? o.productType : undefined,
+    });
   }
   return out;
 }
@@ -127,7 +147,70 @@ export default function OrderDetail({ order, customer }: OrderDetailProps) {
 
   type RowShape = OrderLineItem & { _rowKey: string };
   const columns: AdminTableColumn<RowShape>[] = [
-    { key: 'name', header: 'Product', accessor: (r) => <span className="text-fg">{r.name}</span> },
+    {
+      key: 'thumb',
+      header: '',
+      accessor: (r) => (
+        r.image ? (
+          // 48x48 thumbnail. Click-through to the live PDP if we have a slug,
+          // so a CS operator opens the customer's actual product page in one
+          // click. eslint-disable-next-line @next/next/no-img-element — admin
+          // shell deliberately uses raw <img> for non-customer-facing surfaces
+          // to avoid the next/image domain allowlist tax on Supabase-hosted CDNs.
+          r.slug ? (
+            <Link href={`/products/${r.slug}`} target="_blank" rel="noopener" className="inline-block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={r.image}
+                alt=""
+                className="h-12 w-12 rounded-sm border border-border object-cover"
+                loading="lazy"
+              />
+            </Link>
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={r.image}
+              alt=""
+              className="h-12 w-12 rounded-sm border border-border object-cover"
+              loading="lazy"
+            />
+          )
+        ) : (
+          <div aria-hidden="true" className="h-12 w-12 rounded-sm border border-border bg-bg-alt" />
+        )
+      ),
+    },
+    {
+      key: 'name',
+      header: 'Product',
+      accessor: (r) => (
+        <div className="flex flex-col">
+          {r.brand && (
+            <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-fg-muted">
+              {r.brand}
+            </span>
+          )}
+          {r.slug ? (
+            <Link
+              href={`/products/${r.slug}`}
+              target="_blank"
+              rel="noopener"
+              className="text-fg underline-offset-2 hover:underline"
+            >
+              {r.name}
+            </Link>
+          ) : (
+            <span className="text-fg">{r.name}</span>
+          )}
+          {(r.size || r.productType) && (
+            <span className="font-body text-[12px] text-fg-muted">
+              {[r.size, r.productType].filter(Boolean).join(' · ')}
+            </span>
+          )}
+        </div>
+      ),
+    },
     { key: 'qty', header: 'Qty', align: 'right', accessor: (r) => <span>{r.quantity}</span> },
     { key: 'price', header: 'Unit', align: 'right', accessor: (r) => <span>{formatPrice(r.price)}</span> },
     { key: 'line', header: 'Line total', align: 'right',
