@@ -22,15 +22,23 @@ function isAdminRoute(pathname: string | null): boolean {
   return !!pathname && pathname.startsWith('/admin');
 }
 
+function isMaintenanceRoute(pathname: string | null): boolean {
+  return pathname === '/maintenance';
+}
+
+function shouldSuppressChrome(pathname: string | null): boolean {
+  return isAdminRoute(pathname) || isMaintenanceRoute(pathname);
+}
+
 export function StorefrontChromeTop() {
   const pathname = usePathname();
-  if (isAdminRoute(pathname)) return null;
+  if (shouldSuppressChrome(pathname)) return null;
   return <Navbar />;
 }
 
 export function StorefrontChromeBottom() {
   const pathname = usePathname();
-  if (isAdminRoute(pathname)) return null;
+  if (shouldSuppressChrome(pathname)) return null;
   return (
     <>
       <Footer />
