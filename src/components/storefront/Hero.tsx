@@ -28,10 +28,9 @@
  *   - All hit targets are ≥ 44px tall.
  */
 
-import { motion, useInView } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { useRef } from 'react';
 
 const navLinks = [
   { label: 'Dubai Shop', href: '/shop' },
@@ -41,54 +40,14 @@ const navLinks = [
   { label: 'Contact', href: '/contact' },
 ];
 
-interface WordsPullUpProps {
-  text: string;
-  className?: string;
-  showAsterisk?: boolean;
-}
-
-function WordsPullUp({ text, className = '', showAsterisk = false }: WordsPullUpProps) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true });
-  const words = text.split(' ');
-
-  return (
-    <span ref={ref} className={`inline-flex flex-wrap ${className}`}>
-      {words.map((word, i) => {
-        const isLast = i === words.length - 1;
-        return (
-          <motion.span
-            key={i}
-            initial={{ y: 24, opacity: 0 }}
-            animate={isInView ? { y: 0, opacity: 1 } : {}}
-            transition={{
-              duration: 0.7,
-              delay: i * 0.08,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            className="relative inline-block"
-            style={{ marginRight: isLast ? 0 : '0.18em' }}
-          >
-            {word}
-            {showAsterisk && isLast ? (
-              <span
-                aria-hidden="true"
-                className="absolute top-[0.65em] -right-[0.34em] text-[0.30em] text-accent"
-                style={{ lineHeight: 1 }}
-              >
-                *
-              </span>
-            ) : null}
-          </motion.span>
-        );
-      })}
-    </span>
-  );
-}
-
 export default function Hero() {
   return (
     <section className="relative h-[100svh] min-h-[640px] w-full overflow-hidden">
+      {/* Page heading — visually hidden so the video-driven hero carries the
+          mood without typographic weight, but search engines and screen
+          readers still get a semantic h1 for the home route. */}
+      <h1 className="sr-only">Aquad&apos;or, niche and original fragrance in Cyprus</h1>
+
       {/* Background video */}
       <video
         autoPlay
@@ -143,20 +102,12 @@ export default function Hero() {
         </motion.ul>
       </nav>
 
-      {/* Wordmark + copy + CTA. Pinned to the bottom of the hero so the
-          composition reads as poster, not as a card. */}
+      {/* CTA. Pinned to the bottom-right of the hero. The video, film-grain
+          and scrim carry the mood — no wordmark competes for attention, the
+          CTA is the only typographic element on the field. */}
       <div className="absolute inset-x-0 bottom-0 z-10 px-[var(--page-px)] pb-6 sm:pb-8 md:pb-10 lg:pb-12">
-        <div className="grid grid-cols-12 items-end gap-x-6 gap-y-6">
-          <div className="col-span-12 lg:col-span-8">
-            <h1
-              className="font-display font-medium text-bg leading-[0.85] tracking-[-0.04em] text-[24vw] sm:text-[22vw] md:text-[20vw] lg:text-[18vw] xl:text-[17vw] 2xl:text-[18vw]"
-              style={{ textShadow: '0 2px 24px oklch(0 0 0 / 0.25)' }}
-            >
-              <WordsPullUp text="Aquad'or" showAsterisk />
-            </h1>
-          </div>
-
-          <div className="col-span-12 flex flex-col items-start gap-6 pb-2 lg:col-span-4 lg:items-end lg:pb-10">
+        <div className="flex justify-start lg:justify-end">
+          <div className="flex flex-col items-start gap-6 pb-2 lg:items-end lg:pb-10">
             {/* Hairline-frame CTA. Drops the gold-pill silhouette in favour of
                 a magazine-catalog rectangle: 1px ivory border on transparent
                 fill, micro-cap tracked-out label, arrow glyph that slides on
