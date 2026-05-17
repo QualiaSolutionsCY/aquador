@@ -156,8 +156,12 @@ export default function Hero() {
             </h1>
           </div>
 
-          <div className="col-span-12 flex flex-col gap-6 pb-2 lg:col-span-4 lg:pb-10">
-            <motion.p
+          <div className="col-span-12 flex flex-col items-start gap-6 pb-2 lg:col-span-4 lg:items-end lg:pb-10">
+            {/* Hairline-frame CTA. Drops the gold-pill silhouette in favour of
+                a magazine-catalog rectangle: 1px ivory border on transparent
+                fill, micro-cap tracked-out label, arrow glyph that slides on
+                hover. Whole frame turns gold on hover; text inverts to dark. */}
+            <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{
@@ -165,35 +169,19 @@ export default function Hero() {
                 delay: 0.5,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="max-w-md font-body text-[length:var(--font-size-body-sm)] sm:text-[length:var(--font-size-body)] text-bg/85 leading-[1.4]"
-              style={{ textShadow: '0 1px 12px oklch(0 0 0 / 0.35)' }}
-            >
-              Niche, Lattafa, and our own essence oils. One hundred fragrances
-              on the desk, hand curated in Nicosia and shipped from Cyprus.
-            </motion.p>
-
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{
-                duration: 0.8,
-                delay: 0.7,
-                ease: [0.16, 1, 0.3, 1],
-              }}
             >
               <Link
                 href="/shop"
                 aria-label="Open the collection"
-                className="group inline-flex items-center gap-2 rounded-full bg-accent py-1 pl-5 pr-1 font-micro uppercase tracking-[0.08em] text-[12px] sm:text-[13px] text-black transition-[gap,background-color] duration-[var(--duration-base)] ease-[var(--ease-out-quart)] hover:gap-3 hover:bg-accent-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-bg focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                className="group inline-flex items-center gap-4 border border-bg/45 px-7 py-4 font-micro uppercase tracking-[0.18em] text-[11px] sm:text-[12px] text-bg transition-[background-color,border-color,color] duration-[var(--duration-base)] ease-[var(--ease-out-quart)] hover:border-accent hover:bg-accent hover:text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                style={{ textShadow: '0 1px 12px oklch(0 0 0 / 0.35)' }}
               >
-                Open the collection
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:scale-110 sm:h-10 sm:w-10">
-                  <ArrowRight
-                    aria-hidden="true"
-                    strokeWidth={1.5}
-                    className="h-4 w-4 text-bg"
-                  />
-                </span>
+                <span>Open the collection</span>
+                <ArrowRight
+                  aria-hidden="true"
+                  strokeWidth={1.25}
+                  className="h-4 w-4 transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:translate-x-1"
+                />
               </Link>
             </motion.div>
           </div>
