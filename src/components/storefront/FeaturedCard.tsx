@@ -1,124 +1,164 @@
 'use client';
 
 /**
- * FeaturedCard. Per-card client leaf for FeaturedGrid (POLISH-08, M4 P1 T3;
- * refactored in M4 P2 for editorial-premium feel + brand-family alternation).
+ * FeaturedCard. Per-card client leaf for the editorial FeaturedGrid spread
+ * (POLISH-08, M4 P1 T3; re-redesigned M4 P-polish for a true magazine layout
+ * with hero / medium / small classes instead of uniform tiles).
  *
- * Bundles per-card scroll-driven motion (useScroll + useTransform) plus a
- * brand-family hairline label that visually confirms the Aquad'or / Lattafa
- * alternation set up in product-service.getFeaturedProducts.
+ * Unlike the previous pass (which delegated to the compact ProductCard), each
+ * emphasis here owns its own internal layout. That is the only way to get the
+ * "big" cards to actually feel bigger than the "small" cards. Sharing a
+ * ProductCard chassis forces the same vertical rhythm and the spread collapses
+ * back into a CSV dump of similar tiles.
  *
- * Motion model (editorial, not gimmicky):
- *   - Per-card scroll progress drives opacity (0.35 to 1 to 0.7), translateY
- *     (28px to 0 to -16px), and scale (0.97 to 1 to 0.99). The card lifts in
- *     as it enters the viewport, sits at rest in the reading zone, then drifts
- *     slightly UP as it leaves the top, producing a Loewe / Fendi filmstrip
- *     feel without per-card 3D tricks.
- *   - HoverCrossfade on top of the ProductCard's primary image flips to a
- *     secondary photo on group hover.
+ * Emphases:
+ *   - hero-portrait : aspect-[3/4], --font-display-xl name, generous padding.
+ *                     Position 0 on the grid (top-left). Reads as the cover.
+ *   - hero-wide     : aspect-[5/3] landscape, --font-display-xl name. The
+ *                     second hero, balancing brand-family on row 2.
+ *   - medium        : aspect-[4/5] gentle portrait, --font-h3 name. Row 2 left.
+ *   - small         : aspect-square, --font-body name. Stacked beside heroes.
  *
- * Brand-family label (above the ProductCard tile, hairline micro caps):
- *   - "AQUAD'OR HOUSE" for niche / essence-oil / women / men cards.
- *   - "LATTAFA ORIGINALS" for lattafa-original cards, with a thin accent rule
- *     beneath the label so the alternation is immediately legible.
+ * Brand-family label sits ABOVE the image (not below) with a hairline rule.
+ * Gold rule for Lattafa, neutral rule for Aquad'or House.
  *
- * Spec source: .planning/DESIGN.md §10b. No Card wrapper, no raw hex, tokens
- * only for motion (--duration-base + --ease-out-quart) and color (--accent +
- * --fg-muted via Tailwind aliases).
+ * Motion model:
+ *   - Per-card scroll-driven opacity / translateY / scale.
+ *   - Hero cards get a stronger reveal (more y, slower curve).
+ *   - Small cards get a quicker, subtler reveal so the eye lands on the heroes
+ *     first.
+ *   - Reduced-motion users skip both layers; layout still reads.
+ *
+ * Spec source: .planning/DESIGN.md §10b. Tokens only.
  */
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRef } from 'react';
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
-import { ProductCard } from '@/components/ui/ProductCard';
+import { formatPrice } from '@/lib/currency';
+import { Badge } from '@/components/ui/Badge';
 import { isLattafaProduct } from '@/lib/supabase/product-service';
 import type { Product } from '@/lib/supabase/types';
 
-export type FeaturedEmphasis = 'hero' | 'wide' | 'standard';
+export type FeaturedEmphasis = 'hero-portrait' | 'hero-wide' | 'medium' | 'small';
 
 export interface FeaturedCardProps {
   product: Product;
   index: number;
-  /** Layout emphasis from the parent grid. Drives image aspect on lg+. */
-  emphasis?: FeaturedEmphasis;
-  /** Extra classes applied to the <motion.li> root (e.g. lg:col-span-6). */
+  /** Layout emphasis from the parent grid. Drives image aspect + typography. */
+  emphasis: FeaturedEmphasis;
+  /** Extra classes applied to the <motion.li> root (e.g. lg:col-span-8). */
   className?: string;
 }
 
-function HoverCrossfade({
-  primary,
-  secondary,
-  alt,
-}: {
-  primary: string;
-  secondary: string;
-  alt: string;
-}) {
-  // Absolute overlay that fades in over ProductCard's primary image on group
-  // hover. The parent <li> carries the `group` class.
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:opacity-100"
-    >
-      <Image
-        src={secondary}
-        alt={alt}
-        fill
-        sizes="(min-width: 1024px) 50vw, (min-width: 768px) 33vw, 50vw"
-        className="object-cover"
-      />
-      <span className="sr-only">{primary}</span>
-    </div>
-  );
+interface EmphasisStyle {
+  aspect: string;
+  nameClass: string;
+  priceClass: string;
+  brandClass: string;
+  padTop: string;
+  imageSizes: string;
 }
 
-function BrandLabel({ isLattafa }: { isLattafa: boolean }) {
-  if (isLattafa) {
-    return (
-      <div className="mb-3 inline-flex flex-col items-start">
-        <span className="font-micro text-[0.625rem] font-medium uppercase tracking-[0.18em] text-fg">
-          Lattafa Originals
-        </span>
-        <span
-          aria-hidden="true"
-          className="mt-1 block h-px w-8 bg-accent"
-        />
-      </div>
-    );
-  }
+const EMPHASIS_STYLES: Record<FeaturedEmphasis, EmphasisStyle> = {
+  'hero-portrait': {
+    aspect: 'aspect-[3/4]',
+    nameClass:
+      'font-display font-medium leading-[1.05] tracking-[-0.015em] text-[length:var(--font-display-xl)]',
+    priceClass: 'font-display text-[length:var(--font-h3)]',
+    brandClass: 'text-[11px]',
+    padTop: 'pt-5 md:pt-6',
+    imageSizes: '(min-width: 1024px) 66vw, 100vw',
+  },
+  'hero-wide': {
+    aspect: 'aspect-[5/3]',
+    nameClass:
+      'font-display font-medium leading-[1.05] tracking-[-0.015em] text-[length:var(--font-display-xl)]',
+    priceClass: 'font-display text-[length:var(--font-h3)]',
+    brandClass: 'text-[11px]',
+    padTop: 'pt-5 md:pt-6',
+    imageSizes: '(min-width: 1024px) 66vw, 100vw',
+  },
+  medium: {
+    aspect: 'aspect-[4/5]',
+    nameClass:
+      'font-display font-medium leading-[1.1] tracking-[-0.01em] text-[length:var(--font-h3)]',
+    priceClass: 'font-display text-[1.125rem] md:text-[1.25rem]',
+    brandClass: 'text-[10px]',
+    padTop: 'pt-4',
+    imageSizes: '(min-width: 1024px) 33vw, 50vw',
+  },
+  small: {
+    aspect: 'aspect-square',
+    nameClass:
+      'font-display font-medium leading-[1.15] tracking-[-0.005em] text-[length:var(--font-size-body-lg)]',
+    priceClass: 'font-body font-medium text-[1rem]',
+    brandClass: 'text-[10px]',
+    padTop: 'pt-4',
+    imageSizes: '(min-width: 1024px) 33vw, 50vw',
+  },
+};
+
+function BrandLabel({
+  isLattafa,
+  brandClass,
+}: {
+  isLattafa: boolean;
+  brandClass: string;
+}) {
+  const labelText = isLattafa ? 'Lattafa Originals' : "Aquad’or House";
+  const ruleClass = isLattafa ? 'bg-accent' : 'bg-border-strong';
+  const textTone = isLattafa ? 'text-fg' : 'text-fg-muted';
   return (
-    <div className="mb-3 inline-flex flex-col items-start">
-      <span className="font-micro text-[0.625rem] font-medium uppercase tracking-[0.18em] text-fg-muted">
-        Aquad&rsquo;or House
+    <div className="mb-4 inline-flex flex-col items-start">
+      <span
+        className={`font-micro ${brandClass} font-medium uppercase tracking-[0.18em] ${textTone}`}
+      >
+        {labelText}
       </span>
       <span
         aria-hidden="true"
-        className="mt-1 block h-px w-8 bg-border-strong"
+        className={`mt-1.5 block h-px w-10 ${ruleClass}`}
       />
     </div>
   );
 }
 
-export default function FeaturedCard({ product, index, emphasis = 'standard', className = '' }: FeaturedCardProps) {
+export default function FeaturedCard({
+  product,
+  index,
+  emphasis,
+  className = '',
+}: FeaturedCardProps) {
   const reducedMotion = useReducedMotion();
   const ref = useRef<HTMLLIElement | null>(null);
   const secondary = product.images?.[0];
   const showCrossfade = !!secondary && secondary !== product.image;
   const isLattafa = isLattafaProduct(product);
+  const styles = EMPHASIS_STYLES[emphasis];
 
-  // Scroll progress tied to THIS card's bounding box: 0 when the card's top
-  // first enters the viewport bottom, 1 when its bottom passes the viewport
-  // top. Drives opacity / y / scale for the filmstrip motion.
+  const isHero = emphasis === 'hero-portrait' || emphasis === 'hero-wide';
+  const inStock = product.in_stock ?? true;
+  const isOnSale = !!product.sale_price && inStock;
+  const displayPrice = product.sale_price || product.price;
+
+  // Scroll progress tied to THIS card's bounding box: 0 when its top first
+  // enters the viewport bottom, 1 when its bottom passes the viewport top.
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ['start end', 'end start'],
   });
 
-  // Three-stop curves: rise in, rest, drift out.
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.7, 1], [0.35, 1, 1, 0.7]);
-  const y = useTransform(scrollYProgress, [0, 0.2, 0.7, 1], [28, 0, 0, -16]);
-  const scale = useTransform(scrollYProgress, [0, 0.2, 0.7, 1], [0.97, 1, 1, 0.99]);
+  // Hero cards: stronger reveal so they anchor the spread.
+  // Small cards: lighter reveal so the heroes lead the eye.
+  const opacityRange = isHero ? [0.3, 1, 1, 0.85] : [0.45, 1, 1, 0.9];
+  const yRange = isHero ? [40, 0, 0, -12] : [20, 0, 0, -8];
+  const scaleRange = isHero ? [0.96, 1, 1, 0.995] : [0.98, 1, 1, 1];
+
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.7, 1], opacityRange);
+  const y = useTransform(scrollYProgress, [0, 0.2, 0.7, 1], yRange);
+  const scale = useTransform(scrollYProgress, [0, 0.2, 0.7, 1], scaleRange);
 
   const motionStyle = reducedMotion ? undefined : { opacity, y, scale };
 
@@ -126,20 +166,86 @@ export default function FeaturedCard({ product, index, emphasis = 'standard', cl
     <motion.li
       ref={ref}
       style={motionStyle}
-      className={`group relative list-none transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] hover:-translate-y-1 ${className}`}
+      className={`group relative flex list-none flex-col ${className}`}
       data-emphasis={emphasis}
     >
-      <BrandLabel isLattafa={isLattafa} />
-      <div className="relative">
-        <ProductCard product={product} priority={index < 4} variant="compact" />
-        {showCrossfade && (
-          <HoverCrossfade
-            primary={product.image}
-            secondary={secondary}
+      <BrandLabel isLattafa={isLattafa} brandClass={styles.brandClass} />
+
+      <Link
+        href={`/products/${product.id}`}
+        aria-label={`View ${product.name}`}
+        className="flex flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-bg"
+      >
+        <div
+          className={`relative overflow-hidden bg-bg-alt ${styles.aspect} transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:-translate-y-1`}
+        >
+          <Image
+            src={product.image}
             alt={product.name}
+            fill
+            sizes={styles.imageSizes}
+            priority={isHero && index < 2}
+            className="object-cover transition-transform duration-[600ms] ease-[var(--ease-out-quart)] group-hover:scale-[1.03]"
           />
-        )}
-      </div>
+          {showCrossfade && (
+            <Image
+              src={secondary}
+              alt=""
+              aria-hidden="true"
+              fill
+              sizes={styles.imageSizes}
+              className="object-cover opacity-0 transition-opacity duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:opacity-100"
+            />
+          )}
+
+          {isOnSale && (
+            <Badge variant="accent" className="absolute right-3 top-3">
+              Sale
+            </Badge>
+          )}
+
+          {!inStock && (
+            <div className="absolute inset-0 flex items-center justify-center bg-[var(--scrim)]">
+              <Badge variant="neutral">Out of stock</Badge>
+            </div>
+          )}
+        </div>
+
+        <div className={`flex flex-col gap-2 ${styles.padTop}`}>
+          {product.brand ? (
+            <p
+              className={`font-micro ${styles.brandClass} font-medium uppercase tracking-[0.15em] text-fg-muted`}
+            >
+              {product.brand}
+            </p>
+          ) : null}
+
+          <h3 className={`${styles.nameClass} text-fg line-clamp-2`}>
+            {product.name}
+          </h3>
+
+          <div className="mt-1 flex items-baseline gap-2">
+            <span className={`${styles.priceClass} font-medium text-fg`}>
+              {formatPrice(displayPrice)}
+            </span>
+            {isOnSale && (
+              <span className="font-body text-sm text-fg-muted line-through">
+                {formatPrice(product.price)}
+              </span>
+            )}
+          </div>
+
+          <span
+            aria-hidden="true"
+            className="mt-3 inline-flex items-center gap-2 font-micro text-[10px] font-medium uppercase tracking-[0.2em] text-fg"
+          >
+            <span className="relative inline-block">
+              View
+              <span className="absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-0 bg-accent transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:scale-x-100" />
+            </span>
+          </span>
+        </div>
+      </Link>
     </motion.li>
   );
 }
