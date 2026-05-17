@@ -135,7 +135,7 @@ test.describe('Phase 2.5 — Builder + AI Concierge', () => {
   }) => {
     test.skip(
       !HAS_AI,
-      'concierge requires OPENROUTER_API_KEY (or OPENAI_API_KEY fallback) in env',
+      'concierge requires OPENROUTER_API_KEY (or OPENAI_API_KEY fallback) in env — see GH issue #QA-AI-KEY-CI',
     );
 
     await page.goto('/', { waitUntil: 'domcontentloaded' });

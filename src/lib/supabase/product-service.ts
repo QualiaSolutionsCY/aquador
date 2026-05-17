@@ -94,24 +94,69 @@ export async function getProductsByCategory(category: string): Promise<Product[]
   return data || [];
 }
 
-// Curator's mix for the homepage featured grid. Without this the newest-first
-// fallback pulls a single category (whichever was imported last) and the page
-// reads as a one-brand catalogue instead of an editorial. The mix surfaces
-// Aquad'or's curated lines (9 slots) alongside Lattafa (3 slots) so the
-// homepage shows breadth, not a one-brand catalogue.
-const FEATURED_MIX: ReadonlyArray<{ category: ProductCategory; take: number }> = [
-  { category: 'niche', take: 3 },
+// Curator's mix for the homepage featured grid. The mix pulls 8 Aquad'or-house
+// slots (niche / essence-oil / women / men) and 4 Lattafa-originals, then
+// round-robin interleaves them so the grid visibly alternates brand families
+// in a 3:1 cadence (house · house · Lattafa · house · house · Lattafa ...).
+//
+// Without this interleave the previous version grouped all Lattafa at the end
+// of the grid, so the visual read was "Aquad'or page with a Lattafa tail".
+// The user feedback called this out directly: "show the perfumes 1 of aquador
+// then 1 from lattafa and so on". The 8:4 split keeps a clean rhythm at 12
+// cards without making Lattafa over-represented.
+const FEATURED_HOUSE_MIX: ReadonlyArray<{ category: ProductCategory; take: number }> = [
+  { category: 'niche', take: 2 },
   { category: 'essence-oil', take: 2 },
   { category: 'women', take: 2 },
   { category: 'men', take: 2 },
-  { category: 'lattafa-original', take: 3 },
 ];
 
-// Get featured products (active + in stock only, curated category mix).
+const FEATURED_LATTAFA_TAKE = 4;
+
+const LATTAFA_CATEGORIES: ReadonlySet<ProductCategory> = new Set([
+  'lattafa-original',
+]);
+
+/**
+ * Returns true if a product belongs to the Lattafa-originals family, false if
+ * it belongs to an Aquad'or-house line. Exported so the storefront can stamp
+ * a visible brand-family label on each featured card.
+ */
+export function isLattafaProduct(product: Product): boolean {
+  return LATTAFA_CATEGORIES.has(product.category);
+}
+
+/**
+ * Interleave two ordered lists with a fixed cadence. `cadence` is the number
+ * of `primary` items emitted between each `secondary` item.
+ *
+ * Example: interleave([a,b,c,d,e,f,g,h], [x,y,z,w], 2) →
+ *   [a,b,x, c,d,y, e,f,z, g,h,w]
+ *
+ * If either list runs out before the other, the remainder of the longer list
+ * is appended in order. Cadence must be >= 1.
+ */
+function interleave<T>(primary: T[], secondary: T[], cadence: number): T[] {
+  const out: T[] = [];
+  let p = 0;
+  let s = 0;
+  while (p < primary.length || s < secondary.length) {
+    for (let i = 0; i < cadence && p < primary.length; i++) {
+      out.push(primary[p++]);
+    }
+    if (s < secondary.length) {
+      out.push(secondary[s++]);
+    }
+  }
+  return out;
+}
+
+// Get featured products (active + in stock only, curated category mix with
+// brand-family interleave).
 export async function getFeaturedProducts(count: number = 12): Promise<Product[]> {
   const supabase = createPublicClient();
 
-  const queries = FEATURED_MIX.map(({ category, take }) =>
+  const houseQueries = FEATURED_HOUSE_MIX.map(({ category, take }) =>
     supabase
       .from('products')
       .select(PRODUCT_COLUMNS)
@@ -122,31 +167,61 @@ export async function getFeaturedProducts(count: number = 12): Promise<Product[]
       .limit(take),
   );
 
-  const results = await Promise.all(queries);
-  const picked: Product[] = [];
-  const seen = new Set<string>();
+  const lattafaQuery = supabase
+    .from('products')
+    .select(PRODUCT_COLUMNS)
+    .eq('in_stock', true)
+    .eq('is_active', true)
+    .eq('category', 'lattafa-original')
+    .order('created_at', { ascending: false })
+    .limit(FEATURED_LATTAFA_TAKE);
 
-  for (let i = 0; i < results.length; i++) {
-    const { data, error } = results[i];
+  const [houseResults, lattafaResult] = await Promise.all([
+    Promise.all(houseQueries),
+    lattafaQuery,
+  ]);
+
+  const seen = new Set<string>();
+  const house: Product[] = [];
+  for (let i = 0; i < houseResults.length; i++) {
+    const { data, error } = houseResults[i];
     if (error) {
       Sentry.addBreadcrumb({
         category: 'product-service',
-        message: 'Error fetching featured products (slot)',
+        message: 'Error fetching featured products (house slot)',
         level: 'error',
-        data: { error, slot: FEATURED_MIX[i].category },
+        data: { error, slot: FEATURED_HOUSE_MIX[i].category },
       });
       continue;
     }
     for (const product of data ?? []) {
       if (seen.has(product.id)) continue;
       seen.add(product.id);
-      picked.push(product);
-      if (picked.length >= count) return picked;
+      house.push(product);
     }
   }
 
-  // Backfill from newest-overall if a category was empty and the mix came up
-  // short. Keeps the grid full without re-introducing single-category bias.
+  const lattafa: Product[] = [];
+  if (lattafaResult.error) {
+    Sentry.addBreadcrumb({
+      category: 'product-service',
+      message: 'Error fetching featured products (lattafa slot)',
+      level: 'error',
+      data: { error: lattafaResult.error },
+    });
+  } else {
+    for (const product of lattafaResult.data ?? []) {
+      if (seen.has(product.id)) continue;
+      seen.add(product.id);
+      lattafa.push(product);
+    }
+  }
+
+  // Cadence 2 puts a Lattafa card at positions 2, 5, 8, 11 (0-indexed),
+  // matching the 8:4 ratio at 12 cards.
+  const picked = interleave(house, lattafa, 2).slice(0, count);
+
+  // Backfill from newest-overall if any category came up short.
   if (picked.length < count) {
     const { data, error } = await supabase
       .from('products')
@@ -173,7 +248,7 @@ export async function getFeaturedProducts(count: number = 12): Promise<Product[]
     }
   }
 
-  return picked;
+  return picked.slice(0, count);
 }
 
 // Get all product slugs for static generation

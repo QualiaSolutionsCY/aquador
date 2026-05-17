@@ -62,15 +62,16 @@ export default async function LattafaPage() {
 
   return (
     <main className="pt-32 md:pt-40 lg:pt-44 pb-20 bg-bg min-h-screen">
-      <header className="border-b border-border pb-12 mb-12 px-[var(--page-px)]">
-        <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
-          Shop / Lattafa Originals
+      <header className="border-b border-border pb-12 mb-2 px-[var(--page-px)]">
+        <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted">
+          The Collection / Lattafa
         </p>
-        <h1 className="font-display text-fg mt-2 text-[length:var(--font-display-2xl)] leading-[1.05]">
+        <h1 className="font-display text-fg mt-3 text-[length:var(--font-display-2xl)] leading-[1.05]">
           Lattafa Originals
         </h1>
         <p className="text-fg-muted mt-4 max-w-prose text-[length:var(--font-size-body)]">
-          Authentic Arabian fragrances. Filter by brand, gender, or price.
+          Authentic Arabian fragrances from the Lattafa house. Refine by brand,
+          gender, or price band.
         </p>
       </header>
       <Suspense fallback={<ShopGridFallback />}>

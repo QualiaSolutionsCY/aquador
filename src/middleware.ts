@@ -2,6 +2,28 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
+/**
+ * Site-wide maintenance lock.
+ *
+ * Flipping `MAINTENANCE_MODE` to `true` redirects every storefront route to
+ * `/maintenance` unless the request carries the operator access cookie
+ * (`aq_access=1`, set by entering the unlock code on the maintenance page).
+ *
+ * Exempt from the lock:
+ *   - `/maintenance` itself (otherwise infinite redirect)
+ *   - `/admin/*` and `/api/*` (admin must remain reachable to manage the
+ *     store and serve auth/webhook traffic)
+ *   - static assets served from /public (handled by the matcher exclusion)
+ *
+ * The flag is intentionally a constant rather than an env var so the lock
+ * is committed-and-deployed atomically — flipping it back to `false` is a
+ * single edit + push, with no risk of an env drift between preview and
+ * production environments.
+ */
+const MAINTENANCE_MODE = false;
+
+const ACCESS_COOKIE = 'aq_access';
+
 export async function middleware(request: NextRequest) {
   // Generate a unique request ID
   const requestId = crypto.randomUUID();
@@ -20,6 +42,22 @@ export async function middleware(request: NextRequest) {
 
   const isAdminRoute = pathname.startsWith('/admin');
   const isAdminLoginRoute = pathname === '/admin/login';
+  const isApiRoute = pathname.startsWith('/api');
+  const isMaintenanceRoute = pathname === '/maintenance';
+  const hasAccessCookie =
+    request.cookies.get(ACCESS_COOKIE)?.value === '1';
+
+  // Maintenance gate. Runs FIRST so even authenticated admins still see the
+  // lock from a storefront URL; admins use /admin/* paths, which are exempt.
+  if (
+    MAINTENANCE_MODE &&
+    !isMaintenanceRoute &&
+    !isAdminRoute &&
+    !isApiRoute &&
+    !hasAccessCookie
+  ) {
+    return NextResponse.redirect(new URL('/maintenance', request.url));
+  }
 
   // Handle admin route authentication
   if (isAdminRoute && !isAdminLoginRoute) {
@@ -73,5 +111,11 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/:path*', '/admin/:path*'],
+  // Match every route except Next internals, static assets, and obvious
+  // file requests (anything with a dot in the path segment, which catches
+  // .mp4, .webp, .jpg, .png, .svg, etc.). The matcher exclusion is cheap
+  // compared to running middleware on every image / video request.
+  matcher: [
+    '/((?!_next/static|_next/image|_next/data|favicon\\.ico|favicon\\.png|icon\\.png|apple-icon\\.png|aquador\\.webp|videos/|images/|og/|robots\\.txt|sitemap\\.xml).*)',
+  ],
 };

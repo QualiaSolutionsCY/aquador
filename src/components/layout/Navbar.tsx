@@ -45,9 +45,20 @@ export default function Navbar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const [viewportH, setViewportH] = useState(0);
   const ticking = useRef(false);
 
   const isScrolled = scrollY > 40;
+
+  // On the home page the hero (src/components/storefront/Hero.tsx) carries
+  // its own embedded pill nav over a full-viewport video, so showing the
+  // global navbar on top creates a doubled top affordance. Hide the global
+  // navbar while the viewer is reading the hero, reveal it once they have
+  // scrolled past ~85% of the viewport (the pill nav has scrolled out of
+  // sight by then). On every other route the navbar behaves as before.
+  const isHome = pathname === '/';
+  const hideOverHero =
+    isHome && viewportH > 0 && scrollY < viewportH * 0.85;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,8 +70,14 @@ export default function Navbar() {
         ticking.current = true;
       }
     };
+    const handleResize = () => setViewportH(window.innerHeight);
+    handleResize();
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   useEffect(() => {
@@ -90,16 +107,21 @@ export default function Navbar() {
     <>
       <motion.header
         initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className={`fixed left-0 right-0 top-0 z-50 bg-bg/96 backdrop-blur-sm transition-shadow duration-300 ${
+        animate={{
+          y: hideOverHero ? -120 : 0,
+          opacity: hideOverHero ? 0 : 1,
+        }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        aria-hidden={hideOverHero ? 'true' : undefined}
+        style={{ pointerEvents: hideOverHero ? 'none' : undefined }}
+        className={`fixed left-0 right-0 top-0 z-50 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300 border-b ${
           isScrolled
-            ? 'border-b border-border shadow-1'
-            : 'border-b border-transparent'
+            ? 'bg-bg/95 backdrop-blur-md border-border shadow-1'
+            : 'bg-transparent backdrop-blur-0 border-transparent'
         }`}
       >
         <nav className="px-[var(--page-px)]">
-          <div className="relative flex items-center justify-between h-16 md:h-18 lg:h-20">
+          <div className="relative flex items-center justify-between h-20 md:h-24 lg:h-28">
             {/* Left: Hamburger (mobile) + Left nav links (desktop) */}
             <div className="flex items-center h-full">
               <button
@@ -147,9 +169,9 @@ export default function Navbar() {
               <Image
                 src="/aquador.webp"
                 alt="Aquad'or"
-                width={400}
-                height={120}
-                className="h-12 md:h-14 lg:h-16 w-auto object-contain"
+                width={520}
+                height={160}
+                className="h-16 md:h-20 lg:h-24 w-auto object-contain"
                 priority
               />
             </Link>

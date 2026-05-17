@@ -2,132 +2,207 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, ArrowUpRight } from 'lucide-react';
 
-const shopLinks = [
-  { label: "Women's", href: '/shop/women' },
-  { label: "Men's", href: '/shop/men' },
+/**
+ * Editorial 3-section footer.
+ *
+ * Section A: masthead (logo, tagline, location caption)
+ * Section B: four numbered link columns (Shop, House, Help, Connect)
+ * Section C: bottom bar (copyright, legal, payment marks)
+ *
+ * Hairline-stack pattern per DESIGN.md §10b. No em-dashes, no emojis,
+ * no exclamations. Tokens only.
+ */
+
+type NavLink = { label: string; href: string };
+
+const shopLinks: NavLink[] = [
+  { label: 'Dubai Shop', href: '/shop' },
+  { label: 'Lattafa Originals', href: '/shop/lattafa' },
   { label: 'Niche', href: '/shop/niche' },
+  { label: 'Essence Oils', href: '/shop?category=essence-oil' },
   { label: 'Create Your Own', href: '/create-perfume' },
 ];
 
-const companyLinks = [
+const houseLinks: NavLink[] = [
   { label: 'About', href: '/about' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Contact', href: '/contact' },
-  { label: 'Shipping', href: '/shipping' },
-  { label: 'Terms', href: '/terms' },
-  { label: 'Privacy', href: '/privacy' },
+  { label: 'Journal', href: '/blog' },
+  { label: 'Re-Order', href: '/reorder' },
+  { label: 'Concierge', href: '/contact' },
 ];
 
-export default function Footer() {
+const helpLinks: NavLink[] = [
+  { label: 'Contact', href: '/contact' },
+  { label: 'Shipping', href: '/shipping' },
+  { label: 'Returns', href: '/shipping#returns' },
+  { label: 'FAQ', href: '/faq' },
+];
+
+const legalLinks: NavLink[] = [
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'Terms', href: '/terms' },
+  { label: 'Sitemap', href: '/sitemap.xml' },
+];
+
+const paymentMarks = ['Visa', 'Mastercard', 'Amex', 'Apple Pay', 'Google Pay'];
+
+const linkClass =
+  'group relative inline-flex items-baseline text-fg transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-quart)] hover:text-accent-deep';
+
+const linkUnderline =
+  'relative after:absolute after:left-0 after:-bottom-0.5 after:h-px after:w-full after:bg-current after:origin-left after:scale-x-0 after:transition-transform after:duration-[var(--duration-fast)] after:ease-[var(--ease-out-quart)] group-hover:after:scale-x-100';
+
+function ColumnHeader({ marker, label }: { marker: string; label: string }) {
   return (
-    <footer className="relative bg-[#0a0a0a]">
-      {/* Top gold line */}
-      <div className="h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-gold/[0.03] to-transparent pointer-events-none" />
+    <div>
+      <p className="font-micro uppercase tracking-[0.18em] text-[length:var(--font-size-micro)] text-fg-muted">
+        {marker} / {label}
+      </p>
+      <span aria-hidden="true" className="mt-4 block h-px w-8 bg-border-strong" />
+    </div>
+  );
+}
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="container-wide py-16 md:py-20"
-      >
-        {/* Main grid — logo left, links right */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-6 items-start">
+function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const isExternal = /^(mailto:|tel:|https?:)/.test(href);
+  const className = `${linkClass} font-body text-[length:var(--font-size-body)]`;
+  if (isExternal) {
+    return (
+      <a href={href} className={className}>
+        <span className={linkUnderline}>{children}</span>
+      </a>
+    );
+  }
+  return (
+    <Link href={href} className={className}>
+      <span className={linkUnderline}>{children}</span>
+    </Link>
+  );
+}
 
-          {/* Logo + tagline — compact */}
-          <div className="md:col-span-3 flex flex-col items-center md:items-start">
-            <Link href="/" className="inline-block mb-3">
-              <Image
-                src="/aquador.webp"
-                alt="Aquad'or"
-                width={400}
-                height={120}
-                className="h-20 md:h-24 w-auto object-contain"
-              />
-            </Link>
-            <p className="text-white/40 text-xs font-playfair italic">
-              Where Luxury Meets Distinction
-            </p>
-            {/* Social */}
-            <div className="flex gap-4 mt-4">
-              <a href="https://instagram.com/aquadorcy" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-gold text-xs uppercase tracking-wider transition-colors" aria-label="Instagram">IG</a>
-              <span className="text-white/15">|</span>
-              <a href="https://facebook.com/aquadorcy" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-gold text-xs uppercase tracking-wider transition-colors" aria-label="Facebook">FB</a>
-            </div>
-          </div>
+export default function Footer() {
+  const year = new Date().getFullYear();
 
-          {/* Shop links */}
-          <div className="md:col-span-2">
-            <h3 className="text-[10px] font-medium uppercase tracking-[0.25em] text-gold/50 mb-4">Shop</h3>
-            <ul className="space-y-3">
+  return (
+    <footer className="bg-bg-alt border-t border-border">
+      <div className="mx-auto max-w-[var(--container-wide)] px-[var(--page-px)] py-16 md:py-20 lg:py-24">
+
+        {/* Section A: masthead */}
+        <section className="flex flex-col items-center text-center">
+          <Link href="/" className="inline-block" aria-label="Aquad'or, home">
+            <Image
+              src="/aquador.webp"
+              alt="Aquad'or"
+              width={480}
+              height={144}
+              priority={false}
+              className="h-20 md:h-24 lg:h-28 w-auto object-contain"
+            />
+          </Link>
+
+          <span aria-hidden="true" className="mt-8 block h-px w-12 bg-accent" />
+
+          <p className="mt-6 font-display italic text-[length:var(--font-size-h3)] text-fg leading-snug">
+            Perfume, curated in Nicosia.
+          </p>
+
+          <p className="mt-4 font-micro uppercase tracking-[0.18em] text-[length:var(--font-size-micro)] text-fg-muted">
+            Ledra 145, Nicosia · CY
+          </p>
+        </section>
+
+        {/* Section B: link columns */}
+        <section className="mt-16 md:mt-20 lg:mt-24 border-t border-border pt-12 md:pt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12">
+
+          {/* 01 / Shop */}
+          <div className="flex flex-col">
+            <ColumnHeader marker="01" label="Shop" />
+            <ul className="mt-6 space-y-4">
               {shopLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-white/60 hover:text-white transition-colors text-[13px] font-light">
-                    {link.label}
-                  </Link>
+                  <FooterLink href={link.href}>{link.label}</FooterLink>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Company links */}
-          <div className="md:col-span-2">
-            <h3 className="text-[10px] font-medium uppercase tracking-[0.25em] text-gold/50 mb-4">Company</h3>
-            <ul className="space-y-3">
-              {companyLinks.map((link) => (
+          {/* 02 / House */}
+          <div className="flex flex-col">
+            <ColumnHeader marker="02" label="House" />
+            <ul className="mt-6 space-y-4">
+              {houseLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-white/60 hover:text-white transition-colors text-[13px] font-light">
-                    {link.label}
-                  </Link>
+                  <FooterLink href={link.href}>{link.label}</FooterLink>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Contact — compact */}
-          <div className="md:col-span-5 md:text-right">
-            <h3 className="text-[10px] font-medium uppercase tracking-[0.25em] text-gold/50 mb-4">Contact</h3>
-            <div className="space-y-3 text-[13px]">
-              <div className="flex items-center md:justify-end gap-2 text-white/60">
-                <MapPin className="w-3.5 h-3.5 text-gold/40 flex-shrink-0" />
-                Ledra 145, Nicosia, Cyprus
-              </div>
-              <a href="tel:99980809" className="flex items-center md:justify-end gap-2 text-white/60 hover:text-white transition-colors">
-                <Phone className="w-3.5 h-3.5 text-gold/40 flex-shrink-0" />
-                +357 99 980809
-              </a>
-              <a href="mailto:info@aquadorcy.com" className="flex items-center md:justify-end gap-2 text-white/60 hover:text-white transition-colors">
-                <Mail className="w-3.5 h-3.5 text-gold/40 flex-shrink-0" />
-                info@aquadorcy.com
-              </a>
-            </div>
+          {/* 03 / Help */}
+          <div className="flex flex-col">
+            <ColumnHeader marker="03" label="Help" />
+            <ul className="mt-6 space-y-4">
+              {helpLinks.map((link) => (
+                <li key={link.href}>
+                  <FooterLink href={link.href}>{link.label}</FooterLink>
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
-      </motion.div>
 
-      {/* Bottom bar — single row */}
-      <div className="border-t border-white/[0.06]">
-        <div className="container-wide py-6 flex flex-col sm:flex-row justify-between items-center gap-2">
-          <p className="text-white/30 text-[11px] tracking-[0.08em]">
-            &copy; {new Date().getFullYear()} Aquad&apos;or Cyprus
+          {/* 04 / Connect */}
+          <div className="flex flex-col">
+            <ColumnHeader marker="04" label="Connect" />
+            <ul className="mt-6 space-y-4">
+              <li>
+                <FooterLink href="mailto:info@aquadorcy.com">info@aquadorcy.com</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="tel:+35799980809">+357 99 980809</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="https://wa.me/35799980809">WhatsApp</FooterLink>
+              </li>
+              <li className="font-body text-[length:var(--font-size-body)] text-fg-muted">
+                Mon to Sat, 10:00 to 20:00
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        {/* Section C: bottom bar */}
+        <section className="mt-16 md:mt-20 border-t border-border pt-8 flex flex-col md:flex-row md:items-baseline md:justify-between gap-6 md:gap-8">
+
+          {/* Left, copyright */}
+          <p className="font-micro uppercase tracking-[0.1em] text-[length:var(--font-size-micro)] text-fg-muted text-center md:text-left">
+            © {year} Aquad&apos;or. All rights reserved.
           </p>
-          <p className="text-white/30 text-[11px] tracking-[0.08em]">
-            Designed and Developed by{' '}
-            <a
-              href="https://qualiasolutions.net"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gold/50 hover:text-gold transition-colors inline-flex items-center gap-0.5"
-            >
-              Qualia Solutions
-              <ArrowUpRight className="w-2.5 h-2.5" />
-            </a>
+
+          {/* Center, legal links */}
+          <nav
+            aria-label="Legal"
+            className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 font-micro uppercase tracking-[0.1em] text-[length:var(--font-size-micro)] text-fg-muted"
+          >
+            {legalLinks.map((link, idx) => (
+              <span key={link.href} className="flex items-center gap-4">
+                <Link
+                  href={link.href}
+                  className="text-fg-muted hover:text-accent-deep transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-quart)]"
+                >
+                  {link.label}
+                </Link>
+                {idx < legalLinks.length - 1 && (
+                  <span aria-hidden="true" className="text-fg-muted/60">·</span>
+                )}
+              </span>
+            ))}
+          </nav>
+
+          {/* Right, payment marks */}
+          <p className="font-micro uppercase tracking-[0.1em] text-[length:var(--font-size-micro)] text-fg-muted text-center md:text-right">
+            {paymentMarks.join(' · ')}
           </p>
-        </div>
+        </section>
       </div>
     </footer>
   );

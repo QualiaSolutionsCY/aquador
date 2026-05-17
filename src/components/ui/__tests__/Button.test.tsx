@@ -16,9 +16,12 @@ describe('Button Component', () => {
 
   describe('variants', () => {
     it('should apply primary variant styles by default', () => {
+      // Primary inverted to fg-on-bg in the elegant-button pass — gives the
+      // CTA editorial gravitas (Loewe/JW Anderson primary CTA pattern)
+      // rather than gold-on-cream which read as transactional chrome.
       render(<Button>Primary</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-accent');
+      expect(button).toHaveClass('bg-fg', 'text-bg');
     });
 
     it('should apply secondary variant styles', () => {
@@ -41,22 +44,25 @@ describe('Button Component', () => {
   });
 
   describe('sizes', () => {
+    // Sizes refreshed in the elegant-button pass: sm/md/lg now 40/48/56px
+    // touch-target heights with slightly roomier horizontal padding so the
+    // primary CTAs read as proper editorial buttons rather than UI chrome.
     it('should apply medium size by default', () => {
       render(<Button>Medium</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('px-6', 'py-3');
+      expect(button).toHaveClass('px-7', 'py-3.5');
     });
 
     it('should apply small size', () => {
       render(<Button size="sm">Small</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('px-4', 'py-2');
+      expect(button).toHaveClass('px-5', 'py-2.5');
     });
 
     it('should apply large size', () => {
       render(<Button size="lg">Large</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('px-8', 'py-4');
+      expect(button).toHaveClass('px-10', 'py-4.5');
     });
   });
 

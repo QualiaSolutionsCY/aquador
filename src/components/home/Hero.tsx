@@ -82,36 +82,25 @@ export default function Hero() {
           initial="initial"
           animate="animate"
         >
-          {/* Eyebrow label */}
-          <motion.p
-            className="text-[9px] sm:text-[10px] uppercase tracking-[0.35em] text-gold/50 mb-8 font-light"
-            variants={revealVariants.fadeInSequence}
-          >
-            Luxury Fragrances
-          </motion.p>
-
-          {/* Brand name — cinematic scale */}
+          {/* Magazine masthead — running-head replaces the centered wordmark.
+              Same voice as the maintenance page: place + year set in
+              tracked-out micro-cap, gold-on-bone hierarchy with the brand
+              foregrounded and metadata receding. */}
           <motion.h1
-            className="font-playfair font-normal mb-0 tracking-[0.18em] sm:tracking-[0.22em] py-2"
-            aria-label="Aquad'or"
-            style={{
-              fontSize: 'clamp(3rem, 9vw, 6.5rem)',
-              lineHeight: 1.15,
-              background: 'linear-gradient(180deg, #FFF8DC 0%, #FFD700 35%, #D4AF37 65%, #B8960C 100%)',
-              backgroundSize: '100% 100%',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              filter: 'drop-shadow(0 2px 60px rgba(212, 175, 55, 0.25))',
-            }}
+            className="flex items-center justify-center gap-3 text-[10px] sm:text-[11px] uppercase tracking-[0.45em] font-light mb-14 md:mb-20 m-0"
+            aria-label="Aquad'or, Nicosia, MMXXVI"
             variants={revealVariants.fadeInSequence}
           >
-            AQUAD&apos;OR
+            <span className="text-gold/75">AQUAD&apos;OR</span>
+            <span className="text-white/20" aria-hidden="true">·</span>
+            <span className="text-white/55">Nicosia</span>
+            <span className="text-white/20" aria-hidden="true">·</span>
+            <span className="text-white/55">MMXXVI</span>
           </motion.h1>
 
           {/* Refined separator */}
           <motion.div
-            className="relative flex items-center justify-center gap-3 my-8 md:my-10"
+            className="relative flex items-center justify-center gap-3 mb-14 md:mb-20"
             variants={revealVariants.fadeInSequence}
           >
             <div className="w-12 h-px bg-gradient-to-r from-transparent to-gold/40" />
@@ -120,14 +109,6 @@ export default function Hero() {
             <div className="w-1 h-1 rounded-full bg-gold/60" />
             <div className="w-12 h-px bg-gradient-to-l from-transparent to-gold/40" />
           </motion.div>
-
-          {/* Tagline — refined hierarchy */}
-          <motion.p
-            className="text-[11px] sm:text-xs md:text-sm text-white/50 tracking-[0.28em] uppercase font-light mb-14 md:mb-20"
-            variants={revealVariants.fadeInSequence}
-          >
-            Where Luxury Meets Distinction
-          </motion.p>
 
           {/* CTA Buttons */}
           <motion.div
