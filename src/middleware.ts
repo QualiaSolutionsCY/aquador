@@ -20,7 +20,7 @@ import { createServerClient } from '@supabase/ssr';
  * single edit + push, with no risk of an env drift between preview and
  * production environments.
  */
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 
 const ACCESS_COOKIE = 'aq_access';
 
