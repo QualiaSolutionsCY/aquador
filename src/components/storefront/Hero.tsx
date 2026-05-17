@@ -28,7 +28,7 @@
  *   - All hit targets are ≥ 44px tall.
  */
 
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
@@ -41,6 +41,9 @@ const navLinks = [
 ];
 
 export default function Hero() {
+  const prefersReducedMotion = useReducedMotion();
+  const overlayRest = 0.28;
+
   return (
     <section className="relative h-[100svh] min-h-[640px] w-full overflow-hidden">
       {/* Page heading — visually hidden so the video-driven hero carries the
@@ -58,6 +61,23 @@ export default function Hero() {
         aria-hidden="true"
         className="absolute inset-0 h-full w-full object-cover"
         src="/videos/home-hero.mp4"
+      />
+
+      {/* Cinematic reveal. The video autoplays on mount, but this overlay
+          starts at full black and settles to a permanent slight darkening
+          (~28%) over ~2.6s. Net effect: the page enters as a black field,
+          then the scene fades up to suspense, never to fully-bright. Reduced
+          motion users skip the fade and see the final state immediately. */}
+      <motion.div
+        aria-hidden="true"
+        initial={{ opacity: prefersReducedMotion ? overlayRest : 1 }}
+        animate={{ opacity: overlayRest }}
+        transition={{
+          duration: prefersReducedMotion ? 0 : 2.6,
+          delay: prefersReducedMotion ? 0 : 0.15,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+        className="pointer-events-none absolute inset-0 z-[5] bg-black"
       />
 
       {/* Editorial film-grain noise — same SVG turbulence the magazine pages
@@ -78,28 +98,54 @@ export default function Hero() {
         className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/70"
       />
 
-      {/* Floating pill nav. Centered, dark, hugged to the top edge. */}
+      {/* Masthead pill nav. Wider, taller, and anchored by an AQUAD'OR
+          wordmark at the left — gives the nav a brand element now that the
+          hero centerpiece carries none. Text sits high-contrast on a glass
+          surface (bg-black/70 + backdrop-blur) so the cream label reads
+          against the video underneath at any frame. Hairline divider
+          separates the wordmark from the link cluster, magazine-masthead
+          voice. */}
       <nav
         aria-label="Primary"
-        className="absolute left-1/2 top-0 z-20 -translate-x-1/2 px-4 sm:px-6"
+        className="absolute left-1/2 top-0 z-20 w-full max-w-[min(1200px,96vw)] -translate-x-1/2 px-3 sm:px-4"
       >
-        <motion.ul
+        <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="flex items-center gap-3 rounded-b-2xl bg-black/85 px-4 py-3 backdrop-blur-sm sm:gap-6 sm:px-6 md:gap-10 md:rounded-b-3xl md:px-10 lg:gap-12"
+          transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="flex items-center justify-between gap-4 rounded-b-2xl bg-black/65 px-5 py-4 backdrop-blur-md backdrop-saturate-150 ring-1 ring-bg/10 sm:gap-6 sm:px-7 md:gap-8 md:rounded-b-3xl md:px-10 md:py-5"
         >
-          {navLinks.map((link) => (
-            <li key={link.href}>
-              <Link
-                href={link.href}
-                className="block min-h-[24px] font-micro uppercase tracking-[0.12em] text-[10px] sm:text-[11px] md:text-[12px] text-bg/75 transition-colors duration-[var(--duration-fast)] hover:text-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          <Link
+            href="/"
+            aria-label="Aquad'or, home"
+            className="shrink-0 font-display text-bg text-[15px] sm:text-[17px] md:text-[19px] tracking-[0.04em] transition-colors duration-[var(--duration-fast)] hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          >
+            <span className="relative inline-block">
+              Aquad&apos;or
+              <span
+                aria-hidden="true"
+                className="absolute -right-2 -top-0.5 text-[0.4em] text-accent"
               >
-                {link.label}
-              </Link>
-            </li>
-          ))}
-        </motion.ul>
+                *
+              </span>
+            </span>
+          </Link>
+
+          <span aria-hidden="true" className="hidden h-5 w-px bg-bg/20 md:block" />
+
+          <ul className="flex items-center gap-4 sm:gap-6 md:gap-8 lg:gap-10">
+            {navLinks.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className="block min-h-[24px] font-micro uppercase tracking-[0.16em] text-[11px] sm:text-[12px] md:text-[13px] text-bg/85 transition-colors duration-[var(--duration-fast)] hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </motion.div>
       </nav>
 
       {/* CTA. Pinned to the bottom-right of the hero. The video, film-grain
