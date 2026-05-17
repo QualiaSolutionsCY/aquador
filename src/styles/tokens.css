@@ -64,7 +64,8 @@
   --success: var(--color-success);
   --warning: var(--color-warning);
   --border: var(--color-neutral-200);
-  --border-strong: var(--color-neutral-300);
+  --border-strong: var(--color-neutral-400);
+  --border-dark: var(--color-neutral-700);
 
   /* Scrim — Drawer / Dialog overlay (§5). The one allowed deviation from
      tinted neutrals: scrims read better when truly neutral at 50% alpha. */
@@ -177,7 +178,8 @@
   --fg: var(--color-bone);
   --fg-muted: var(--color-neutral-400);
   --border: var(--color-neutral-700);
-  --border-strong: var(--color-neutral-600);
+  --border-strong: var(--color-neutral-500);
+  --border-dark: var(--color-neutral-300);
 }
 
 /* ==========================================================================

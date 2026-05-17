@@ -61,7 +61,7 @@ export default function FeaturedGrid({ products }: FeaturedGridProps) {
   const items = products.slice(0, FEATURED_COUNT);
 
   return (
-    <section className="border-t border-border py-20 md:py-28 px-[var(--page-px)]">
+    <section className="border-t border-border-dark py-20 md:py-28 px-[var(--page-px)]">
       {/* Editorial header row: heading left, View all right, hairline below. */}
       <div className="mb-14 md:mb-20">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-12">
@@ -119,7 +119,7 @@ export function FeaturedGridSkeleton() {
   ];
 
   return (
-    <section className="border-t border-border py-20 md:py-28 px-[var(--page-px)]">
+    <section className="border-t border-border-dark py-20 md:py-28 px-[var(--page-px)]">
       <div className="mb-14 md:mb-20">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-12">
           <h2 className="max-w-[28ch] font-display text-fg leading-[1.05] tracking-[-0.015em] text-[length:var(--font-display-2xl)]">

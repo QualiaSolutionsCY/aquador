@@ -20,7 +20,7 @@ import FadeUp from './FadeUp';
 
 export default function BrandStory() {
   return (
-    <section className="border-t border-border py-16 md:py-24 overflow-x-hidden">
+    <section className="border-t border-border-dark py-16 md:py-24 overflow-x-hidden">
       <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-8 px-[var(--page-px)]">
         <div>
           <FadeUp>

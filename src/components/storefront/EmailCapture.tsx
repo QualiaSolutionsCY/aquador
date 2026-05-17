@@ -94,7 +94,7 @@ export default function EmailCapture() {
   };
 
   return (
-    <section className="border-t border-border py-16 md:py-24 px-[var(--page-px)]">
+    <section className="border-t border-border-dark py-16 md:py-24 px-[var(--page-px)]">
       <div className="max-w-[var(--container-narrow)]">
         <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted">
           Write us once. We will write back with three.

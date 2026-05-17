@@ -28,10 +28,11 @@
  *   - All hit targets are ≥ 44px tall.
  */
 
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { ArrowRight, Menu, X } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const navLinks = [
   { label: 'Dubai Shop', href: '/shop' },
@@ -44,6 +45,14 @@ const navLinks = [
 export default function Hero() {
   const prefersReducedMotion = useReducedMotion();
   const overlayRest = 0.28;
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = isMobileOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileOpen]);
 
   // Scroll-driven parallax exit. Bound to the hero's own visibility range
   // (start of section at top of viewport → end of section at top of viewport)
@@ -157,40 +166,118 @@ export default function Hero() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="flex items-center justify-between gap-4 rounded-b-2xl bg-black/65 px-5 py-4 backdrop-blur-md backdrop-saturate-150 ring-1 ring-bg/10 sm:gap-6 sm:px-7 md:gap-8 md:rounded-b-3xl md:px-10 md:py-5"
+          className="flex items-center justify-between gap-4 rounded-b-xl border border-t-0 border-white/15 bg-black/70 px-4 py-2 backdrop-blur-md backdrop-saturate-150 sm:gap-6 sm:px-6 md:gap-8 md:rounded-b-2xl md:px-8 md:py-2.5"
         >
           <Link
             href="/"
             aria-label="Aquad'or, home"
-            className="shrink-0 font-display text-bg text-[15px] sm:text-[17px] md:text-[19px] tracking-[0.04em] transition-colors duration-[var(--duration-fast)] hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            className="shrink-0 transition-opacity duration-[var(--duration-fast)] hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           >
-            <span className="relative inline-block">
-              Aquad&apos;or
-              <span
-                aria-hidden="true"
-                className="absolute -right-2 -top-0.5 text-[0.4em] text-accent"
-              >
-                *
-              </span>
-            </span>
+            <Image
+              src="/aquador.webp"
+              alt="Aquad'or"
+              width={520}
+              height={160}
+              className="h-9 w-auto object-contain sm:h-10 md:h-11"
+              priority
+            />
           </Link>
 
-          <span aria-hidden="true" className="hidden h-5 w-px bg-bg/20 md:block" />
+          <span aria-hidden="true" className="hidden h-5 w-px bg-white/20 md:block" />
 
-          <ul className="flex items-center gap-4 sm:gap-6 md:gap-8 lg:gap-10">
+          <ul className="hidden items-center gap-5 md:flex md:gap-7 lg:gap-9">
             {navLinks.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="block min-h-[24px] font-micro uppercase tracking-[0.16em] text-[11px] sm:text-[12px] md:text-[13px] text-bg/85 transition-colors duration-[var(--duration-fast)] hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  className="block min-h-[24px] font-micro uppercase tracking-[0.16em] text-[11px] md:text-[12px] text-white transition-colors duration-[var(--duration-fast)] hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                 >
                   {link.label}
                 </Link>
               </li>
             ))}
           </ul>
+
+          {/* Mobile menu trigger */}
+          <button
+            type="button"
+            onClick={() => setIsMobileOpen(true)}
+            className="inline-flex h-9 w-9 items-center justify-center text-white transition-colors duration-[var(--duration-fast)] hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black md:hidden"
+            aria-label="Open menu"
+            aria-expanded={isMobileOpen}
+          >
+            <Menu className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
+          </button>
         </motion.div>
       </nav>
+
+      {/* Mobile full-screen overlay (hero scope) */}
+      <AnimatePresence>
+        {isMobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md md:hidden"
+          >
+            <div className="flex h-full flex-col px-7 pb-10 pt-6">
+              <div className="flex items-center justify-between border-b border-white/15 pb-5">
+                <Link
+                  href="/"
+                  aria-label="Aquad'or, home"
+                  onClick={() => setIsMobileOpen(false)}
+                  className="shrink-0"
+                >
+                  <Image
+                    src="/aquador.webp"
+                    alt="Aquad'or"
+                    width={520}
+                    height={160}
+                    className="h-10 w-auto object-contain"
+                  />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileOpen(false)}
+                  className="inline-flex h-11 w-11 items-center justify-center text-white transition-colors duration-[var(--duration-fast)] hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  aria-label="Close menu"
+                >
+                  <X className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
+                </button>
+              </div>
+
+              <ul className="flex flex-1 flex-col justify-center gap-1">
+                {navLinks.map((link, i) => (
+                  <motion.li
+                    key={link.href}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{
+                      delay: 0.08 + i * 0.04,
+                      duration: 0.35,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                  >
+                    <Link
+                      href={link.href}
+                      onClick={() => setIsMobileOpen(false)}
+                      className="flex items-center gap-4 border-b border-white/10 py-4 font-display text-2xl text-white transition-colors duration-[var(--duration-fast)] hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                    >
+                      <span aria-hidden="true" className="h-px w-6 bg-white/30" />
+                      {link.label}
+                    </Link>
+                  </motion.li>
+                ))}
+              </ul>
+
+              <p className="mt-auto pt-6 font-micro text-[10px] uppercase tracking-[0.35em] text-white/50">
+                Where luxury meets distinction
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* CTA. Pinned to the bottom-right of the hero. The video, film-grain
           and scrim carry the mood — no wordmark competes for attention, the

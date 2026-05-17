@@ -128,7 +128,7 @@ export function ProductNotesStory({
     : `The drydown rests low. That ${LAYER_COPY.base}`;
 
   return (
-    <section className="border-t border-border px-[var(--page-px)] py-16 md:py-24">
+    <section className="border-t border-border-dark px-[var(--page-px)] py-16 md:py-24">
       <div className="max-w-[var(--container-narrow)]">
         <Reveal>
           <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.08em] text-fg-muted">
@@ -174,7 +174,7 @@ export function ProductNotesStory({
         </div>
 
         {hasAnyNotes ? (
-          <details className="mt-12 border-t border-border pt-6 md:mt-16">
+          <details className="mt-12 border-t border-border-dark pt-6 md:mt-16">
             <summary className="cursor-pointer font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.08em] text-fg-muted hover:text-fg transition-colors duration-[var(--duration-fast)]">
               Read the composition
             </summary>

@@ -116,12 +116,12 @@ export default function Navbar() {
         style={{ pointerEvents: hideOverHero ? 'none' : undefined }}
         className={`fixed left-0 right-0 top-0 z-50 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300 border-b ${
           isScrolled
-            ? 'bg-bg/95 backdrop-blur-md border-border shadow-1'
+            ? 'bg-bg/95 backdrop-blur-md border-border-dark shadow-1'
             : 'bg-transparent backdrop-blur-0 border-transparent'
         }`}
       >
         <nav className="px-[var(--page-px)]">
-          <div className="relative flex items-center justify-between h-20 md:h-24 lg:h-28">
+          <div className="relative flex items-center justify-between h-14 md:h-16 lg:h-[72px]">
             {/* Left: Hamburger (mobile) + Left nav links (desktop) */}
             <div className="flex items-center h-full">
               <button
@@ -171,7 +171,7 @@ export default function Navbar() {
                 alt="Aquad'or"
                 width={520}
                 height={160}
-                className="h-16 md:h-20 lg:h-24 w-auto object-contain"
+                className="h-9 md:h-10 lg:h-12 w-auto object-contain"
                 priority
               />
             </Link>

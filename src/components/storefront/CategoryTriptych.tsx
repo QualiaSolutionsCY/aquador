@@ -62,7 +62,7 @@ const CARDS: ReadonlyArray<Card> = [
 
 export default function CategoryTriptych() {
   return (
-    <section className="border-t border-border bg-bg py-16 md:py-24 px-[var(--page-px)]">
+    <section className="border-t border-border-dark bg-bg py-16 md:py-24 px-[var(--page-px)]">
       <RevealHeader
         className="mb-12 max-w-[var(--container-narrow)]"
         title="Three houses, one desk."
@@ -74,7 +74,7 @@ export default function CategoryTriptych() {
             <li className="list-none">
               <Link
                 href={card.href}
-                className="group relative block aspect-[4/5] overflow-hidden border border-border bg-bg-alt transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] hover:-translate-y-1.5 focus-visible:-translate-y-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+                className="group relative block aspect-[4/5] overflow-hidden border border-border-dark bg-bg-alt transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] hover:-translate-y-1.5 focus-visible:-translate-y-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
               >
                 <Image
                   src={card.image}

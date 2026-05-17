@@ -81,7 +81,7 @@ export function ProductCard({ product, priority = false, variant = 'default' }: 
     >
       <Link
         href={`/products/${product.id}`}
-        className={`group/card relative block border border-border bg-bg-alt ${padding} transition-colors duration-[var(--duration-base)] ease-[var(--ease-out-quart)] hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
+        className={`group/card relative block border border-border-strong bg-bg-alt ${padding} transition-colors duration-[var(--duration-base)] ease-[var(--ease-out-quart)] hover:border-border-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
         aria-label={`View ${product.name}`}
         onMouseEnter={() => {
           setIsHovered(true);

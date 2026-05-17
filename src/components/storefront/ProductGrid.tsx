@@ -277,7 +277,7 @@ export default function ProductGrid({
   );
 
   return (
-    <section className="border-t border-border">
+    <section className="border-t border-border-dark">
       <div className="px-[var(--page-px)] py-8 md:py-10 lg:py-12">
         <div className="grid grid-cols-1 gap-x-10 gap-y-6 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)]">
           {/* Desktop sticky sidebar */}

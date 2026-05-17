@@ -37,7 +37,7 @@ export default function AiConciergeEntry() {
     <>
       <section
         id="concierge"
-        className="border-t border-border bg-bg py-20 md:py-28 px-[var(--page-px)] scroll-mt-24"
+        className="border-t border-border-dark bg-bg py-20 md:py-28 px-[var(--page-px)] scroll-mt-24"
       >
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[40%_60%] lg:gap-16">
           <div>

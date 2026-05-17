@@ -17,7 +17,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-bg text-fg">
       {/* 01 / Opening */}
-      <section className="border-t border-border px-[var(--page-px)] py-16 md:py-24">
+      <section className="border-t border-border-dark px-[var(--page-px)] py-16 md:py-24">
         <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-8">
           <div>
             <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
@@ -46,7 +46,7 @@ export default function AboutPage() {
       </section>
 
       {/* 02 / Placement */}
-      <section className="border-t border-border px-[var(--page-px)] py-16 md:py-24">
+      <section className="border-t border-border-dark px-[var(--page-px)] py-16 md:py-24">
         <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-8">
           <div>
             <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
@@ -76,7 +76,7 @@ export default function AboutPage() {
       </section>
 
       {/* 03 / Custom */}
-      <section className="border-t border-border px-[var(--page-px)] py-16 md:py-24">
+      <section className="border-t border-border-dark px-[var(--page-px)] py-16 md:py-24">
         <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-8">
           <div>
             <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
@@ -115,7 +115,7 @@ export default function AboutPage() {
       </section>
 
       {/* 04 / Practical */}
-      <section className="border-t border-border px-[var(--page-px)] py-16 md:py-24">
+      <section className="border-t border-border-dark px-[var(--page-px)] py-16 md:py-24">
         <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-8">
           <div>
             <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">

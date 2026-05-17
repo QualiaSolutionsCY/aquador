@@ -56,7 +56,7 @@ export default function RitualStrip() {
   const reducedMotion = useReducedMotion();
 
   return (
-    <section className="border-t border-border bg-bg-alt py-16 md:py-24 px-[var(--page-px)]">
+    <section className="border-t border-border-dark bg-bg-alt py-16 md:py-24 px-[var(--page-px)]">
       <FadeUp className="mb-12 max-w-[var(--container-narrow)]">
         <span aria-hidden="true" className="block h-px w-12 bg-border-strong" />
         <h2 className="mt-8 font-display text-fg leading-[1.1] tracking-[-0.01em] text-[length:var(--font-h1)]">
