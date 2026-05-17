@@ -1,43 +1,20 @@
 /**
- * FeaturedGrid. Homepage editorial product spread (HOME-03; re-redesigned
- * M4 P-polish for a TRUE magazine layout with six cards and real big/small
- * drama instead of twelve uniform tiles).
+ * FeaturedGrid. Homepage editorial product spread.
  *
- * RSC-streamable: the section wrapper, header, and grid container render
- * server-side. Each card is delegated to the client `FeaturedCard` leaf
- * which owns scroll motion, hover crossfade, and per-emphasis typography.
+ * The previous pass shipped six cards with hero/medium/small emphases to
+ * create "big/small drama". The desk pushed back: the size variation read
+ * as random rather than editorial, with the hero portrait competing
+ * against the wide hero for attention and the smalls feeling like
+ * afterthoughts. This pass replaces the variable-emphasis spread with a
+ * uniform numbered-editorial grid — six cards across two rows of three,
+ * every card the same shape, each prefixed by an index number (01–06)
+ * in the manner of a magazine contents page.
  *
- * Layout philosophy:
- *   The previous pass shipped twelve cards in a col-span pattern. Verdict
- *   from the desk was "boring cards". Col-span variation alone does not
- *   produce big/small drama because every card shares the same internal
- *   chassis (same aspect, same type scale). Editorial magazine spreads
- *   work because the BIG things are visibly bigger than the small things
- *   in image area, type scale, and breathing room.
+ * Layout at lg+ (12-column grid, two rows):
+ *   Row 1: [ 01 ][ 02 ][ 03 ]   each col-span-4
+ *   Row 2: [ 04 ][ 05 ][ 06 ]   each col-span-4
  *
- *   So this pass commits to six cards across three rows, with three
- *   distinct emphases (hero / medium / small) that each own their own
- *   aspect ratio and typography internally inside FeaturedCard.
- *
- * Layout at lg+ (12-column grid, three rows):
- *
- *   Row 1:
- *     [    HERO PORTRAIT      ][ SMALL ][ SMALL ]
- *     [   col-span-8, 3/4     ][ col-span-4 stacked column ]
- *     position 0 (Aquad'or)     positions 1, 2
- *
- *   Row 2:
- *     [ MEDIUM ][        HERO WIDE         ]
- *     [ col-4  ][      col-span-8, 5/3     ]
- *     position 3 position 4 (Lattafa)
- *
- *   Row 3:
- *     [    SMALL    ]
- *     [  col-span-6 ]
- *     position 5
- *
- * Mobile / md: single-column on phones, 2-col on md, with no aspect tricks.
- * The magazine drama only fires at lg+ where there is room to read it.
+ * md: 2-column stack. Mobile: single column.
  *
  * Section header: left-aligned heading + right-aligned "View all" link share
  * a baseline, with a hairline rule below the row. The headline uses
@@ -57,56 +34,27 @@ export interface FeaturedGridProps {
   products: Product[];
 }
 
-/** Six cards. Three rows. Real big/small drama. */
+/** Six cards. Two rows of three. Uniform editorial grid. */
 const FEATURED_COUNT = 6;
 
 interface SlotConfig {
   emphasis: FeaturedEmphasis;
-  /** Grid column span at lg+. md+ uses an auto stack. */
+  /** Grid column span at lg+. md+ uses a 2-col stack. */
   className: string;
 }
 
 /**
- * Slot table. Index = card position in the curated feed from
- * getFeaturedProducts. The product-service interleave already places
- * Aquad'or-house at 0 and a Lattafa card around position 2/5; we surface
- * Aquad'or as the portrait hero (0) and Lattafa as the wide hero (4) so
- * brand-family balance is read in the spread at a glance.
- *
- * Row 1: 8 / 4-stack-of-2 => totals 12 (the 4-col is a vertical container
- *        for the two small cards that follow it).
- * Row 2: 4 / 8 => totals 12.
- * Row 3: 6 alone (left-anchored).
+ * Slot table. All six positions share the medium emphasis and a 4-column
+ * span at lg+ for a uniform 3-across grid. Index numbers (01–06) render
+ * inside FeaturedCard via the `index` prop.
  */
 const SLOTS: ReadonlyArray<SlotConfig> = [
-  // Row 1
-  {
-    emphasis: 'hero-portrait',
-    // Takes 8 cols, spans both rows of the right-hand stack so heights match.
-    className: 'md:col-span-2 lg:col-span-8 lg:row-span-2',
-  },
-  {
-    emphasis: 'small',
-    className: 'md:col-span-1 lg:col-span-4',
-  },
-  {
-    emphasis: 'small',
-    className: 'md:col-span-1 lg:col-span-4',
-  },
-  // Row 2
-  {
-    emphasis: 'medium',
-    className: 'md:col-span-1 lg:col-span-4',
-  },
-  {
-    emphasis: 'hero-wide',
-    className: 'md:col-span-2 lg:col-span-8',
-  },
-  // Row 3
-  {
-    emphasis: 'small',
-    className: 'md:col-span-2 lg:col-span-6',
-  },
+  { emphasis: 'medium', className: 'md:col-span-1 lg:col-span-4' },
+  { emphasis: 'medium', className: 'md:col-span-1 lg:col-span-4' },
+  { emphasis: 'medium', className: 'md:col-span-1 lg:col-span-4' },
+  { emphasis: 'medium', className: 'md:col-span-1 lg:col-span-4' },
+  { emphasis: 'medium', className: 'md:col-span-1 lg:col-span-4' },
+  { emphasis: 'medium', className: 'md:col-span-1 lg:col-span-4' },
 ];
 
 export default function FeaturedGrid({ products }: FeaturedGridProps) {
@@ -162,12 +110,12 @@ export default function FeaturedGrid({ products }: FeaturedGridProps) {
 export function FeaturedGridSkeleton() {
   // Skeleton mirrors the live spread shape so Suspense fallback ships zero CLS.
   const skeletonAspects: ReadonlyArray<string> = [
-    'aspect-[3/4]', // hero portrait
-    'aspect-square', // small
-    'aspect-square', // small
-    'aspect-[4/5]', // medium
-    'aspect-[5/3]', // hero wide
-    'aspect-square', // small
+    'aspect-[4/5]',
+    'aspect-[4/5]',
+    'aspect-[4/5]',
+    'aspect-[4/5]',
+    'aspect-[4/5]',
+    'aspect-[4/5]',
   ];
 
   return (

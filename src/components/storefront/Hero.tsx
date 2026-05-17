@@ -28,9 +28,10 @@
  *   - All hit targets are ≥ 44px tall.
  */
 
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { useRef } from 'react';
 
 const navLinks = [
   { label: 'Dubai Shop', href: '/shop' },
@@ -44,12 +45,53 @@ export default function Hero() {
   const prefersReducedMotion = useReducedMotion();
   const overlayRest = 0.28;
 
+  // Scroll-driven parallax exit. Bound to the hero's own visibility range
+  // (start of section at top of viewport → end of section at top of viewport)
+  // so the transforms drive smoothly between 0 and 1 across the whole hero.
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+  const sceneScale = useTransform(
+    scrollYProgress,
+    [0, 1],
+    prefersReducedMotion ? [1, 1] : [1, 1.08]
+  );
+  const sceneOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.85],
+    prefersReducedMotion ? [1, 1] : [1, 0.25]
+  );
+  const sceneY = useTransform(
+    scrollYProgress,
+    [0, 1],
+    prefersReducedMotion ? ['0%', '0%'] : ['0%', '-12%']
+  );
+
   return (
-    <section className="relative h-[100svh] min-h-[640px] w-full overflow-hidden">
+    <section
+      ref={heroRef}
+      className="relative h-[100svh] min-h-[640px] w-full overflow-hidden"
+    >
       {/* Page heading — visually hidden so the video-driven hero carries the
           mood without typographic weight, but search engines and screen
           readers still get a semantic h1 for the home route. */}
       <h1 className="sr-only">Aquad&apos;or, niche and original fragrance in Cyprus</h1>
+
+      {/* Parallax scene. Wraps the video, grain, scrim and CTA so they scale
+          up, fade and lift as the viewer scrolls past the hero — gives the
+          "zoom into the void" exit. The pill nav stays outside this wrapper
+          so it scrolls normally with the page. */}
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          scale: sceneScale,
+          opacity: sceneOpacity,
+          y: sceneY,
+          transformOrigin: 'center 60%',
+        }}
+      >
 
       {/* Background video */}
       <video
@@ -97,6 +139,8 @@ export default function Hero() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/70"
       />
+      </motion.div>
+      {/* /Parallax scene */}
 
       {/* Masthead pill nav. Wider, taller, and anchored by an AQUAD'OR
           wordmark at the left — gives the nav a brand element now that the
