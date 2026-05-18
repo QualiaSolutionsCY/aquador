@@ -166,7 +166,7 @@ export default function Hero() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="flex items-center justify-between gap-4 rounded-b-xl border border-t-0 border-white/15 bg-black/70 px-4 py-2 backdrop-blur-md backdrop-saturate-150 sm:gap-6 sm:px-6 md:gap-8 md:rounded-b-2xl md:px-8 md:py-2.5"
+          className="flex items-center justify-between gap-4 rounded-b-xl border border-t-0 border-white/15 bg-black/70 px-4 py-1.5 backdrop-blur-md backdrop-saturate-150 sm:gap-6 sm:px-6 md:gap-8 md:rounded-b-2xl md:px-8 md:py-2"
         >
           <Link
             href="/"
@@ -174,11 +174,11 @@ export default function Hero() {
             className="shrink-0 transition-opacity duration-[var(--duration-fast)] hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           >
             <Image
-              src="/aquador.webp"
+              src="/aquador-tight.webp"
               alt="Aquad'or"
-              width={520}
-              height={160}
-              className="h-9 w-auto object-contain sm:h-10 md:h-11"
+              width={220}
+              height={215}
+              className="h-10 w-auto object-contain sm:h-11 md:h-12"
               priority
             />
           </Link>
@@ -230,11 +230,11 @@ export default function Hero() {
                   className="shrink-0"
                 >
                   <Image
-                    src="/aquador.webp"
+                    src="/aquador-tight.webp"
                     alt="Aquad'or"
-                    width={520}
-                    height={160}
-                    className="h-10 w-auto object-contain"
+                    width={220}
+                    height={215}
+                    className="h-12 w-auto object-contain"
                   />
                 </Link>
                 <button

@@ -167,11 +167,11 @@ export default function Navbar() {
               aria-label="Aquad'or home"
             >
               <Image
-                src="/aquador.webp"
+                src="/aquador-tight.webp"
                 alt="Aquad'or"
-                width={520}
-                height={160}
-                className="h-9 md:h-10 lg:h-12 w-auto object-contain"
+                width={220}
+                height={215}
+                className="h-12 md:h-14 lg:h-16 w-auto object-contain"
                 priority
               />
             </Link>
