@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { StepSelector } from './StepSelector';
@@ -50,18 +51,30 @@ export default function CreatePerfumePage() {
 
   return (
     <div className="min-h-screen bg-bg text-fg">
-      <div className="mx-auto max-w-[var(--container-prose)] px-[var(--page-px)] py-20 md:py-28">
-        <header className="mb-16 md:mb-24 max-w-2xl">
-          <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted mb-6">
-            A composition in three movements
-          </p>
-          <h1 className="font-display text-[length:var(--font-display-2xl)] text-fg leading-[1.02] tracking-[-0.01em]">
-            Build a perfume that nobody else owns.
-          </h1>
-          <p className="mt-6 font-body text-[length:var(--font-size-body-lg)] text-fg-muted leading-relaxed max-w-prose">
-            Three layers. Top notes that open the door. Heart notes that hold the room. Base notes that follow you home. Choose deliberately. We compose, decant, and ship in four hours.
-          </p>
-        </header>
+      <div className="mx-auto max-w-[var(--container-wide)] px-[var(--page-px)] py-20 md:py-28">
+        <section className="mb-16 md:mb-24 grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-10 lg:gap-16 lg:items-end">
+          <figure className="relative aspect-[3/2] overflow-hidden bg-bg-alt">
+            <Image
+              src="/create-perfume/atelier-still-life.webp"
+              alt="A perfumer's worktable: an amber dropper bottle, a curl of bergamot peel in a ceramic dish, raw frankincense resin and a sprig of dried lavender on cool linen."
+              fill
+              sizes="(max-width: 1024px) 100vw, 55vw"
+              className="object-cover"
+              priority
+            />
+          </figure>
+          <header className="max-w-prose">
+            <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted mb-6">
+              A composition in three movements
+            </p>
+            <h1 className="font-display text-[length:var(--font-display-2xl)] text-fg leading-[1.02] tracking-[-0.01em]">
+              Build a perfume that nobody else owns.
+            </h1>
+            <p className="mt-6 font-body text-[length:var(--font-size-body-lg)] text-fg-muted leading-relaxed">
+              Three layers. Top notes that open the door. Heart notes that hold the room. Base notes that follow you home. Choose deliberately. We compose, decant, and ship in four hours.
+            </p>
+          </header>
+        </section>
 
         <nav className="mb-16 grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-4 border-t border-border pt-6">
           {([1, 2, 3, 4, 5] as Step[]).map((s) => {
