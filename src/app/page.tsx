@@ -4,7 +4,7 @@ import { buildPageMetadata } from '@/lib/seo/metadata';
 import { getFeaturedProducts } from '@/lib/supabase/product-service';
 import Hero from '@/components/storefront/Hero';
 import BrandMarquee from '@/components/storefront/BrandMarquee';
-import NotesStory from '@/components/storefront/NotesStory';
+import Reviews from '@/components/storefront/Reviews';
 import BrandStory from '@/components/storefront/BrandStory';
 import JournalTeaser from '@/components/storefront/JournalTeaser';
 import EmailCapture from '@/components/storefront/EmailCapture';
@@ -107,7 +107,7 @@ export default function Home() {
         <FeaturedGridLoader />
       </Suspense>
       <CategoryTriptych />
-      <NotesStory />
+      <Reviews />
       <RitualStrip />
       <BrandStory />
       <JournalTeaser />
