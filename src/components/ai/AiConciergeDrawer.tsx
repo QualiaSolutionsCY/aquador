@@ -47,7 +47,7 @@ const VOICE = {
   inputPlaceholder: 'Type to begin.',
   inputLabel: 'Your message',
   sendAriaLabel: 'Send message',
-  header: 'Concierge',
+  header: "Aquad'or AI Agent",
   errorTitle: "We couldn't reach the desk. Try again.",
 } as const;
 
@@ -329,7 +329,7 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
     >
       <DrawerContent
         data-testid="concierge-drawer"
-        aria-label="Concierge"
+        aria-label="Aquad'or AI Agent"
         className="gap-0 p-0"
       >
         <DrawerHeader className="px-8 pt-8 pb-6">
@@ -416,6 +416,18 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
             <Send aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" />
           </Button>
         </form>
+
+        <p className="border-t border-border bg-bg-alt px-8 py-3 font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-fg-muted text-center">
+          Powered by{' '}
+          <a
+            href="https://qualiasolutions.cy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-fg transition-colors duration-[var(--duration-fast)] hover:text-accent-deep"
+          >
+            Qualia Solutions
+          </a>
+        </p>
       </DrawerContent>
     </Drawer>
   );

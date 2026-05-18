@@ -173,10 +173,23 @@ export default function Footer() {
         {/* Section C: bottom bar */}
         <section className="mt-16 md:mt-20 border-t border-border pt-8 flex flex-col md:flex-row md:items-baseline md:justify-between gap-6 md:gap-8">
 
-          {/* Left, copyright */}
-          <p className="font-micro uppercase tracking-[0.1em] text-[length:var(--font-size-micro)] text-fg-muted text-center md:text-left">
-            © {year} Aquad&apos;or. All rights reserved.
-          </p>
+          {/* Left, copyright + powered by */}
+          <div className="text-center md:text-left">
+            <p className="font-micro uppercase tracking-[0.1em] text-[length:var(--font-size-micro)] text-fg-muted">
+              © {year} Aquad&apos;or. All rights reserved.
+            </p>
+            <p className="mt-2 font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-fg-muted">
+              Powered by{' '}
+              <a
+                href="https://qualiasolutions.cy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-fg transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-quart)] hover:text-accent-deep"
+              >
+                Qualia Solutions
+              </a>
+            </p>
+          </div>
 
           {/* Center, legal links */}
           <nav

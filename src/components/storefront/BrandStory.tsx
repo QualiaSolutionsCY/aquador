@@ -16,12 +16,13 @@
  *   title:   "Cyprus by way of Levantine paperwork."
  */
 
+import Image from 'next/image';
 import FadeUp from './FadeUp';
 
 export default function BrandStory() {
   return (
     <section className="border-t border-border-dark py-16 md:py-24 overflow-x-hidden">
-      <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-8 px-[var(--page-px)]">
+      <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-10 md:gap-12 px-[var(--page-px)] items-start">
         <div>
           <FadeUp>
             <span aria-hidden="true" className="block h-px w-12 bg-border-strong" />
@@ -39,10 +40,15 @@ export default function BrandStory() {
           </p>
         </div>
 
-        <div
-          aria-hidden="true"
-          className="aspect-[4/5] bg-bg-alt md:mr-[calc(-1*var(--page-px))]"
-        />
+        <FadeUp className="relative aspect-[4/5] overflow-hidden bg-bg-alt md:mr-[calc(-1*var(--page-px))]">
+          <Image
+            src="/brand-story/cyprus-desk.webp"
+            alt="A perfumer's desk in a Cypriot atelier: a sepia-ink ledger, a brass wax seal beside an oxblood wax pool, three glass sample vials, and a sprig of dried lavender at a tall arched window."
+            fill
+            sizes="(min-width: 768px) 60vw, 100vw"
+            className="object-cover"
+          />
+        </FadeUp>
       </div>
     </section>
   );
