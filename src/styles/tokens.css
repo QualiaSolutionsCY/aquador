@@ -22,18 +22,19 @@
   --color-ink-rich: oklch(0.10 0.015 80);
 
   /* Bone — surface (warm off-white, paper-like) */
-  --color-bone: oklch(0.97 0.008 80);
+  --color-bone: oklch(0.975 0.005 84);
   --color-bone-soft: oklch(0.94 0.012 80);
   --color-parchment: oklch(0.91 0.024 78);
 
-  /* Aged gold — signature accent (atelier-ledger pivot: deeper commitment) */
+  /* Aged gold — signature accent (quiet atelier pivot 2026-05-18: darker, more committed signature stamp) */
   --color-gold: oklch(0.72 0.135 82);
   --color-gold-soft: oklch(0.82 0.090 82);
-  --color-gold-deep: oklch(0.54 0.148 75);
+  --color-gold-deep: oklch(0.48 0.155 78);
 
-  /* Sepia ink — atelier-ledger §1 pivot: warmer than --color-ink so body
-     copy reads as letterpressed on aged paper, not graphite on white. */
-  --color-sepia: oklch(0.24 0.055 60);
+  /* Sepia ink — quiet atelier pivot 2026-05-18: desaturated toward editorial
+     ink (chroma pulled back from letterpress-warm to Vogue-masthead clean)
+     so body copy reads as premium editorial, not handwritten parchment. */
+  --color-sepia: oklch(0.18 0.022 78);
 
   /* Oxblood — promoted to working editorial accent (atelier-ledger pivot) */
   --color-oxblood: oklch(0.40 0.140 25);
@@ -159,8 +160,8 @@
   --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
 
   --duration-fast: 150ms;
-  --duration-base: 320ms;
-  --duration-slow: 480ms;
+  --duration-base: 240ms;
+  --duration-slow: 380ms;
   --duration-slowest: 760ms;
 
   /* ------------------------------------------------------------------ */

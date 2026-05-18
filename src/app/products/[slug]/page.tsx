@@ -187,6 +187,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       <main className="min-h-screen bg-bg pb-24 pt-24 text-fg md:pb-0 md:pt-28 lg:pt-32">
         <article>
+          <div className="mx-auto max-w-[var(--container-full)]">
           <div className="px-[var(--page-px)]">
             <nav className="mb-8" aria-label="Breadcrumb">
               <Link
@@ -199,8 +200,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </nav>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] lg:gap-16">
-            <div className="min-w-0 px-[var(--page-px)] lg:pl-0 lg:pr-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12">
+            <div className="min-w-0 px-[var(--page-px)]">
               <ProductGallery images={buildImageList(product)} productName={product.name} />
             </div>
 
@@ -277,6 +278,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           />
 
           <RelatedCarousel products={relatedProducts} />
+          </div>
         </article>
       </main>
     </>

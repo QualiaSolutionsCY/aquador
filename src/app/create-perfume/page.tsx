@@ -50,17 +50,20 @@ export default function CreatePerfumePage() {
 
   return (
     <div className="min-h-screen bg-bg text-fg">
-      <div className="container-wide py-16">
-        <header className="mb-12 max-w-3xl">
-          <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted mb-4">
-            Three layers, four hours, one perfume.
+      <div className="mx-auto max-w-[var(--container-prose)] px-[var(--page-px)] py-20 md:py-28">
+        <header className="mb-16 md:mb-24 max-w-2xl">
+          <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted mb-6">
+            A composition in three movements
           </p>
-          <h1 className="font-display text-[length:var(--font-h1)] text-fg leading-tight">
-            Build a perfume
+          <h1 className="font-display text-[length:var(--font-display-2xl)] text-fg leading-[1.02] tracking-[-0.01em]">
+            Build a perfume that nobody else owns.
           </h1>
+          <p className="mt-6 font-body text-[length:var(--font-size-body-lg)] text-fg-muted leading-relaxed max-w-prose">
+            Three layers. Top notes that open the door. Heart notes that hold the room. Base notes that follow you home. Choose deliberately. We compose, decant, and ship in four hours.
+          </p>
         </header>
 
-        <nav className="mb-12 flex flex-wrap gap-x-6 gap-y-3 border-t border-b border-border py-4">
+        <nav className="mb-16 grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-4 border-t border-border pt-6">
           {([1, 2, 3, 4, 5] as Step[]).map((s) => {
             const active = s === b.step;
             return (
@@ -72,9 +75,9 @@ export default function CreatePerfumePage() {
                 className={cn(
                   'font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)]',
                   'transition-all duration-150 ease-[cubic-bezier(0.25,1,0.5,1)]',
-                  'border-b border-transparent hover:border-accent',
+                  'text-left pb-3 border-b border-border-strong hover:border-fg',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
-                  active ? 'text-fg border-accent translate-y-px' : 'text-fg-muted',
+                  active ? 'text-fg border-fg' : 'text-fg-muted',
                 )}
               >
                 {STEP_LABELS[s].eyebrow}
@@ -83,7 +86,7 @@ export default function CreatePerfumePage() {
           })}
         </nav>
 
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_360px] gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_360px] gap-16">
           <main key={b.step}>
             {layer ? (
               <StepSelector

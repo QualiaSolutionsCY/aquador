@@ -410,15 +410,22 @@ export default function ProductGrid({
                           <Skeleton variant="text" className="mt-2 w-2/3" />
                         </li>
                       ))
-                    : visible.map((product, i) => (
-                        <li
-                          key={product.id}
-                          data-fade-up
-                          className="opacity-0 translate-y-4 transition-[opacity,transform] duration-[var(--duration-base)] ease-[var(--ease-out-quart)] data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0"
-                        >
-                          <ProductCard product={product} priority={i < 4} />
-                        </li>
-                      ))}
+                    : visible.map((product, i) => {
+                        const shouldFadeUp = i < FADE_UP_LIMIT;
+                        return (
+                          <li
+                            key={product.id}
+                            {...(shouldFadeUp ? { 'data-fade-up': true } : {})}
+                            className={
+                              shouldFadeUp
+                                ? 'opacity-0 translate-y-4 transition-[opacity,transform] duration-[var(--duration-base)] ease-[var(--ease-out-quart)] data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0'
+                                : ''
+                            }
+                          >
+                            <ProductCard product={product} priority={i < 4} />
+                          </li>
+                        );
+                      })}
                 </ul>
               )}
             </div>

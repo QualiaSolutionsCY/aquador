@@ -2,11 +2,13 @@
 
 ## §1. Direction (the commit)
 
-**Aesthetic direction:** `editorial-luxury, Levant-coded — atelier-ledger commit (2026-05-17)`
+**Aesthetic direction:** `editorial-luxury, Levant-coded — quiet atelier commit (2026-05-18)`
 
 Not "modern luxury", not "minimal premium". Editorial means the page reads like a journal spread — generous margins, considered type hierarchy, ornament used sparingly. Levant-coded means the warmth and geometric restraint of Beirut / Limassol design culture, not Parisian glacial minimalism and not Vegas casino gold.
 
 **2026-05-17 pivot — atelier ledger:** the same direction, sharper commitment. Sepia ink on aged-paper bone (warmer `--fg`), gold-deep pushed richer for a committed signature stamp, oxblood promoted from edge-only to a *working* editorial accent (price colour, "Popular this season" stamp, sale strike). Motion settles longer (`--duration-base` 250 → 320ms) to match the letter-press feel. Layout grid and JSX untouched.
+
+**2026-05-18 pivot — quiet atelier:** restraint as the path to premium. Bone cooled (h 80 → 84) so the paper reads atelier-clean rather than parchment-warm. Sepia ink desaturated (chroma 0.055 → 0.022) so body copy reads as Vogue ink, not letterpress. Gold-deep pushed darker (L 0.54 → 0.48) for a more committed signature stamp. Motion tightened (`--duration-base` 320 → 240ms, slow 480 → 380ms) — poised, not languid. Oxblood demoted: stays in `--critical` for form errors only, never as a working price/sale colour. Layout grid and JSX untouched.
 
 **Color strategy:** `Committed` — one signature warm-gold tone (deepened post-pivot), neutrals tinted toward it (chroma 0.005-0.015), oxblood now a working accent (not edges-only), no third anchor.
 
@@ -34,14 +36,14 @@ All colors expressed in OKLCH. CSS custom properties live in `src/styles/tokens.
   --color-ink-rich: oklch(0.10 0.015 80);
 
   /* Bone — surface */
-  --color-bone: oklch(0.97 0.008 80);         /* warm off-white, paper-like */
+  --color-bone: oklch(0.975 0.005 84);        /* cooled off-white, atelier-clean paper */
   --color-bone-soft: oklch(0.94 0.012 80);
   --color-parchment: oklch(0.91 0.024 78);    /* alt surface, slightly more pigment */
 
   /* Aged gold — signature accent */
   --color-gold: oklch(0.72 0.135 82);         /* restrained; never neon */
   --color-gold-soft: oklch(0.82 0.090 82);
-  --color-gold-deep: oklch(0.58 0.130 78);
+  --color-gold-deep: oklch(0.48 0.155 78);
 
   /* Oxblood — editorial accent, used SPARINGLY */
   --color-oxblood: oklch(0.40 0.140 25);
@@ -197,8 +199,8 @@ Slow and deliberate. No bounce. Respect `prefers-reduced-motion`.
 --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
 
 --duration-fast: 150ms;
---duration-base: 250ms;
---duration-slow: 400ms;
+--duration-base: 240ms;
+--duration-slow: 380ms;
 --duration-slowest: 700ms;
 
 @media (prefers-reduced-motion: reduce) {

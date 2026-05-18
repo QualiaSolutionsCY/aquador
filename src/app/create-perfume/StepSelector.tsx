@@ -15,7 +15,6 @@
 
 import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { badgeBase } from '@/components/ui/Badge';
 import type { Layer } from './_hooks/useBuilderState';
 import type { FragranceNote } from '@/lib/perfume/types';
 
@@ -94,35 +93,54 @@ export function StepSelector({
         </p>
       </header>
 
-      <div className="border-t border-border pt-6">
-        <div className="flex flex-wrap gap-2">
-          {notes.map((note) => {
+      <div className="border-t border-border">
+        <ul className="divide-y divide-border" role="listbox" aria-label={`${layer} notes`}>
+          {notes.map((note, idx) => {
             const isSelected = selected.includes(note.name);
             const isDisabled = !isSelected && atMax;
             return (
-              <button
-                key={note.name}
-                type="button"
-                onClick={() => onToggle(note.name)}
-                disabled={isDisabled}
-                aria-pressed={isSelected}
-                data-selected={isSelected || undefined}
-                className={cn(
-                  badgeBase,
-                  'cursor-pointer border border-transparent',
-                  'transition-colors duration-150 ease-[cubic-bezier(0.25,1,0.5,1)]',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
-                  isSelected
-                    ? 'bg-accent text-bg border-accent'
-                    : 'bg-bg-alt text-fg-muted hover:text-fg hover:border-border-strong',
-                  isDisabled && 'opacity-40 cursor-not-allowed pointer-events-none',
-                )}
-              >
-                <span>{note.name}</span>
-              </button>
+              <li key={note.name}>
+                <button
+                  type="button"
+                  onClick={() => onToggle(note.name)}
+                  disabled={isDisabled}
+                  aria-pressed={isSelected}
+                  data-selected={isSelected || undefined}
+                  className={cn(
+                    'group flex w-full items-baseline gap-6 py-5 text-left',
+                    'transition-colors duration-150 ease-[cubic-bezier(0.25,1,0.5,1)]',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
+                    isSelected ? 'text-fg' : 'text-fg-muted hover:text-fg',
+                    isDisabled && 'opacity-40 cursor-not-allowed pointer-events-none',
+                  )}
+                >
+                  <span className="font-micro tabular-nums uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted w-8 shrink-0">
+                    {String(idx + 1).padStart(2, '0')}
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block font-display text-[length:var(--font-h3)] leading-tight">
+                      {note.name}
+                    </span>
+                    {note.description ? (
+                      <span className="mt-1 block font-body text-[length:var(--font-size-body-sm)] text-fg-muted">
+                        {note.description}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'shrink-0 font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] transition-opacity duration-150',
+                      isSelected ? 'text-accent-deep opacity-100' : 'opacity-0 group-hover:opacity-100 text-fg-muted',
+                    )}
+                  >
+                    {isSelected ? 'Chosen' : 'Choose'}
+                  </span>
+                </button>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </div>
     </section>
   );
