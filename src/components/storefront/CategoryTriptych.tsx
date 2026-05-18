@@ -35,28 +35,28 @@ type Card = {
 
 const CARDS: ReadonlyArray<Card> = [
   {
-    eyebrow: 'Niche',
-    title: 'Curated by the desk.',
-    body: 'Independent perfumers, small batches, the bench we trust.',
+    eyebrow: 'Al-Haramain',
+    title: 'Heritage of perfume.',
+    body: 'Since 1970. Amber Oud, Gold Edition, the bottles that built the house.',
     href: '/shop/niche',
-    image: '/images/al-haramain-originals.jpg',
-    imageAlt: 'A row of niche perfume bottles on a perfumer\'s shelf.',
+    image: '/images/al-haramain-poster.webp',
+    imageAlt: 'Al-Haramain Amber Oud campaign: five faceted bottles on stone plinths beneath a Levantine arcade, with the Al-Haramain Since 1970 wordmark.',
   },
   {
     eyebrow: 'Lattafa Originals',
-    title: 'From the Arabian house.',
-    body: 'Oud, amber, smoke. Twenty eight authentic Lattafa originals in stock.',
+    title: 'Timeless scent, true elegance.',
+    body: 'Asad, Yara, Fakhar, Badee al Oud. Twenty eight authentic Lattafa originals in stock.',
     href: '/shop/lattafa',
-    image: '/images/lattafa-originals.jpg',
-    imageAlt: 'Lattafa perfume bottles arranged on a warm linen surface.',
+    image: '/images/lattafa-poster.webp',
+    imageAlt: 'Lattafa campaign: six perfume bottles arranged beneath the Lattafa Arabic calligraphy mark and the line "Timeless Scent. True Elegance."',
   },
   {
-    eyebrow: 'Aquad’or essence oils',
-    title: 'Pressed in Nicosia.',
-    body: 'One hundred sixty one essence oils, our signature line, hand poured.',
+    eyebrow: 'Aquad’or',
+    title: 'Refined scent, modern luxury.',
+    body: 'Niche Collection, Amber Oud, White Musk, Gold Edition, Oud Elixir. The house line.',
     href: '/shop?category=essence-oil',
-    image: '/images/aquadour1.jpg',
-    imageAlt: 'An Aquad’or essence oil bottle resting on bone linen.',
+    image: '/images/aquador-poster.webp',
+    imageAlt: 'Aquad’or campaign: five Aquad’or bottles on stone plinths beneath the lotus wordmark and the line "Refined Scent. Modern Luxury."',
   },
 ];
 

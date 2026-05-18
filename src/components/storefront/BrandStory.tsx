@@ -35,8 +35,48 @@ export default function BrandStory() {
             Aquad&apos;or operates out of Nicosia. The catalogue draws from
             Lattafa and Al-Haramain houses for oud and amber, from Victoria&apos;s
             Secret originals for the clean musks, and from a small bench of
-            independent perfumers we trust. The shipment leaves Cyprus three
-            days a week. The letter that comes with it is written by one of us.
+            independent perfumers we trust.
+          </p>
+
+          <dl className="mt-10 max-w-[var(--container-narrow)] divide-y divide-border border-y border-border">
+            <div className="grid grid-cols-[5.5rem_1fr] gap-x-6 py-5">
+              <dt className="font-micro tabular-nums uppercase tracking-[0.16em] text-[length:var(--font-size-micro)] text-fg-muted">
+                01 / Sourcing
+              </dt>
+              <dd className="font-body text-fg text-[length:var(--font-size-body)] leading-relaxed">
+                Independent perfumers in Beirut, Sharjah, Dubai. Small batches.
+                No middlemen on the import. The bench picks every bottle in
+                stock.
+              </dd>
+            </div>
+            <div className="grid grid-cols-[5.5rem_1fr] gap-x-6 py-5">
+              <dt className="font-micro tabular-nums uppercase tracking-[0.16em] text-[length:var(--font-size-micro)] text-fg-muted">
+                02 / The letter
+              </dt>
+              <dd className="font-body text-fg text-[length:var(--font-size-body)] leading-relaxed">
+                Every shipment leaves with a handwritten note. Two lines,
+                signed, never templated. If a bottle is a gift, the letter is
+                addressed to the recipient by name.
+              </dd>
+            </div>
+            <div className="grid grid-cols-[5.5rem_1fr] gap-x-6 py-5">
+              <dt className="font-micro tabular-nums uppercase tracking-[0.16em] text-[length:var(--font-size-micro)] text-fg-muted">
+                03 / The post
+              </dt>
+              <dd className="font-body text-fg text-[length:var(--font-size-body)] leading-relaxed">
+                Monday, Wednesday, Friday. Cyprus to your door in three days
+                across the island, four for the Aegean and remote postcodes,
+                seven outside the EU.
+              </dd>
+            </div>
+          </dl>
+
+          <p className="mt-10 font-display italic text-fg text-[length:var(--font-h3)] leading-[1.25] max-w-[var(--container-narrow)]">
+            &ldquo;Reading a perfume&apos;s page felt like opening a letter from
+            someone who knows scent.&rdquo;
+          </p>
+          <p className="mt-3 font-micro uppercase tracking-[0.16em] text-[length:var(--font-size-micro)] text-fg-muted">
+            Maria, Limassol. After her first visit.
           </p>
         </div>
 
