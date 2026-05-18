@@ -7,9 +7,9 @@ describe('Perfume Pricing', () => {
       expect(calculatePrice(volume)).toBe(29.99)
     })
 
-    it('should return 199.00 for 100ml volume', () => {
+    it('should return 49.99 for 100ml volume', () => {
       const volume: PerfumeVolume = '100ml'
-      expect(calculatePrice(volume)).toBe(199.00)
+      expect(calculatePrice(volume)).toBe(49.99)
     })
 
     it('should throw error for invalid volume', () => {
@@ -34,7 +34,7 @@ describe('Perfume Pricing', () => {
       const price100ml = calculatePrice('100ml')
 
       expect(price50ml.toFixed(2)).toBe('29.99')
-      expect(price100ml.toFixed(2)).toBe('199.00')
+      expect(price100ml.toFixed(2)).toBe('49.99')
     })
   })
 })
