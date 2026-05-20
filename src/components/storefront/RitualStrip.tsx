@@ -21,12 +21,15 @@
  */
 
 import { motion, useReducedMotion } from 'framer-motion';
+import { MessageCircle, PackageCheck, ScrollText } from 'lucide-react';
+import type { ComponentType } from 'react';
 import FadeUp from './FadeUp';
 
 type Promise = {
   number: string;
   title: string;
   body: string;
+  icon: ComponentType<{ className?: string; strokeWidth?: number; 'aria-hidden'?: true }>;
 };
 
 const PROMISES: ReadonlyArray<Promise> = [
@@ -35,18 +38,21 @@ const PROMISES: ReadonlyArray<Promise> = [
     title: 'Curated by the desk.',
     body:
       'A small bench of perfumers picks every bottle on the shelf. We do not stock what we would not wear ourselves.',
+    icon: ScrollText,
   },
   {
     number: 'Two',
     title: 'Posted from Nicosia.',
     body:
       'Same day inside the city, two to three days across Cyprus. Free shipping over thirty-five euro, no compromises on the seal.',
+    icon: PackageCheck,
   },
   {
     number: 'Three',
     title: 'Replied within the day.',
     body:
       'The concierge is a perfumer reading your message, not a chatbot reading a script. We close the loop, every time.',
+    icon: MessageCircle,
   },
 ];
 
@@ -72,16 +78,21 @@ export default function RitualStrip() {
             className="relative"
           >
             <li className="list-none px-0 py-10 lg:px-10 lg:py-0">
-              <motion.span
-                aria-hidden="true"
-                initial={reducedMotion ? { opacity: 1 } : { opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true, amount: 0.4 }}
-                transition={{ duration: 0.6, ease: EASE }}
-                className="block font-display italic text-[length:var(--font-display-2xl)] leading-[1] text-accent-deep"
-              >
-                {promise.number}
-              </motion.span>
+              <div className="flex items-start justify-between gap-6">
+                <motion.span
+                  aria-hidden="true"
+                  initial={reducedMotion ? { opacity: 1 } : { opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ duration: 0.6, ease: EASE }}
+                  className="block font-display italic text-[length:var(--font-display-2xl)] leading-[1] text-accent-deep"
+                >
+                  {promise.number}
+                </motion.span>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center border border-border bg-bg">
+                  <promise.icon aria-hidden className="h-5 w-5 text-accent-deep" strokeWidth={1.5} />
+                </span>
+              </div>
               <h3 className="mt-6 font-display text-fg leading-[1.15] tracking-[-0.01em] text-[length:var(--font-h2)]">
                 {promise.title}
               </h3>

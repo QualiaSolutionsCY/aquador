@@ -160,7 +160,7 @@ export default function Hero() {
           voice. */}
       <nav
         aria-label="Primary"
-        className="absolute left-1/2 top-0 z-20 w-full max-w-[min(1200px,96vw)] -translate-x-1/2 px-3 sm:px-4"
+        className="absolute left-1/2 top-0 z-20 w-full max-w-[min(var(--container-full),96vw)] -translate-x-1/2 px-3 sm:px-4"
       >
         <motion.div
           initial={{ y: -20, opacity: 0 }}

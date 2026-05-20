@@ -11,14 +11,36 @@
  */
 
 import Link from 'next/link';
+import Image from 'next/image';
+import {
+  Beaker,
+  MapPin,
+  PackageCheck,
+  PenLine,
+  ScrollText,
+  Sparkles,
+  Truck,
+} from 'lucide-react';
 import Button from '@/components/ui/Button';
+
+const noteCards = [
+  { icon: ScrollText, label: 'Sourced direct', body: 'Original houses, not anonymous stock.' },
+  { icon: Sparkles, label: 'Bench tested', body: 'Every addition earns its place.' },
+  { icon: PenLine, label: 'Packed by hand', body: 'A note leaves with first orders.' },
+];
+
+const deliveryCards = [
+  { icon: MapPin, label: 'Nicosia desk', body: 'Ledra 145, 1011.' },
+  { icon: Truck, label: 'ACS pickup', body: 'Choose your checkpoint at checkout.' },
+  { icon: PackageCheck, label: 'Sealed returns', body: 'Fourteen days, unopened bottles.' },
+];
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-bg text-fg">
       {/* 01 / Opening */}
       <section className="border-t border-border-dark px-[var(--page-px)] py-16 md:py-24">
-        <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-8">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[30%_minmax(0,1fr)_24%] lg:gap-12">
           <div>
             <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
               01 / The house
@@ -42,6 +64,19 @@ export default function AboutPage() {
               ships with a first order is written by one of us, not generated.
             </p>
           </div>
+          <aside className="relative min-h-[22rem] overflow-hidden border border-border bg-bg-alt lg:min-h-full">
+            <Image
+              src="/images/aquadour1.jpg"
+              alt="Aquad'or perfume bottle with its black and gold packaging on a polished table."
+              fill
+              sizes="(min-width: 1024px) 24vw, 100vw"
+              className="object-cover"
+            />
+            <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-fg/75 to-transparent" />
+            <p className="absolute bottom-5 left-5 right-5 font-micro uppercase tracking-[0.16em] text-[length:var(--font-size-micro)] text-bg">
+              House bottle · Nicosia
+            </p>
+          </aside>
         </div>
       </section>
 
@@ -71,13 +106,26 @@ export default function AboutPage() {
               from the same houses. The catalogue grows when a perfume earns
               the place. Nothing is on the site to fill a category.
             </p>
+            <ul className="mt-10 grid grid-cols-1 gap-px border border-border bg-border md:grid-cols-3">
+              {noteCards.map(({ icon: Icon, label, body }) => (
+                <li key={label} className="bg-bg p-5">
+                  <Icon aria-hidden className="h-5 w-5 text-accent-deep" strokeWidth={1.5} />
+                  <p className="mt-5 font-micro uppercase tracking-[0.14em] text-[length:var(--font-size-micro)] text-fg-muted">
+                    {label}
+                  </p>
+                  <p className="mt-3 font-body text-[length:var(--font-size-body-sm)] leading-relaxed text-fg">
+                    {body}
+                  </p>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
 
       {/* 03 / Custom */}
       <section className="border-t border-border-dark px-[var(--page-px)] py-16 md:py-24">
-        <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-8">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[30%_minmax(0,1fr)_30%] lg:gap-12">
           <div>
             <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
               03 / Custom
@@ -111,6 +159,21 @@ export default function AboutPage() {
               </Link>
             </p>
           </div>
+          <aside className="relative min-h-[18rem] overflow-hidden border-y border-border bg-bg-alt lg:min-h-full lg:border-x lg:border-y-0">
+            <Image
+              src="/create-perfume/atelier-still-life.webp"
+              alt="A small amber perfume oil bottle with citrus peel, resin and lavender on a light atelier table."
+              fill
+              sizes="(min-width: 1024px) 30vw, 100vw"
+              className="object-cover"
+            />
+            <div className="absolute left-5 top-5 inline-flex items-center gap-3 bg-bg/90 px-4 py-3 backdrop-blur-sm">
+              <Beaker aria-hidden className="h-4 w-4 text-accent-deep" strokeWidth={1.5} />
+              <span className="font-micro uppercase tracking-[0.14em] text-[length:var(--font-size-micro)] text-fg-muted">
+                Three layers
+              </span>
+            </div>
+          </aside>
         </div>
       </section>
 
@@ -133,6 +196,19 @@ export default function AboutPage() {
               is free on orders over thirty five euros. Returns are accepted
               within fourteen days for unopened bottles.
             </p>
+            <ul className="mt-10 grid grid-cols-1 gap-px border border-border bg-border md:grid-cols-3">
+              {deliveryCards.map(({ icon: Icon, label, body }) => (
+                <li key={label} className="bg-bg-alt p-5">
+                  <Icon aria-hidden className="h-5 w-5 text-accent-deep" strokeWidth={1.5} />
+                  <p className="mt-5 font-micro uppercase tracking-[0.14em] text-[length:var(--font-size-micro)] text-fg-muted">
+                    {label}
+                  </p>
+                  <p className="mt-3 font-body text-[length:var(--font-size-body-sm)] leading-relaxed text-fg">
+                    {body}
+                  </p>
+                </li>
+              ))}
+            </ul>
             <div className="mt-10 flex flex-wrap gap-4">
               <Link href="/shop">
                 <Button variant="primary" size="md">Browse the catalogue</Button>

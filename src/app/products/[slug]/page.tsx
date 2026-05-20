@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, PackageCheck } from 'lucide-react';
 import {
   getAllProductSlugs,
   getProductBySlug,
@@ -209,7 +209,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <ProductGallery images={buildImageList(product)} productName={product.name} />
             </div>
 
-            <aside className="flex min-w-0 flex-col gap-8 px-[var(--page-px)] py-12 lg:sticky lg:top-28 lg:self-start lg:py-0">
+            <aside className="flex min-w-0 flex-col gap-6 px-[var(--page-px)] py-10 lg:sticky lg:top-28 lg:self-start lg:py-0">
               <header>
                 {product.brand && (
                   <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
@@ -234,16 +234,23 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </div>
               </header>
 
-              <SocialProof ordersCount={ordersCount} />
-
-              <div className="border-y border-border-dark py-6">
-                <ProductActions product={product} price={displayPrice} />
-                <p className="mt-4 font-body text-[length:var(--font-size-body-sm)] text-fg-muted">
-                  {inStock ? 'Prepared from the Nicosia desk.' : 'This bottle is resting before the next release.'}
-                </p>
+              <div className="border-y border-border-dark bg-bg-alt/60 py-5">
+                <div className="flex items-center justify-between gap-4 border-b border-border px-0 pb-5">
+                  <SocialProof ordersCount={ordersCount} />
+                  <span className="hidden font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-fg-muted sm:inline">
+                    {inStock ? 'Ready to pack' : 'Resting'}
+                  </span>
+                </div>
+                <div className="pt-5">
+                  <ProductActions product={product} price={displayPrice} />
+                  <p className="mt-4 flex items-center gap-2 font-body text-[length:var(--font-size-body-sm)] text-fg-muted">
+                    <PackageCheck aria-hidden className="h-4 w-4 text-accent-deep" strokeWidth={1.5} />
+                    {inStock ? 'Prepared from the Nicosia desk.' : 'This bottle is resting before the next release.'}
+                  </p>
+                </div>
               </div>
 
-              <TrustBar />
+              <TrustBar variant="panel" />
 
             </aside>
           </div>

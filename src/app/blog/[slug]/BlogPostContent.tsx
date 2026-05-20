@@ -21,7 +21,7 @@ export default function BlogPostContent({ post, relatedPosts }: BlogPostContentP
     <div className="min-h-screen bg-gold-ambient">
       {/* Content */}
       <div className="px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex gap-8 max-w-7xl mx-auto">
+        <div className="mx-auto flex max-w-[var(--container-full)] gap-8">
           {/* ToC Sidebar - desktop only, left side */}
           {hasToC && (
             <aside

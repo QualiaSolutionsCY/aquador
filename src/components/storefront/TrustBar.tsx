@@ -2,7 +2,7 @@ import { LockKeyhole, RotateCcw, ShieldCheck, Truck, type LucideIcon } from 'luc
 import { cn } from '@/lib/utils';
 
 export interface TrustBarProps {
-  variant?: 'inline' | 'compact';
+  variant?: 'inline' | 'compact' | 'panel';
   className?: string;
 }
 
@@ -18,6 +18,35 @@ const TRUST_ITEMS: Array<{ icon: LucideIcon; label: string }> = [
  */
 export function TrustBar({ variant = 'inline', className }: TrustBarProps) {
   const isCompact = variant === 'compact';
+  const isPanel = variant === 'panel';
+
+  if (isPanel) {
+    return (
+      <div
+        className={cn(
+          'grid grid-cols-1 border border-border bg-bg-alt sm:grid-cols-2',
+          className,
+        )}
+      >
+        {TRUST_ITEMS.map(({ icon: Icon, label }) => (
+          <div
+            key={label}
+            className="flex min-h-12 items-center gap-3 border-b border-border px-4 py-3 last:border-b-0 sm:[&:nth-last-child(-n+2)]:border-b-0 sm:[&:nth-child(odd)]:border-r"
+          >
+            <Icon
+              aria-hidden="true"
+              size={16}
+              strokeWidth={1.5}
+              className="shrink-0 text-accent-deep"
+            />
+            <span className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
+              {label}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div
