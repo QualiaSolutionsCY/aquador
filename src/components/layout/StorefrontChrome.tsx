@@ -16,6 +16,7 @@ import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { CartDrawer } from '@/components/cart';
+import AiConciergeWidget from '@/components/ai/AiConciergeWidget';
 import CookieConsent from '@/components/ui/CookieConsent';
 
 function isAdminRoute(pathname: string | null): boolean {
@@ -43,6 +44,7 @@ export function StorefrontChromeBottom() {
     <>
       <Footer />
       <CartDrawer />
+      <AiConciergeWidget />
       <CookieConsent />
     </>
   );
