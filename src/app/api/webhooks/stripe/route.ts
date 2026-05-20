@@ -6,6 +6,7 @@ import { formatPrice, escapeHtml } from '@/lib/utils';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getStripe } from '@/lib/stripe';
 import { getProductsByIds } from '@/lib/supabase/product-service';
+import { formatAcsCheckpoint } from '@/lib/acs-checkpoints';
 
 export const maxDuration = 30;
 
@@ -24,10 +25,29 @@ interface OrderItem {
   brand?: string;
   size?: string;
   category?: string;
+  customPerfume?: {
+    name: string;
+    topNote: string;
+    heartNote: string;
+    baseNote: string;
+    specialRequests?: string;
+  };
+}
+
+interface CompactCustomPerfume {
+  vid: string;
+  n: string;
+  t: string;
+  h: string;
+  b: string;
+  s?: string;
+  v: string;
 }
 
 interface ShippingAddress {
   name?: string;
+  acs_checkpoint?: string;
+  acs_checkpoint_code?: string;
   address?: {
     line1?: string;
     line2?: string;
@@ -35,6 +55,15 @@ interface ShippingAddress {
     postal_code?: string;
     country?: string;
   };
+}
+
+function readCheckoutCustomField(session: Stripe.Checkout.Session, key: string): string | null {
+  const field = session.custom_fields?.find((customField) => customField.key === key);
+  if (!field) return null;
+  if (field.type === 'dropdown') return field.dropdown?.value ?? null;
+  if (field.type === 'numeric') return field.numeric?.value ?? null;
+  if (field.type === 'text') return field.text?.value ?? null;
+  return null;
 }
 
 async function persistOrder(
@@ -196,11 +225,13 @@ async function sendOrderConfirmationEmail(
     })
     .join('');
 
+  const acsCheckpoint = orderDetails.shippingAddress?.acs_checkpoint;
   const shippingHtml = orderDetails.shippingAddress?.address ? `
     <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
       <h3 style="color: #333; margin-top: 0;">Shipping Address</h3>
       <p style="color: #555; margin: 0;">
         ${escapeHtml(orderDetails.shippingAddress.name || '')}<br>
+        ${acsCheckpoint ? `<strong>ACS checkpoint:</strong> ${escapeHtml(acsCheckpoint)}<br>` : ''}
         ${escapeHtml(orderDetails.shippingAddress.address.line1 || '')}<br>
         ${orderDetails.shippingAddress.address.line2 ? escapeHtml(orderDetails.shippingAddress.address.line2) + '<br>' : ''}
         ${escapeHtml(orderDetails.shippingAddress.address.city || '')}, ${escapeHtml(orderDetails.shippingAddress.address.postal_code || '')}<br>
@@ -324,8 +355,9 @@ async function sendStoreOrderNotification(
     .join('');
 
   const addr = orderDetails.shippingAddress?.address;
+  const acsCheckpoint = orderDetails.shippingAddress?.acs_checkpoint;
   const shippingText = addr
-    ? `${escapeHtml(orderDetails.shippingAddress?.name || '')}<br>${escapeHtml(addr.line1 || '')}${addr.line2 ? '<br>' + escapeHtml(addr.line2) : ''}<br>${escapeHtml(addr.city || '')} ${escapeHtml(addr.postal_code || '')}<br>${escapeHtml(addr.country || '')}`
+    ? `${escapeHtml(orderDetails.shippingAddress?.name || '')}<br>${acsCheckpoint ? `<strong>ACS checkpoint:</strong> ${escapeHtml(acsCheckpoint)}<br>` : ''}${escapeHtml(addr.line1 || '')}${addr.line2 ? '<br>' + escapeHtml(addr.line2) : ''}<br>${escapeHtml(addr.city || '')} ${escapeHtml(addr.postal_code || '')}<br>${escapeHtml(addr.country || '')}`
     : 'No shipping address provided';
 
   try {
@@ -446,6 +478,19 @@ export async function POST(request: NextRequest) {
       const orderTags: Record<string, string> = {};
 
       const metadata = session.metadata || {};
+      const customPerfumesByVariant = new Map<string, CompactCustomPerfume>();
+      for (const [key, value] of Object.entries(metadata)) {
+        if (!key.startsWith('custom_') || !value) continue;
+        try {
+          const custom = JSON.parse(value) as CompactCustomPerfume;
+          if (custom.vid) customPerfumesByVariant.set(custom.vid, custom);
+        } catch (error) {
+          Sentry.captureException(error, {
+            tags: { action: 'parse_custom_perfume_metadata' },
+            extra: { sessionId: session.id, key },
+          });
+        }
+      }
 
       if (metadata.items) {
         // Standard cart checkout — parse shortened metadata (pid, vid, qty)
@@ -462,6 +507,34 @@ export async function POST(request: NextRequest) {
           const productMap = new Map(products.map(p => [p.id, p]));
 
           for (const shortItem of shortItems) {
+            if (shortItem.pid === 'custom-perfume') {
+              const custom = customPerfumesByVariant.get(shortItem.vid);
+              const volume = custom?.v || (shortItem.vid.split('-').pop() || '50ml');
+              const price = volume === '100ml' ? 49.99 : 29.99;
+              items.push({
+                name: custom?.n ? `${custom.n} Custom Perfume` : `Custom Perfume (${volume})`,
+                quantity: shortItem.qty,
+                price,
+                productType: 'custom-perfume',
+                size: volume,
+                customPerfume: custom ? {
+                  name: custom.n,
+                  topNote: custom.t,
+                  heartNote: custom.h,
+                  baseNote: custom.b,
+                  specialRequests: custom.s || undefined,
+                } : undefined,
+              });
+              orderTags['has-custom-perfume'] = 'true';
+              if (custom) {
+                orderTags['custom-perfume'] = 'true';
+                orderTags['composition'] = `Top: ${custom.t || '?'}, Heart: ${custom.h || '?'}, Base: ${custom.b || '?'}`;
+                orderTags['volume'] = custom.v || volume;
+                if (custom.s) orderTags['special-requests'] = custom.s;
+              }
+              continue;
+            }
+
             const product = productMap.get(shortItem.pid);
             if (product) {
               items.push({
@@ -493,8 +566,16 @@ export async function POST(request: NextRequest) {
         items = [{
           name: `Custom Perfume: ${metadata.perfumeName || 'Unnamed'}`,
           quantity: 1,
-          price: volume === '100ml' ? 199.00 : 29.99,
+          price: volume === '100ml' ? 49.99 : 29.99,
           productType: 'custom-perfume',
+          size: volume,
+          customPerfume: {
+            name: metadata.perfumeName || 'Unnamed',
+            topNote: metadata.topNote || 'Unknown',
+            heartNote: metadata.heartNote || 'Unknown',
+            baseNote: metadata.baseNote || 'Unknown',
+            specialRequests: metadata.specialRequests || undefined,
+          },
         }];
         orderTags['custom-perfume'] = 'true';
         orderTags['composition'] = `Top: ${metadata.topNote || '?'}, Heart: ${metadata.heartNote || '?'}, Base: ${metadata.baseNote || '?'}`;
@@ -515,6 +596,18 @@ export async function POST(request: NextRequest) {
             postal_code: shippingDetails.address.postal_code ?? undefined,
             country: shippingDetails.address.country ?? undefined,
           } : undefined,
+        };
+      }
+
+      const acsCheckpointCode = readCheckoutCustomField(session, 'acscheckpoint');
+      const acsCheckpoint = formatAcsCheckpoint(acsCheckpointCode);
+      if (acsCheckpoint) {
+        orderTags['acs-checkpoint'] = acsCheckpoint;
+        if (acsCheckpointCode) orderTags['acs-checkpoint-code'] = acsCheckpointCode;
+        shippingAddress = {
+          ...(shippingAddress ?? {}),
+          acs_checkpoint: acsCheckpoint,
+          ...(acsCheckpointCode ? { acs_checkpoint_code: acsCheckpointCode } : {}),
         };
       }
 

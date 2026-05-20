@@ -8,6 +8,7 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { getProductTypeLabel, SHIPPING_COUNTRIES, FREE_SHIPPING_THRESHOLD, DELIVERY_FEE } from '@/lib/constants';
 import { getStripe } from '@/lib/stripe';
 import { cartItemSchema, validateCartPrices } from '@/lib/validation/cart';
+import { ACS_CHECKPOINT_OPTIONS } from '@/lib/acs-checkpoints';
 
 export const maxDuration = 10;
 
@@ -16,6 +17,19 @@ const checkoutSchema = z.object({
 });
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+function compactCustomPerfume(item: z.infer<typeof cartItemSchema>) {
+  if (!item.customPerfume) return null;
+  return {
+    vid: item.variantId,
+    n: item.customPerfume.name,
+    t: item.customPerfume.topNote,
+    h: item.customPerfume.heartNote,
+    b: item.customPerfume.baseNote,
+    s: (item.customPerfume.specialRequests || '').slice(0, 220),
+    v: item.size,
+  };
+}
 
 export async function POST(request: NextRequest) {
   // Check rate limit
@@ -48,7 +62,14 @@ export async function POST(request: NextRequest) {
 
     // Create line items for Stripe
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = verifiedItems.map((item) => {
-      const description = `${getProductTypeLabel(item.productType || 'perfume')} - ${item.size || ''}`;
+      const description = item.customPerfume
+        ? [
+            `Custom Perfume - ${item.size}`,
+            `Top: ${item.customPerfume.topNote}`,
+            `Heart: ${item.customPerfume.heartNote}`,
+            `Base: ${item.customPerfume.baseNote}`,
+          ].join(' | ')
+        : `${getProductTypeLabel(item.productType || 'perfume')} - ${item.size || ''}`;
 
       return {
         price_data: {
@@ -68,6 +89,20 @@ export async function POST(request: NextRequest) {
     const subtotal = verifiedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const shippingAmount = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : toCents(DELIVERY_FEE);
 
+    const metadata: Stripe.MetadataParam = {
+      itemCount: verifiedItems.length.toString(),
+      items: JSON.stringify(verifiedItems.map(i => ({
+        pid: i.productId,
+        vid: i.variantId,
+        qty: i.quantity,
+      }))),
+    };
+
+    verifiedItems.forEach((item, index) => {
+      const custom = compactCustomPerfume(item);
+      if (custom) metadata[`custom_${index}`] = JSON.stringify(custom);
+    });
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -78,6 +113,25 @@ export async function POST(request: NextRequest) {
         allowed_countries: [...SHIPPING_COUNTRIES],
       },
       phone_number_collection: { enabled: true },
+      custom_fields: [
+        {
+          key: 'acscheckpoint',
+          label: { type: 'custom', custom: 'ACS checkpoint' },
+          type: 'dropdown',
+          optional: false,
+          dropdown: {
+            options: ACS_CHECKPOINT_OPTIONS.map((checkpoint) => ({
+              label: checkpoint.label,
+              value: checkpoint.value,
+            })),
+          },
+        },
+      ],
+      custom_text: {
+        shipping_address: {
+          message: 'Choose the ACS checkpoint where this order should be delivered for pickup.',
+        },
+      },
       shipping_options: [
         {
           shipping_rate_data: {
@@ -103,14 +157,7 @@ export async function POST(request: NextRequest) {
       // Store minimal metadata (Stripe 500-char limit per key)
       // pid=productId, vid=variantId, qty=quantity
       // Webhook reconstructs full data from these identifiers
-      metadata: {
-        itemCount: verifiedItems.length.toString(),
-        items: JSON.stringify(verifiedItems.map(i => ({
-          pid: i.productId,
-          vid: i.variantId,
-          qty: i.quantity,
-        }))),
-      },
+      metadata,
     });
 
     return NextResponse.json({

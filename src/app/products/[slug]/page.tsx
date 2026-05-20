@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, PackageCheck } from 'lucide-react';
 import {
   getAllProductSlugs,
   getProductBySlug,
@@ -18,6 +18,7 @@ import ProductActions from '@/components/storefront/ProductActions';
 import { ProductViewTracker } from '@/components/products/ProductViewTracker';
 import { formatPrice } from '@/lib/currency';
 import type { Product } from '@/lib/supabase/types';
+import { stripProductDescription } from '@/lib/product-description';
 
 export const revalidate = 3600;
 
@@ -93,9 +94,11 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   // server-side so the helper's dev-time assertion never fires from real data.
   const safeName = product.name.length > 65 ? `${product.name.slice(0, 62)}...` : product.name;
 
+  const plainDescription = stripProductDescription(product.description);
+
   return buildPageMetadata({
     title: safeName,
-    description: product.description,
+    description: plainDescription,
     path: `/products/${slug}`,
     ogImage: product.image || '/og/default.jpg',
   });
@@ -118,13 +121,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const inStock = product.in_stock ?? true;
   const displayPrice = getDisplayPrice(product);
   const notes = splitNotes(product);
+  const plainDescription = stripProductDescription(product.description, 260);
 
   // JSON-LD structured data for SEO
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
-    description: product.description,
+    description: plainDescription,
     image: [product.image, ...productImages],
     brand: product.brand ? {
       '@type': 'Brand',
@@ -187,6 +191,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       <main className="min-h-screen bg-bg pb-24 pt-24 text-fg md:pb-0 md:pt-28 lg:pt-32">
         <article>
+          <div className="mx-auto max-w-[var(--container-full)]">
           <div className="px-[var(--page-px)]">
             <nav className="mb-8" aria-label="Breadcrumb">
               <Link
@@ -199,12 +204,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </nav>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] lg:gap-16">
-            <div className="min-w-0 px-[var(--page-px)] lg:pr-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12">
+            <div className="min-w-0 px-[var(--page-px)]">
               <ProductGallery images={buildImageList(product)} productName={product.name} />
             </div>
 
-            <aside className="flex min-w-0 flex-col gap-8 px-[var(--page-px)] py-12 lg:sticky lg:top-28 lg:self-start lg:py-0">
+            <aside className="flex min-w-0 flex-col gap-6 px-[var(--page-px)] py-10 lg:sticky lg:top-28 lg:self-start lg:py-0">
               <header>
                 {product.brand && (
                   <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
@@ -229,42 +234,24 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </div>
               </header>
 
-              <SocialProof ordersCount={ordersCount} />
-
-              <div className="border-y border-border py-6">
-                <ProductActions product={product} price={displayPrice} />
-                <p className="mt-4 font-body text-[length:var(--font-size-body-sm)] text-fg-muted">
-                  {inStock ? 'Prepared from the Nicosia desk.' : 'This bottle is resting before the next release.'}
-                </p>
-              </div>
-
-              <TrustBar />
-
-              <div className="grid gap-3 border-t border-border pt-6">
-                <Link
-                  href="/contact"
-                  className="relative inline-flex min-h-11 w-full select-none items-center justify-center gap-2 whitespace-nowrap border border-border bg-bg-alt px-6 py-3 font-micro text-[12px] font-medium uppercase tracking-[0.05em] text-fg transition-all duration-150 ease-[cubic-bezier(0.25,1,0.5,1)] hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg active:translate-y-px"
-                >
-                  Order a 2ml sample
-                </Link>
-              </div>
-
-              <aside className="border-t border-border pt-6">
-                <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
-                  Build your own
-                </p>
-                <h2 className="mt-2 font-display text-[length:var(--font-h3)] leading-tight text-fg">
-                  Or make one. Three layers, four hours.
-                </h2>
-                <Link
-                  href="/create-perfume"
-                  className="group mt-4 inline-flex font-body text-[length:var(--font-size-body)] text-fg transition-colors duration-[var(--duration-fast)] hover:text-accent-deep"
-                >
-                  <span className="relative after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:bg-current after:transition-transform after:duration-[var(--duration-fast)] after:ease-[var(--ease-out-quart)] group-hover:after:translate-y-0.5">
-                    Open the builder
+              <div className="border-y border-border-dark bg-bg-alt/60 py-5">
+                <div className="flex items-center justify-between gap-4 border-b border-border px-0 pb-5">
+                  <SocialProof ordersCount={ordersCount} />
+                  <span className="hidden font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-fg-muted sm:inline">
+                    {inStock ? 'Ready to pack' : 'Resting'}
                   </span>
-                </Link>
-              </aside>
+                </div>
+                <div className="pt-5">
+                  <ProductActions product={product} price={displayPrice} />
+                  <p className="mt-4 flex items-center gap-2 font-body text-[length:var(--font-size-body-sm)] text-fg-muted">
+                    <PackageCheck aria-hidden className="h-4 w-4 text-accent-deep" strokeWidth={1.5} />
+                    {inStock ? 'Prepared from the Nicosia desk.' : 'This bottle is resting before the next release.'}
+                  </p>
+                </div>
+              </div>
+
+              <TrustBar variant="panel" />
+
             </aside>
           </div>
 
@@ -273,10 +260,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
             heartNotes={notes.heartNotes}
             baseNotes={notes.baseNotes}
             fragranceFamily={getFragranceFamily(product)}
-            description={product.description}
+            description={plainDescription}
           />
 
           <RelatedCarousel products={relatedProducts} />
+          </div>
         </article>
       </main>
     </>

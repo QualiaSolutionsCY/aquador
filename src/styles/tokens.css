@@ -22,16 +22,21 @@
   --color-ink-rich: oklch(0.10 0.015 80);
 
   /* Bone — surface (warm off-white, paper-like) */
-  --color-bone: oklch(0.97 0.008 80);
+  --color-bone: oklch(0.975 0.005 84);
   --color-bone-soft: oklch(0.94 0.012 80);
   --color-parchment: oklch(0.91 0.024 78);
 
-  /* Aged gold — signature accent (restrained; never neon) */
+  /* Aged gold — signature accent (quiet atelier pivot 2026-05-18: darker, more committed signature stamp) */
   --color-gold: oklch(0.72 0.135 82);
   --color-gold-soft: oklch(0.82 0.090 82);
-  --color-gold-deep: oklch(0.58 0.130 78);
+  --color-gold-deep: oklch(0.48 0.155 78);
 
-  /* Oxblood — editorial accent, used SPARINGLY */
+  /* Sepia ink — quiet atelier pivot 2026-05-18: desaturated toward editorial
+     ink (chroma pulled back from letterpress-warm to Vogue-masthead clean)
+     so body copy reads as premium editorial, not handwritten parchment. */
+  --color-sepia: oklch(0.18 0.022 78);
+
+  /* Oxblood — promoted to working editorial accent (atelier-ledger pivot) */
   --color-oxblood: oklch(0.40 0.140 25);
   --color-oxblood-soft: oklch(0.55 0.110 25);
 
@@ -56,7 +61,7 @@
   /* Semantic roles — components reference these, never raw colors */
   --bg: var(--color-bone);
   --bg-alt: var(--color-parchment);
-  --fg: var(--color-ink);
+  --fg: var(--color-sepia);
   --fg-muted: var(--color-neutral-500);
   --accent: var(--color-gold);
   --accent-deep: var(--color-gold-deep);
@@ -64,7 +69,8 @@
   --success: var(--color-success);
   --warning: var(--color-warning);
   --border: var(--color-neutral-200);
-  --border-strong: var(--color-neutral-300);
+  --border-strong: var(--color-neutral-400);
+  --border-dark: var(--color-neutral-700);
 
   /* Scrim — Drawer / Dialog overlay (§5). The one allowed deviation from
      tinted neutrals: scrims read better when truly neutral at 50% alpha. */
@@ -154,9 +160,9 @@
   --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
 
   --duration-fast: 150ms;
-  --duration-base: 250ms;
-  --duration-slow: 400ms;
-  --duration-slowest: 700ms;
+  --duration-base: 240ms;
+  --duration-slow: 380ms;
+  --duration-slowest: 760ms;
 
   /* ------------------------------------------------------------------ */
   /* §10. RADIUS — capped at 16px (editorial, not fintech-rounded)      */
@@ -177,7 +183,8 @@
   --fg: var(--color-bone);
   --fg-muted: var(--color-neutral-400);
   --border: var(--color-neutral-700);
-  --border-strong: var(--color-neutral-600);
+  --border-strong: var(--color-neutral-500);
+  --border-dark: var(--color-neutral-300);
 }
 
 /* ==========================================================================

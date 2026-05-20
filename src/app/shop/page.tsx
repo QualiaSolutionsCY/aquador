@@ -37,7 +37,7 @@ export default async function ShopPage() {
 
   return (
     <main className="pt-32 md:pt-40 lg:pt-44 pb-20 bg-bg min-h-screen">
-      <header className="border-b border-border pb-12 mb-2 px-[var(--page-px)]">
+      <header className="border-b border-border-dark pb-12 mb-2 px-[var(--page-px)]">
         <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted">
           The Collection
         </p>

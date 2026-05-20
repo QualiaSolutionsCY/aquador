@@ -38,7 +38,7 @@ export default async function LattafaPage() {
   if (products.length === 0) {
     return (
       <main className="pt-32 md:pt-40 lg:pt-44 pb-20 bg-bg min-h-screen">
-        <header className="border-b border-border pb-12 mb-12 px-[var(--page-px)]">
+        <header className="border-b border-border-dark pb-12 mb-12 px-[var(--page-px)]">
           <p className="font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted">
             Shop / Lattafa Originals
           </p>
@@ -62,7 +62,7 @@ export default async function LattafaPage() {
 
   return (
     <main className="pt-32 md:pt-40 lg:pt-44 pb-20 bg-bg min-h-screen">
-      <header className="border-b border-border pb-12 mb-2 px-[var(--page-px)]">
+      <header className="border-b border-border-dark pb-12 mb-2 px-[var(--page-px)]">
         <p className="font-micro uppercase tracking-[0.08em] text-[length:var(--font-size-micro)] text-fg-muted">
           The Collection / Lattafa
         </p>

@@ -2,6 +2,19 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
+import type { ComponentType } from 'react';
+import {
+  BookOpen,
+  CreditCard,
+  HelpCircle,
+  Home,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Phone,
+  ShoppingBag,
+} from 'lucide-react';
 
 /**
  * Editorial 3-section footer.
@@ -52,13 +65,24 @@ const linkClass =
 const linkUnderline =
   'relative after:absolute after:left-0 after:-bottom-0.5 after:h-px after:w-full after:bg-current after:origin-left after:scale-x-0 after:transition-transform after:duration-[var(--duration-fast)] after:ease-[var(--ease-out-quart)] group-hover:after:scale-x-100';
 
-function ColumnHeader({ marker, label }: { marker: string; label: string }) {
+function ColumnHeader({
+  marker,
+  label,
+  icon: Icon,
+}: {
+  marker: string;
+  label: string;
+  icon: ComponentType<{ className?: string; strokeWidth?: number; 'aria-hidden'?: true }>;
+}) {
   return (
     <div>
-      <p className="font-micro uppercase tracking-[0.18em] text-[length:var(--font-size-micro)] text-fg-muted">
-        {marker} / {label}
-      </p>
-      <span aria-hidden="true" className="mt-4 block h-px w-8 bg-border-strong" />
+      <div className="flex items-center gap-3">
+        <Icon aria-hidden className="h-4 w-4 text-accent-deep" strokeWidth={1.5} />
+        <p className="font-micro uppercase tracking-[0.18em] text-[length:var(--font-size-micro)] text-fg-muted">
+          {marker} / {label}
+        </p>
+      </div>
+      <span aria-hidden="true" className="mt-4 block h-px w-full max-w-24 bg-border-strong" />
     </div>
   );
 }
@@ -82,43 +106,70 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const pathname = usePathname();
+  const visibleShopLinks = pathname.startsWith('/products/')
+    ? shopLinks.filter((link) => link.href !== '/create-perfume')
+    : shopLinks;
 
   return (
     <footer className="bg-bg-alt border-t border-border">
-      <div className="mx-auto max-w-[var(--container-wide)] px-[var(--page-px)] py-16 md:py-20 lg:py-24">
+      <div className="w-full px-[var(--page-px)] py-16 md:py-20 lg:py-24">
 
         {/* Section A: masthead */}
-        <section className="flex flex-col items-center text-center">
-          <Link href="/" className="inline-block" aria-label="Aquad'or, home">
-            <Image
-              src="/aquador.webp"
-              alt="Aquad'or"
-              width={480}
-              height={144}
-              priority={false}
-              className="h-20 md:h-24 lg:h-28 w-auto object-contain"
-            />
-          </Link>
+        <section className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(18rem,0.85fr)_minmax(0,1.15fr)] lg:items-end">
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <Link href="/" className="inline-block" aria-label="Aquad'or, home">
+              <Image
+                src="/aquador.webp"
+                alt="Aquad'or"
+                width={480}
+                height={144}
+                priority={false}
+                className="h-20 md:h-24 lg:h-28 w-auto object-contain"
+              />
+            </Link>
 
-          <span aria-hidden="true" className="mt-8 block h-px w-12 bg-accent" />
+            <span aria-hidden="true" className="mt-8 block h-px w-12 bg-accent" />
 
-          <p className="mt-6 font-display italic text-[length:var(--font-size-h3)] text-fg leading-snug">
-            Perfume, curated in Nicosia.
-          </p>
+            <p className="mt-6 font-display italic text-[length:var(--font-size-h3)] text-fg leading-snug">
+              Perfume, curated in Nicosia.
+            </p>
 
-          <p className="mt-4 font-micro uppercase tracking-[0.18em] text-[length:var(--font-size-micro)] text-fg-muted">
-            Ledra 145, Nicosia · CY
-          </p>
+            <p className="mt-4 inline-flex items-center gap-2 font-micro uppercase tracking-[0.18em] text-[length:var(--font-size-micro)] text-fg-muted">
+              <MapPin aria-hidden className="h-3.5 w-3.5 text-accent-deep" strokeWidth={1.5} />
+              Ledra 145, Nicosia · CY
+            </p>
+          </div>
+
+          <div className="border-y border-border py-6 lg:border-l lg:border-y-0 lg:py-0 lg:pl-10">
+            <p className="max-w-[52rem] font-display text-[length:var(--font-display-xl)] leading-[1.08] tracking-[-0.01em] text-fg">
+              A catalogue, a desk, and a handwritten note in the parcel.
+            </p>
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {[
+                { icon: ShoppingBag, label: 'Original bottles' },
+                { icon: MessageCircle, label: 'Concierge replies' },
+                { icon: CreditCard, label: 'Secure checkout' },
+              ].map(({ icon: Icon, label }) => (
+                <div key={label} className="flex items-center gap-3 border-t border-border pt-4">
+                  <Icon aria-hidden className="h-4 w-4 text-accent-deep" strokeWidth={1.5} />
+                  <span className="font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-fg-muted">
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
         {/* Section B: link columns */}
-        <section className="mt-16 md:mt-20 lg:mt-24 border-t border-border pt-12 md:pt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12">
+        <section className="mt-16 md:mt-20 lg:mt-24 border-t border-border pt-12 md:pt-16 grid grid-cols-1 gap-x-12 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
 
           {/* 01 / Shop */}
           <div className="flex flex-col">
-            <ColumnHeader marker="01" label="Shop" />
+            <ColumnHeader marker="01" label="Shop" icon={ShoppingBag} />
             <ul className="mt-6 space-y-4">
-              {shopLinks.map((link) => (
+              {visibleShopLinks.map((link) => (
                 <li key={link.href}>
                   <FooterLink href={link.href}>{link.label}</FooterLink>
                 </li>
@@ -128,7 +179,7 @@ export default function Footer() {
 
           {/* 02 / House */}
           <div className="flex flex-col">
-            <ColumnHeader marker="02" label="House" />
+            <ColumnHeader marker="02" label="House" icon={Home} />
             <ul className="mt-6 space-y-4">
               {houseLinks.map((link) => (
                 <li key={link.href}>
@@ -140,7 +191,7 @@ export default function Footer() {
 
           {/* 03 / Help */}
           <div className="flex flex-col">
-            <ColumnHeader marker="03" label="Help" />
+            <ColumnHeader marker="03" label="Help" icon={HelpCircle} />
             <ul className="mt-6 space-y-4">
               {helpLinks.map((link) => (
                 <li key={link.href}>
@@ -152,16 +203,25 @@ export default function Footer() {
 
           {/* 04 / Connect */}
           <div className="flex flex-col">
-            <ColumnHeader marker="04" label="Connect" />
+            <ColumnHeader marker="04" label="Connect" icon={BookOpen} />
             <ul className="mt-6 space-y-4">
               <li>
-                <FooterLink href="mailto:info@aquadorcy.com">info@aquadorcy.com</FooterLink>
+                <span className="flex items-center gap-3">
+                  <Mail aria-hidden className="h-4 w-4 text-accent-deep" strokeWidth={1.5} />
+                  <FooterLink href="mailto:info@aquadorcy.com">info@aquadorcy.com</FooterLink>
+                </span>
               </li>
               <li>
-                <FooterLink href="tel:+35799980809">+357 99 980809</FooterLink>
+                <span className="flex items-center gap-3">
+                  <Phone aria-hidden className="h-4 w-4 text-accent-deep" strokeWidth={1.5} />
+                  <FooterLink href="tel:+35799980809">+357 99 980809</FooterLink>
+                </span>
               </li>
               <li>
-                <FooterLink href="https://wa.me/35799980809">WhatsApp</FooterLink>
+                <span className="flex items-center gap-3">
+                  <MessageCircle aria-hidden className="h-4 w-4 text-accent-deep" strokeWidth={1.5} />
+                  <FooterLink href="https://wa.me/35799980809">WhatsApp</FooterLink>
+                </span>
               </li>
               <li className="font-body text-[length:var(--font-size-body)] text-fg-muted">
                 Mon to Sat, 10:00 to 20:00
@@ -173,10 +233,23 @@ export default function Footer() {
         {/* Section C: bottom bar */}
         <section className="mt-16 md:mt-20 border-t border-border pt-8 flex flex-col md:flex-row md:items-baseline md:justify-between gap-6 md:gap-8">
 
-          {/* Left, copyright */}
-          <p className="font-micro uppercase tracking-[0.1em] text-[length:var(--font-size-micro)] text-fg-muted text-center md:text-left">
-            © {year} Aquad&apos;or. All rights reserved.
-          </p>
+          {/* Left, copyright + powered by */}
+          <div className="text-center md:text-left">
+            <p className="font-micro uppercase tracking-[0.1em] text-[length:var(--font-size-micro)] text-fg-muted">
+              © {year} Aquad&apos;or. All rights reserved.
+            </p>
+            <p className="mt-2 font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-fg-muted">
+              Powered by{' '}
+              <a
+                href="https://qualiasolutions.cy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-fg transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-quart)] hover:text-accent-deep"
+              >
+                Qualia Solutions
+              </a>
+            </p>
+          </div>
 
           {/* Center, legal links */}
           <nav

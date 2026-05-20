@@ -37,9 +37,6 @@ const navLinks = [
   { label: 'Contact', href: '/contact' },
 ];
 
-const leftLinks = navLinks.slice(0, 3);
-const rightLinks = navLinks.slice(3);
-
 export default function Navbar() {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -57,6 +54,12 @@ export default function Navbar() {
   // scrolled past ~85% of the viewport (the pill nav has scrolled out of
   // sight by then). On every other route the navbar behaves as before.
   const isHome = pathname === '/';
+  const isProductPage = pathname.startsWith('/products/');
+  const visibleNavLinks = isProductPage
+    ? navLinks.filter((link) => link.href !== '/create-perfume')
+    : navLinks;
+  const leftLinks = visibleNavLinks.slice(0, 3);
+  const rightLinks = visibleNavLinks.slice(3);
   const hideOverHero =
     isHome && viewportH > 0 && scrollY < viewportH * 0.85;
 
@@ -116,12 +119,12 @@ export default function Navbar() {
         style={{ pointerEvents: hideOverHero ? 'none' : undefined }}
         className={`fixed left-0 right-0 top-0 z-50 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300 border-b ${
           isScrolled
-            ? 'bg-bg/95 backdrop-blur-md border-border shadow-1'
+            ? 'bg-bg/95 backdrop-blur-md border-border-dark shadow-1'
             : 'bg-transparent backdrop-blur-0 border-transparent'
         }`}
       >
         <nav className="px-[var(--page-px)]">
-          <div className="relative flex items-center justify-between h-20 md:h-24 lg:h-28">
+          <div className="relative flex items-center justify-between h-14 md:h-16 lg:h-[72px]">
             {/* Left: Hamburger (mobile) + Left nav links (desktop) */}
             <div className="flex items-center h-full">
               <button
@@ -167,11 +170,11 @@ export default function Navbar() {
               aria-label="Aquad'or home"
             >
               <Image
-                src="/aquador.webp"
+                src="/aquador-tight.webp"
                 alt="Aquad'or"
-                width={520}
-                height={160}
-                className="h-16 md:h-20 lg:h-24 w-auto object-contain"
+                width={220}
+                height={215}
+                className="h-12 md:h-14 lg:h-16 w-auto object-contain"
                 priority
               />
             </Link>
@@ -275,7 +278,7 @@ export default function Navbar() {
 
               <nav className="flex-1">
                 <ul className="space-y-0">
-                  {navLinks.map((link, i) => (
+                  {visibleNavLinks.map((link, i) => (
                     <motion.li
                       key={link.label}
                       initial={{ opacity: 0, x: -16 }}

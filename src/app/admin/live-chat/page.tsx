@@ -248,6 +248,9 @@ export default function AdminLiveChat() {
             )}
             {sessions.length === 0 && 'No active chats'}
           </p>
+          <p className="mt-2 text-xs text-gray-500">
+            Live-agent requests appear here and also email info@aquadorcy.com.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button

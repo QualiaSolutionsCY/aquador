@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { CartItem } from '@/types/cart';
 import { getProductsByIds } from '@/lib/supabase/product-service';
 import { MIN_QUANTITY, MAX_QUANTITY } from '@/lib/constants';
+import { isDisallowedSampleSize } from '@/lib/product-description';
 
 // Aquador's own categories sell the same fragrance in multiple formats
 // with fixed pricing that's not stored per-variant in the DB.
@@ -25,7 +26,7 @@ export const cartItemSchema = z.object({
   variantId: z.string()
     .min(1, 'Variant ID is required')
     .regex(
-      /^[a-z0-9-]+-(?:perfume|essence-oil|body-lotion)-(?:10ml|50ml|100ml|150ml)$/,
+      /^(?:[a-z0-9-]+-(?:perfume|essence-oil|body-lotion)-(?:10ml|50ml|100ml|150ml)|custom-[a-z0-9-]+-perfume-(?:50ml|100ml))$/,
       'Variant ID must match pattern {productId}-{productType}-{size}'
     ),
   quantity: z.number()
@@ -43,6 +44,13 @@ export const cartItemSchema = z.object({
   productType: z.enum(['perfume', 'essence-oil', 'body-lotion'] as const, {
     message: 'Invalid product type',
   }),
+  customPerfume: z.object({
+    name: z.string().min(1).max(120),
+    topNote: z.string().min(1).max(80),
+    heartNote: z.string().min(1).max(80),
+    baseNote: z.string().min(1).max(80),
+    specialRequests: z.string().max(500).optional(),
+  }).optional(),
 });
 
 /**
@@ -67,6 +75,27 @@ export async function validateCartPrices(items: CartItem[]): Promise<{
   const correctedItems: CartItem[] = [];
 
   for (const item of items) {
+    if (isDisallowedSampleSize(item.size)) {
+      errors.push({
+        productId: item.productId,
+        reason: '2ml samples are no longer available',
+      });
+      continue;
+    }
+
+    if (item.productId === 'custom-perfume') {
+      if (!item.customPerfume) {
+        errors.push({
+          productId: item.productId,
+          reason: 'Custom perfume details are required',
+        });
+        continue;
+      }
+      const customPrice = item.size === '100ml' ? 49.99 : 29.99;
+      correctedItems.push({ ...item, price: customPrice, productType: 'perfume' });
+      continue;
+    }
+
     const product = productMap.get(item.productId);
 
     if (!product) {

@@ -33,6 +33,13 @@ interface OrderLineItem {
   brand?: string;
   size?: string;
   productType?: string;
+  customPerfume?: {
+    name: string;
+    topNote: string;
+    heartNote: string;
+    baseNote: string;
+    specialRequests?: string;
+  };
 }
 interface OrderDetailProps { order: Order; customer: Customer | null }
 
@@ -70,6 +77,26 @@ function parseItems(raw: Order['items']): OrderLineItem[] {
       brand: typeof o.brand === 'string' ? o.brand : undefined,
       size: typeof o.size === 'string' ? o.size : undefined,
       productType: typeof o.productType === 'string' ? o.productType : undefined,
+      customPerfume:
+        o.customPerfume && typeof o.customPerfume === 'object' && !Array.isArray(o.customPerfume)
+          ? {
+              name: typeof (o.customPerfume as Record<string, unknown>).name === 'string'
+                ? (o.customPerfume as Record<string, unknown>).name as string
+                : 'Custom Perfume',
+              topNote: typeof (o.customPerfume as Record<string, unknown>).topNote === 'string'
+                ? (o.customPerfume as Record<string, unknown>).topNote as string
+                : 'Not captured',
+              heartNote: typeof (o.customPerfume as Record<string, unknown>).heartNote === 'string'
+                ? (o.customPerfume as Record<string, unknown>).heartNote as string
+                : 'Not captured',
+              baseNote: typeof (o.customPerfume as Record<string, unknown>).baseNote === 'string'
+                ? (o.customPerfume as Record<string, unknown>).baseNote as string
+                : 'Not captured',
+              specialRequests: typeof (o.customPerfume as Record<string, unknown>).specialRequests === 'string'
+                ? (o.customPerfume as Record<string, unknown>).specialRequests as string
+                : undefined,
+            }
+          : undefined,
     });
   }
   return out;
@@ -85,6 +112,7 @@ function readShipping(addr: Order['shipping_address']): string[] {
   if (!addr || typeof addr !== 'object' || Array.isArray(addr)) return [];
   const o = addr as Record<string, unknown>;
   const name = typeof o.name === 'string' ? o.name : null;
+  const acsCheckpoint = typeof o.acs_checkpoint === 'string' ? `ACS checkpoint: ${o.acs_checkpoint}` : null;
   const inner = o.address && typeof o.address === 'object' && !Array.isArray(o.address)
     ? (o.address as Record<string, unknown>) : null;
   const line1 = inner && typeof inner.line1 === 'string' ? inner.line1 : null;
@@ -92,7 +120,7 @@ function readShipping(addr: Order['shipping_address']): string[] {
   const city = inner && typeof inner.city === 'string' ? inner.city : null;
   const postal = inner && typeof inner.postal_code === 'string' ? inner.postal_code : null;
   const country = inner && typeof inner.country === 'string' ? inner.country : null;
-  return [name, line1, line2, [city, postal].filter(Boolean).join(' ') || null, country].filter((s): s is string => !!s);
+  return [name, acsCheckpoint, line1, line2, [city, postal].filter(Boolean).join(' ') || null, country].filter((s): s is string => !!s);
 }
 
 export default function OrderDetail({ order, customer }: OrderDetailProps) {
@@ -105,6 +133,10 @@ export default function OrderDetail({ order, customer }: OrderDetailProps) {
   const [isPending, startTransition] = useTransition();
 
   const items = useMemo(() => parseItems(order.items), [order.items]);
+  const customItems = useMemo(
+    () => items.filter((item) => item.productType === 'custom-perfume' || item.customPerfume),
+    [items],
+  );
   const shippingLines = useMemo(() => readShipping(order.shipping_address), [order.shipping_address]);
 
   async function patchOrder(payload: { status?: OrderStatus; notes?: string }) {
@@ -250,6 +282,37 @@ export default function OrderDetail({ order, customer }: OrderDetailProps) {
           emptyText="This order has no recorded line items."
         />
       </section>
+
+      {customItems.length > 0 ? (
+        <section className="border-t border-border pt-6">
+          <h2 className={sectionHead}>Custom perfume details</h2>
+          <div className="grid gap-4">
+            {customItems.map((item, index) => (
+              <div key={`${item.name}-${index}`} className="border border-border bg-bg-alt p-4">
+                <p className="font-display text-[20px] text-fg">{item.customPerfume?.name || item.name}</p>
+                <p className="mt-1 text-[12px] text-fg-muted">{item.size || 'Bottle size not captured'}</p>
+                <dl className="mt-4 grid gap-3 text-[13px] md:grid-cols-3">
+                  <div>
+                    <dt className={microLabel}>Top</dt>
+                    <dd className="mt-1 text-fg">{item.customPerfume?.topNote || 'Not captured'}</dd>
+                  </div>
+                  <div>
+                    <dt className={microLabel}>Heart</dt>
+                    <dd className="mt-1 text-fg">{item.customPerfume?.heartNote || 'Not captured'}</dd>
+                  </div>
+                  <div>
+                    <dt className={microLabel}>Base</dt>
+                    <dd className="mt-1 text-fg">{item.customPerfume?.baseNote || 'Not captured'}</dd>
+                  </div>
+                </dl>
+                {item.customPerfume?.specialRequests ? (
+                  <p className="mt-4 text-[13px] text-fg-muted">{item.customPerfume.specialRequests}</p>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="grid gap-6 border-t border-border pt-6 md:grid-cols-2">
         <div>

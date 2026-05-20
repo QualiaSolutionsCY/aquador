@@ -248,7 +248,7 @@ export function LuxuryHeroSkeleton() {
       `}</style>
 
       <div className="relative py-16 md:py-20 overflow-hidden bg-gray-100/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+        <div className="mx-auto max-w-[var(--container-full)] px-4 text-center space-y-4 sm:px-6 lg:px-8">
           {/* Title */}
           <div
             className="h-12 w-64 rounded mx-auto"

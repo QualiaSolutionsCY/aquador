@@ -87,7 +87,7 @@ function Section({ title, count, children, defaultOpen = false }: SectionProps) 
   const headerId = `filter-section-${slug}`;
   const panelId = `${headerId}-panel`;
   return (
-    <div className="border-t border-border">
+    <div className="border-t border-border-dark">
       <button
         type="button"
         id={headerId}
@@ -246,7 +246,7 @@ export default function FilterPanel({
 
       <div className={isDrawer ? 'flex-1 overflow-y-auto' : ''}>
         {/* Keyword search — committed on Enter or blur */}
-        <div className="border-t border-border pt-4 pb-4">
+        <div className="border-t border-border-dark pt-4 pb-4">
           <label
             htmlFor="filter-search"
             className="block font-micro uppercase tracking-[0.05em] text-[length:var(--font-size-micro)] text-fg-muted pb-2"
@@ -297,7 +297,7 @@ export default function FilterPanel({
         </div>
 
         {/* In-stock toggle */}
-        <div className="flex items-center justify-between gap-4 border-t border-border py-4 min-h-[44px]">
+        <div className="flex items-center justify-between gap-4 border-t border-border-dark py-4 min-h-[44px]">
           <label
             htmlFor="filter-in-stock"
             className="flex-1 cursor-pointer text-[length:var(--font-size-body-sm)] text-fg"
@@ -465,7 +465,7 @@ export default function FilterPanel({
       </div>
 
       {isDrawer ? (
-        <div className="mt-auto flex items-center gap-3 border-t border-border pt-4">
+        <div className="mt-auto flex items-center gap-3 border-t border-border-dark pt-4">
           <button
             type="button"
             onClick={clearAll}

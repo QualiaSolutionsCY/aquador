@@ -44,6 +44,7 @@ const config: Config = {
         border: {
           DEFAULT: "var(--border)",
           strong: "var(--border-strong)",
+          dark: "var(--border-dark)",
         },
 
         // ----- v3.0 tinted neutral scale -----

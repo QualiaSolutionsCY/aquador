@@ -9,8 +9,15 @@
  * whitelist entry per image host.
  */
 
-import { useFieldArray, type Control, type UseFormRegister, type FieldErrors } from 'react-hook-form';
-import { Plus, X } from 'lucide-react';
+import {
+  useFieldArray,
+  type Control,
+  type UseFormRegister,
+  type FieldErrors,
+  type UseFormSetValue,
+  type UseFormWatch,
+} from 'react-hook-form';
+import { ArrowDown, ArrowUp, ImageIcon, Plus, Star, X } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import type { ProductFormValues } from './schema';
@@ -19,13 +26,26 @@ interface ImagesSectionProps {
   register: UseFormRegister<ProductFormValues>;
   control: Control<ProductFormValues>;
   errors: FieldErrors<ProductFormValues>;
+  setValue: UseFormSetValue<ProductFormValues>;
+  watch: UseFormWatch<ProductFormValues>;
 }
 
-export function ImagesSection({ register, control, errors }: ImagesSectionProps) {
-  const { fields, append, remove } = useFieldArray({
+export function ImagesSection({ register, control, errors, setValue, watch }: ImagesSectionProps) {
+  const primaryImage = watch('image');
+  const images = watch('images') ?? [];
+  const { fields, append, remove, move } = useFieldArray({
     control,
     name: 'images' as never,
   });
+
+  function setAdditionalAsPrimary(index: number) {
+    const nextPrimary = images[index];
+    if (!nextPrimary) return;
+    const nextImages = [...images];
+    nextImages[index] = primaryImage;
+    setValue('image', nextPrimary, { shouldDirty: true, shouldValidate: true });
+    setValue('images', nextImages.filter(Boolean), { shouldDirty: true, shouldValidate: true });
+  }
 
   return (
     <div className="space-y-6">
@@ -72,6 +92,34 @@ export function ImagesSection({ register, control, errors }: ImagesSectionProps)
                   >
                     <X className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
                   </button>
+                  <div className="mt-7 flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => move(idx, Math.max(0, idx - 1))}
+                      disabled={idx === 0}
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-border-strong text-fg-muted transition-colors hover:bg-bg-alt hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
+                      aria-label={`Move image ${idx + 1} up`}
+                    >
+                      <ArrowUp className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => move(idx, Math.min(fields.length - 1, idx + 1))}
+                      disabled={idx === fields.length - 1}
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-border-strong text-fg-muted transition-colors hover:bg-bg-alt hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
+                      aria-label={`Move image ${idx + 1} down`}
+                    >
+                      <ArrowDown className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAdditionalAsPrimary(idx)}
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-border-strong text-fg-muted transition-colors hover:bg-bg-alt hover:text-accent-deep"
+                      aria-label={`Set image ${idx + 1} as primary`}
+                    >
+                      <Star className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+                    </button>
+                  </div>
                 </li>
               );
             })}
@@ -89,6 +137,10 @@ export function ImagesSection({ register, control, errors }: ImagesSectionProps)
             Add image URL
           </Button>
         ) : null}
+        <p className="flex items-center gap-2 font-body text-[12px] text-fg-muted">
+          <ImageIcon className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
+          Use the star to make an additional image the storefront hero image.
+        </p>
       </div>
     </div>
   );

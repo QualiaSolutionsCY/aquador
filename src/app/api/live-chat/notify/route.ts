@@ -11,7 +11,7 @@ const WHATSAPP_NOTIFY_TO = process.env.WHATSAPP_NOTIFY_TO;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://aquadorcy.com';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const CONTACT_EMAIL_TO = process.env.CONTACT_EMAIL_TO || 'info@aquadorcy.com';
+const CONTACT_EMAIL_TO = 'info@aquadorcy.com';
 
 async function sendWhatsApp(sessionId: string): Promise<boolean> {
   if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID || !WHATSAPP_NOTIFY_TO) {
@@ -50,7 +50,7 @@ async function sendWhatsApp(sessionId: string): Promise<boolean> {
   return true;
 }
 
-async function sendEmailFallback(sessionId: string): Promise<boolean> {
+async function sendEmailNotification(sessionId: string): Promise<boolean> {
   if (!RESEND_API_KEY) return false;
 
   const chatLink = `${APP_URL}/admin/live-chat`;
@@ -106,13 +106,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 400 });
     }
 
-    const whatsappSent = await sendWhatsApp(sessionId);
+    const [whatsappSent, emailSent] = await Promise.all([
+      sendWhatsApp(sessionId),
+      sendEmailNotification(sessionId),
+    ]);
 
-    if (!whatsappSent) {
-      await sendEmailFallback(sessionId);
-    }
-
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, whatsappSent, emailSent });
   } catch (error) {
     Sentry.captureException(error);
     return NextResponse.json({ error: 'Notification failed' }, { status: 500 });

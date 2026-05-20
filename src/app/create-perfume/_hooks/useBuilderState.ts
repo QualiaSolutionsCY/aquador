@@ -48,8 +48,8 @@ type BuilderAction =
   | { type: 'SET_VOLUME'; volume: PerfumeVolume }
   | { type: 'RESET' };
 
-export const LAYER_MIN: Record<Layer, number> = { top: 2, heart: 3, base: 2 };
-export const LAYER_MAX: Record<Layer, number> = { top: 3, heart: 5, base: 2 };
+export const LAYER_MIN: Record<Layer, number> = { top: 1, heart: 1, base: 1 };
+export const LAYER_MAX: Record<Layer, number> = { top: 1, heart: 1, base: 1 };
 
 const INITIAL: BuilderState = {
   step: 1,
@@ -73,7 +73,19 @@ function reducer(state: BuilderState, action: BuilderAction): BuilderState {
           },
         };
       }
-      if (current.length >= LAYER_MAX[action.layer]) return state;
+      if (current.length >= LAYER_MAX[action.layer]) {
+        // Single-select layer: swap the selection. Multi-select: no-op.
+        if (LAYER_MAX[action.layer] === 1) {
+          return {
+            ...state,
+            selections: {
+              ...state.selections,
+              [action.layer]: [action.note],
+            },
+          };
+        }
+        return state;
+      }
       return {
         ...state,
         selections: {

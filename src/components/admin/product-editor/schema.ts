@@ -50,7 +50,9 @@ export const productFormSchema = z.object({
   ]),
   product_type: z.enum(['perfume', 'essence-oil', 'body-lotion']),
   gender: z.union([z.enum(['women', 'men', 'unisex']), z.literal('')]),
-  size: z.string().min(1, 'Size is required'),
+  size: z.string().min(1, 'Size is required').refine((value) => value.trim().toLowerCase() !== '2ml', {
+    message: '2ml samples are no longer available',
+  }),
 
   price: z
     .number({ error: 'Price must be a number' })

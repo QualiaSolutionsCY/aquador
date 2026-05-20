@@ -13,7 +13,7 @@ import FadeUp from './FadeUp';
 
 export default function NotesStory() {
   return (
-    <section className="border-t border-border py-16 md:py-24 px-[var(--page-px)]">
+    <section className="border-t border-border-dark py-16 md:py-24 px-[var(--page-px)]">
       <div className="max-w-[var(--container-narrow)]">
         <FadeUp>
           <span aria-hidden="true" className="block h-px w-12 bg-border-strong" />

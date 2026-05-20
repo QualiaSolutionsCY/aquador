@@ -59,7 +59,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         ref={triggerRef}
         type="button"
         aria-label={`Open ${productName} gallery`}
-        className="group relative block aspect-[3/4] w-full overflow-hidden border border-border bg-bg-alt text-left lg:min-h-[800px]"
+        className="group relative mx-auto block aspect-[4/5] w-full max-w-[460px] overflow-hidden border border-border-dark bg-bg-alt text-left lg:max-w-[520px]"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
         onClick={() => setLightboxIndex(visibleIndex)}
@@ -140,7 +140,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                   aria-label={`Show image ${index + 1}`}
                   aria-current={index === activeIndex}
                   onClick={() => setLightboxIndex(index)}
-                  className="relative h-20 w-16 shrink-0 border border-border bg-bg-alt transition-opacity duration-[var(--duration-fast)] hover:opacity-80 aria-current:border-accent"
+                  className="relative h-20 w-16 shrink-0 border border-border-dark bg-bg-alt transition-opacity duration-[var(--duration-fast)] hover:opacity-80 aria-current:border-accent"
                 >
                   <Image
                     src={image.src}

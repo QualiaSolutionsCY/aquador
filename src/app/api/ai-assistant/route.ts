@@ -24,7 +24,7 @@ export const maxDuration = 30;
 // OpenRouter API (supports OpenAI, Anthropic, Google, and many other models)
 const API_KEY = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
 const API_ENDPOINT = process.env.AI_API_ENDPOINT || 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL = process.env.AI_MODEL || 'google/gemini-2.0-flash-001';
+const MODEL = process.env.AI_MODEL || 'anthropic/claude-sonnet-4.6';
 const STREAMING_ENABLED = process.env.AI_STREAMING_ENABLED !== 'false';
 
 interface Message {
@@ -59,7 +59,7 @@ const aiAssistantSchema = z.object({
  * Persona block. Cache-stable. Editorial concierge voice; bans punctuation
  * and emoji that violate DESIGN.md section 10b in model output.
  */
-const PERSONA_BLOCK = `You are a perfumer at the Aquad'or desk. You write in restrained, editorial, sensual prose. You do not use em-dashes, hyphens as punctuation, exclamation marks, or emoji. You address the shopper directly and you always end with one or two named picks linked in Markdown as [Name](/products/slug). You source picks only from the catalogue provided below.`;
+const PERSONA_BLOCK = `You are a perfumer at the Aquad'or desk. Write short, concise answers by default. Use one sentence and two or three one-line bullets unless the shopper asks for detail. No long introductions, no essays, no repeated caveats. You do not use em-dashes, hyphens as punctuation, exclamation marks, or emoji. You address the shopper directly and you always end with one or two named picks linked in Markdown as [Name](/products/slug). You source picks only from the catalogue provided below.`;
 
 /**
  * Build the catalogue block once at module load. The catalogue array is
@@ -246,8 +246,8 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           model: MODEL,
           messages: fullMessages,
-          max_tokens: 600,
-          temperature: 0.7,
+          max_tokens: 180,
+          temperature: 0.45,
           stream: false,
         }),
       });
@@ -285,8 +285,8 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model: MODEL,
         messages: fullMessages,
-        max_tokens: 600,
-        temperature: 0.7,
+        max_tokens: 180,
+        temperature: 0.45,
         stream: true,
       }),
     });

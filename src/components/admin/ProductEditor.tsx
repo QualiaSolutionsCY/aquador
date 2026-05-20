@@ -130,7 +130,13 @@ export default function ProductEditor({ product, mode }: ProductEditorProps) {
         <DescriptionSection register={register} errors={errors} />
       </EditorSection>
       <EditorSection title="Images" caption="Paste hosted image URLs. Drag-and-drop upload arrives in M4.">
-        <ImagesSection register={register} control={control} errors={errors} />
+        <ImagesSection
+          register={register}
+          control={control}
+          errors={errors}
+          setValue={setValue}
+          watch={watch}
+        />
       </EditorSection>
       <EditorSection title="Tags" caption="Surfaced in shop filters and the recommendation engine.">
         <TagsSection control={control} setValue={setValue} watch={watch} errors={errors} />

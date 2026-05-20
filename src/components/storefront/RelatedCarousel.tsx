@@ -23,7 +23,7 @@ export function RelatedCarousel({ products }: RelatedCarouselProps) {
   return (
     <section
       aria-labelledby="related-heading"
-      className="border-t border-border px-[var(--page-px)] py-16 md:py-24"
+      className="border-t border-border-dark px-[var(--page-px)] py-16 md:py-24"
     >
       <h2
         id="related-heading"

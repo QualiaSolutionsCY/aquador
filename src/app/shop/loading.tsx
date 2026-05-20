@@ -13,7 +13,7 @@ import ShopGridFallback from '@/components/storefront/ShopGridFallback';
 export default function ShopLoading() {
   return (
     <main className="pt-32 md:pt-40 lg:pt-44 pb-20 bg-bg min-h-screen">
-      <header className="border-b border-border pb-12 mb-12 px-[var(--page-px)]">
+      <header className="border-b border-border-dark pb-12 mb-12 px-[var(--page-px)]">
         <Skeleton variant="text" className="h-4 w-16 mb-2" />
         <Skeleton variant="text" className="h-12 w-2/3" />
       </header>
