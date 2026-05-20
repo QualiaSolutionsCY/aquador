@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 /**
  * Editorial 3-section footer.
@@ -82,6 +83,10 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const pathname = usePathname();
+  const visibleShopLinks = pathname.startsWith('/products/')
+    ? shopLinks.filter((link) => link.href !== '/create-perfume')
+    : shopLinks;
 
   return (
     <footer className="bg-bg-alt border-t border-border">
@@ -118,7 +123,7 @@ export default function Footer() {
           <div className="flex flex-col">
             <ColumnHeader marker="01" label="Shop" />
             <ul className="mt-6 space-y-4">
-              {shopLinks.map((link) => (
+              {visibleShopLinks.map((link) => (
                 <li key={link.href}>
                   <FooterLink href={link.href}>{link.label}</FooterLink>
                 </li>

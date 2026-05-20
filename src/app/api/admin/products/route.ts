@@ -19,6 +19,7 @@ import {
   deleteProduct,
 } from '@/lib/supabase/admin-service';
 import type { Database } from '@/lib/supabase/types';
+import { htmlToPlainDescription, isDisallowedSampleSize } from '@/lib/product-description';
 
 export const maxDuration = 10;
 
@@ -52,6 +53,14 @@ const productBodySchema = z.object({
   in_stock: z.boolean(),
   is_active: z.boolean(),
   tags: z.array(z.string().min(1).max(40)).max(20).nullable().optional(),
+}).superRefine((body, ctx) => {
+  if (isDisallowedSampleSize(body.size)) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['size'],
+      message: '2ml samples are no longer available',
+    });
+  }
 });
 
 type ProductBody = z.infer<typeof productBodySchema>;
@@ -86,7 +95,7 @@ async function requireAdmin(request: NextRequest) {
 function bodyToProductRow(body: ProductBody): Database['public']['Tables']['products']['Insert'] {
   return {
     name: body.name.trim(),
-    description: body.description,
+    description: htmlToPlainDescription(body.description),
     brand: body.brand?.trim() || null,
     category: body.category,
     product_type: body.product_type,

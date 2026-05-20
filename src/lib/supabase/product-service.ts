@@ -4,6 +4,7 @@ import { createPublicClient } from './public';
 import type { Product, ProductCategory } from './types';
 import { categories } from '../categories';
 import { slugify } from '../utils';
+import { isDisallowedSampleSize } from '@/lib/product-description';
 
 // Re-export categories since they're static
 export { categories };
@@ -15,6 +16,10 @@ function escapePostgrestQuery(query: string): string {
 
 /** Explicit column selection for product queries (avoids select(*) overhead) */
 const PRODUCT_COLUMNS = 'id, name, description, price, sale_price, image, images, category, product_type, gender, brand, size, tags, in_stock, is_active, created_at, updated_at' as const;
+
+function filterPublicProducts<T extends { size: string | null }>(products: T[] | null): T[] {
+  return (products || []).filter((product) => !isDisallowedSampleSize(product.size));
+}
 
 // Get all products from Supabase (public-facing, filters inactive)
 export async function getAllProducts(): Promise<Product[]> {
@@ -31,7 +36,7 @@ export async function getAllProducts(): Promise<Product[]> {
     return [];
   }
 
-  return data || [];
+  return filterPublicProducts(data);
 }
 
 // Get product by ID (returns null if inactive)
@@ -49,7 +54,7 @@ export async function getProductById(id: string): Promise<Product | null> {
     return null;
   }
 
-  return data;
+  return data && !isDisallowedSampleSize(data.size) ? data : null;
 }
 
 // Batch fetch products by IDs (single query, no N+1)
@@ -67,7 +72,7 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
     return [];
   }
 
-  return data || [];
+  return filterPublicProducts(data);
 }
 
 // Get product by slug — cached per request to dedup generateMetadata + page component calls
@@ -91,7 +96,7 @@ export async function getProductsByCategory(category: string): Promise<Product[]
     return [];
   }
 
-  return data || [];
+  return filterPublicProducts(data);
 }
 
 // Curator's mix for the homepage featured grid. The mix pulls 8 Aquad'or-house
@@ -197,7 +202,7 @@ export async function getFeaturedProducts(count: number = 12): Promise<Product[]
     for (const product of data ?? []) {
       if (seen.has(product.id)) continue;
       seen.add(product.id);
-      house.push(product);
+      if (!isDisallowedSampleSize(product.size)) house.push(product);
     }
   }
 
@@ -213,7 +218,7 @@ export async function getFeaturedProducts(count: number = 12): Promise<Product[]
     for (const product of lattafaResult.data ?? []) {
       if (seen.has(product.id)) continue;
       seen.add(product.id);
-      lattafa.push(product);
+      if (!isDisallowedSampleSize(product.size)) lattafa.push(product);
     }
   }
 
@@ -243,6 +248,7 @@ export async function getFeaturedProducts(count: number = 12): Promise<Product[]
     for (const product of data ?? []) {
       if (seen.has(product.id)) continue;
       seen.add(product.id);
+      if (isDisallowedSampleSize(product.size)) continue;
       picked.push(product);
       if (picked.length >= count) break;
     }
@@ -256,14 +262,14 @@ export async function getAllProductSlugs(): Promise<string[]> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('products')
-    .select('id');
+    .select('id, size');
 
   if (error) {
     Sentry.addBreadcrumb({ category: 'product-service', message: 'Error fetching product slugs', level: 'error', data: { error } });
     return [];
   }
 
-  return (data || []).map(p => p.id);
+  return filterPublicProducts(data).map(p => p.id);
 }
 
 // Get all product slugs with their updated_at timestamp for sitemap lastModified
@@ -271,14 +277,14 @@ export async function getAllProductSlugsForSitemap(): Promise<Array<{ id: string
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('products')
-    .select('id, updated_at');
+    .select('id, updated_at, size');
 
   if (error) {
     Sentry.addBreadcrumb({ category: 'product-service', message: 'Error fetching product slugs for sitemap', level: 'error', data: { error } });
     return [];
   }
 
-  return (data || []).map(p => ({ id: p.id, updated_at: p.updated_at }));
+  return filterPublicProducts(data).map(p => ({ id: p.id, updated_at: p.updated_at }));
 }
 
 // Get related products (same category, excluding current, active only)
@@ -302,7 +308,7 @@ export async function getRelatedProducts(
     return [];
   }
 
-  return data || [];
+  return filterPublicProducts(data);
 }
 
 export async function getProductOrdersCount(
@@ -359,7 +365,7 @@ export async function searchProducts(query: string): Promise<Product[]> {
     return [];
   }
 
-  return data || [];
+  return filterPublicProducts(data);
 }
 
 /**

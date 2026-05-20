@@ -37,9 +37,6 @@ const navLinks = [
   { label: 'Contact', href: '/contact' },
 ];
 
-const leftLinks = navLinks.slice(0, 3);
-const rightLinks = navLinks.slice(3);
-
 export default function Navbar() {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -57,6 +54,12 @@ export default function Navbar() {
   // scrolled past ~85% of the viewport (the pill nav has scrolled out of
   // sight by then). On every other route the navbar behaves as before.
   const isHome = pathname === '/';
+  const isProductPage = pathname.startsWith('/products/');
+  const visibleNavLinks = isProductPage
+    ? navLinks.filter((link) => link.href !== '/create-perfume')
+    : navLinks;
+  const leftLinks = visibleNavLinks.slice(0, 3);
+  const rightLinks = visibleNavLinks.slice(3);
   const hideOverHero =
     isHome && viewportH > 0 && scrollY < viewportH * 0.85;
 
@@ -275,7 +278,7 @@ export default function Navbar() {
 
               <nav className="flex-1">
                 <ul className="space-y-0">
-                  {navLinks.map((link, i) => (
+                  {visibleNavLinks.map((link, i) => (
                     <motion.li
                       key={link.label}
                       initial={{ opacity: 0, x: -16 }}

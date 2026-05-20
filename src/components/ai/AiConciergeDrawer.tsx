@@ -30,15 +30,17 @@ import {
   type FormEvent,
 } from 'react';
 import { z } from 'zod';
-import { Send } from 'lucide-react';
+import { MessageCircle, Send } from 'lucide-react';
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
+  DrawerTitle,
 } from '@/components/ui/Drawer';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import { useCart } from '@/components/cart/CartProvider';
+import { createClient } from '@/lib/supabase/client';
 
 // Voice strings. Locked by the verifier. Edit only with planner approval.
 const VOICE = {
@@ -132,6 +134,7 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
   const [messages, setMessages] = useState<Message[]>(() => [seedGreeting()]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isRequestingAgent, setIsRequestingAgent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
@@ -320,6 +323,59 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
     [cartSummary, input, isStreaming, messages],
   );
 
+  const requestLiveAgent = useCallback(async () => {
+    if (isRequestingAgent) return;
+    setIsRequestingAgent(true);
+    try {
+      const supabase = createClient();
+      const visitorIdKey = 'aquador_live_visitor_id';
+      let visitorId = localStorage.getItem(visitorIdKey);
+      if (!visitorId) {
+        visitorId = newId();
+        localStorage.setItem(visitorIdKey, visitorId);
+      }
+
+      const { data: session, error: sessionError } = await supabase
+        .from('live_chat_sessions')
+        .insert({
+          visitor_id: visitorId,
+          visitor_name: null,
+          status: 'waiting',
+        })
+        .select('id')
+        .single();
+
+      if (sessionError || !session) throw sessionError ?? new Error('Missing session');
+
+      await supabase.from('live_chat_messages').insert({
+        session_id: session.id,
+        sender_type: 'system',
+        content: 'A visitor requested a live agent from the AI desk.',
+      });
+
+      await fetch('/api/live-chat/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: session.id }),
+      });
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: newId(),
+          role: 'assistant',
+          content: 'A live agent request is in. The desk has been notified.',
+          timestamp: Date.now(),
+        },
+      ]);
+      toast({ title: 'Live agent requested', variant: 'success' });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'live agent request failed');
+    } finally {
+      setIsRequestingAgent(false);
+    }
+  }, [isRequestingAgent, toast]);
+
   return (
     <Drawer
       open={isOpen}
@@ -333,9 +389,9 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
         className="gap-0 p-0"
       >
         <DrawerHeader className="px-8 pt-8 pb-6">
-          <h2 className="font-display text-[length:var(--font-h2)] font-medium text-fg tracking-[-0.01em] leading-tight">
+          <DrawerTitle className="font-display text-[length:var(--font-h2)] font-medium text-fg tracking-[-0.01em] leading-tight">
             {VOICE.header}
-          </h2>
+          </DrawerTitle>
         </DrawerHeader>
 
         <div
@@ -416,6 +472,19 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
             <Send aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" />
           </Button>
         </form>
+
+        <div className="border-t border-border bg-bg px-8 py-4">
+          <Button
+            type="button"
+            variant="secondary"
+            size="md"
+            onClick={requestLiveAgent}
+            isLoading={isRequestingAgent}
+            leadingIcon={<MessageCircle aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" />}
+          >
+            Speak with a live agent
+          </Button>
+        </div>
 
         <p className="border-t border-border bg-bg-alt px-8 py-3 font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-fg-muted text-center">
           Powered by{' '}

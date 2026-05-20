@@ -18,6 +18,7 @@ import ProductActions from '@/components/storefront/ProductActions';
 import { ProductViewTracker } from '@/components/products/ProductViewTracker';
 import { formatPrice } from '@/lib/currency';
 import type { Product } from '@/lib/supabase/types';
+import { stripProductDescription } from '@/lib/product-description';
 
 export const revalidate = 3600;
 
@@ -93,9 +94,11 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   // server-side so the helper's dev-time assertion never fires from real data.
   const safeName = product.name.length > 65 ? `${product.name.slice(0, 62)}...` : product.name;
 
+  const plainDescription = stripProductDescription(product.description);
+
   return buildPageMetadata({
     title: safeName,
-    description: product.description,
+    description: plainDescription,
     path: `/products/${slug}`,
     ogImage: product.image || '/og/default.jpg',
   });
@@ -118,13 +121,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const inStock = product.in_stock ?? true;
   const displayPrice = getDisplayPrice(product);
   const notes = splitNotes(product);
+  const plainDescription = stripProductDescription(product.description, 260);
 
   // JSON-LD structured data for SEO
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
-    description: product.description,
+    description: plainDescription,
     image: [product.image, ...productImages],
     brand: product.brand ? {
       '@type': 'Brand',
@@ -241,31 +245,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
               <TrustBar />
 
-              <div className="grid gap-3 border-t border-border-dark pt-6">
-                <Link
-                  href="/contact"
-                  className="relative inline-flex min-h-11 w-full select-none items-center justify-center gap-2 whitespace-nowrap border border-border bg-bg-alt px-6 py-3 font-micro text-[12px] font-medium uppercase tracking-[0.05em] text-fg transition-all duration-150 ease-[cubic-bezier(0.25,1,0.5,1)] hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg active:translate-y-px"
-                >
-                  Order a 2ml sample
-                </Link>
-              </div>
-
-              <aside className="border-t border-border-dark pt-6">
-                <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
-                  Build your own
-                </p>
-                <h2 className="mt-2 font-display text-[length:var(--font-h3)] leading-tight text-fg">
-                  Or make one. Three layers, four hours.
-                </h2>
-                <Link
-                  href="/create-perfume"
-                  className="group mt-4 inline-flex font-body text-[length:var(--font-size-body)] text-fg transition-colors duration-[var(--duration-fast)] hover:text-accent-deep"
-                >
-                  <span className="relative after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:bg-current after:transition-transform after:duration-[var(--duration-fast)] after:ease-[var(--ease-out-quart)] group-hover:after:translate-y-0.5">
-                    Open the builder
-                  </span>
-                </Link>
-              </aside>
             </aside>
           </div>
 
@@ -274,7 +253,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             heartNotes={notes.heartNotes}
             baseNotes={notes.baseNotes}
             fragranceFamily={getFragranceFamily(product)}
-            description={product.description}
+            description={plainDescription}
           />
 
           <RelatedCarousel products={relatedProducts} />

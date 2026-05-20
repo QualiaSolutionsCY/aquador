@@ -188,6 +188,7 @@ export default function CreatePerfumePage() {
               canSubmit={b.validation.isValid}
               eyebrow={stepLabel.eyebrow}
               title={stepLabel.title}
+              onAdded={b.reset}
             />
             <SummaryPanel
               selections={b.selections}

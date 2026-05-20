@@ -9,6 +9,13 @@ export interface CartItem {
   price: number;
   size: ProductSize;
   productType: ProductType;
+  customPerfume?: {
+    name: string;
+    topNote: string;
+    heartNote: string;
+    baseNote: string;
+    specialRequests?: string;
+  };
 }
 
 export interface Cart {

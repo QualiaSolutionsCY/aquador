@@ -1,29 +1,15 @@
 'use client';
 
 /**
- * PaymentStep: final review + handoff to Stripe.
- *
- * DEVIATION from the plan body: the plan describes a Stripe Elements
- * <PaymentElement /> flow that confirms with `return_url=/create-perfume/success`
- * and a `payment_intent_client_secret` URL parameter. The READ-ONLY contract
- * for /create-perfume/success/page.tsx detects `session_id` from a Stripe
- * Checkout Session redirect (see success-content.tsx), and the READ-ONLY
- * /api/create-perfume/payment route mints a Checkout Session (not a
- * PaymentIntent). The task header explicitly says both surfaces are
- * byte-identical contracts, so this step preserves the Checkout Session
- * redirect rather than the Elements flow described in the prose. This is
- * the only way to satisfy both "READ-ONLY success page" and "API contract
- * unchanged" simultaneously.
- *
- * On submit: POST { perfumeName, composition, volume, specialRequests } to
- * /api/create-perfume/payment, read { url } from the response, redirect.
- * Failure surfaces the locked error toast voice.
+ * PaymentStep: final review + add the custom perfume to the normal cart.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
+import { useCart } from '@/components/cart/CartProvider';
+import type { CartItem } from '@/types/cart';
 import type { Selections } from './_hooks/useBuilderState';
 import type { PerfumeVolume } from '@/lib/perfume/types';
 
@@ -34,6 +20,7 @@ interface PaymentStepProps {
   canSubmit: boolean;
   eyebrow: string;
   title: string;
+  onAdded: () => void;
 }
 
 function buildPerfumeName(selections: Selections): string {
@@ -58,9 +45,11 @@ export function PaymentStep({
   canSubmit,
   eyebrow,
   title,
+  onAdded,
 }: PaymentStepProps) {
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
+  const { addItem } = useCart();
   const sectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -98,26 +87,34 @@ export function PaymentStep({
     if (!canSubmit || submitting) return;
     setSubmitting(true);
     try {
-      const response = await fetch('/api/create-perfume/payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          perfumeName: buildPerfumeName(selections),
-          composition: summary,
-          volume,
-          specialRequests: '',
-        }),
-      });
-      if (!response.ok) throw new Error('payment_route_failed');
-      const data = (await response.json()) as { url?: string };
-      if (!data.url) throw new Error('missing_redirect_url');
-      window.location.href = data.url;
+      const perfumeName = buildPerfumeName(selections);
+      const uniqueId = Date.now().toString(36);
+      const item: CartItem = {
+        productId: 'custom-perfume',
+        variantId: `custom-${uniqueId}-perfume-${volume}`,
+        quantity: 1,
+        name: `${perfumeName} Custom Perfume`,
+        image: '/aquador.webp',
+        price: totalCents / 100,
+        size: volume,
+        productType: 'perfume',
+        customPerfume: {
+          name: perfumeName,
+          topNote: summary.top,
+          heartNote: summary.heart,
+          baseNote: summary.base,
+        },
+      };
+      addItem(item);
+      onAdded();
+      toast({ title: 'Custom perfume added to cart', variant: 'success' });
     } catch {
-      setSubmitting(false);
       toast({
         title: "We couldn't reach the desk. Try again.",
         variant: 'error',
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -182,9 +179,9 @@ export function PaymentStep({
           onClick={handleSubmit}
           disabled={!canSubmit}
           isLoading={submitting}
-          aria-label="Continue to payment"
+          aria-label="Add custom perfume to cart"
         >
-          Continue to payment
+          Add to cart
         </Button>
       </div>
     </section>

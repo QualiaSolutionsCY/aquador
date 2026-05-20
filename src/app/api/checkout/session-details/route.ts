@@ -19,6 +19,16 @@ interface OrderItem {
   };
 }
 
+interface CompactCustomPerfume {
+  vid: string;
+  n: string;
+  t: string;
+  h: string;
+  b: string;
+  s?: string;
+  v: string;
+}
+
 interface SessionDetailsResponse {
   sessionId: string;
   orderNumber: string;
@@ -86,6 +96,19 @@ export async function GET(request: NextRequest) {
     // Parse items from metadata
     const metadata = session.metadata || {};
     const items: OrderItem[] = [];
+    const customPerfumesByVariant = new Map<string, CompactCustomPerfume>();
+    for (const [key, value] of Object.entries(metadata)) {
+      if (!key.startsWith('custom_') || !value) continue;
+      try {
+        const custom = JSON.parse(value) as CompactCustomPerfume;
+        if (custom.vid) customPerfumesByVariant.set(custom.vid, custom);
+      } catch (parseError) {
+        Sentry.captureException(parseError, {
+          tags: { action: 'parse_custom_perfume_metadata' },
+          extra: { sessionId, key },
+        });
+      }
+    }
 
     if (metadata.items) {
       // Standard cart checkout — parse shortened metadata (pid, vid, qty)
@@ -102,6 +125,23 @@ export async function GET(request: NextRequest) {
         const productMap = new Map(products.map(p => [p.id, p]));
 
         for (const shortItem of shortItems) {
+          if (shortItem.pid === 'custom-perfume') {
+            const custom = customPerfumesByVariant.get(shortItem.vid);
+            const volume = custom?.v || (shortItem.vid.split('-').pop() || '50ml');
+            items.push({
+              name: custom?.n ? `${custom.n} Custom Perfume` : `Custom Perfume (${volume})`,
+              quantity: shortItem.qty,
+              price: volume === '100ml' ? 49.99 : 29.99,
+              size: volume,
+              composition: custom ? {
+                top: custom.t,
+                heart: custom.h,
+                base: custom.b,
+              } : undefined,
+            });
+            continue;
+          }
+
           const product = productMap.get(shortItem.pid);
           if (product) {
             items.push({
@@ -127,7 +167,7 @@ export async function GET(request: NextRequest) {
     } else if (metadata.productType === 'custom-perfume') {
       // Custom perfume checkout — build item from metadata fields
       const volume = metadata.volume || '50ml';
-      const price = volume === '100ml' ? 199.00 : 29.99;
+      const price = volume === '100ml' ? 49.99 : 29.99;
 
       items.push({
         name: `Custom Perfume: ${metadata.perfumeName || 'Unnamed'}`,
