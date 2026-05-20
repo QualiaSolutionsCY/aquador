@@ -6,6 +6,7 @@ import { formatPrice, escapeHtml } from '@/lib/utils';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getStripe } from '@/lib/stripe';
 import { getProductsByIds } from '@/lib/supabase/product-service';
+import { formatAcsCheckpoint } from '@/lib/acs-checkpoints';
 
 export const maxDuration = 30;
 
@@ -45,6 +46,8 @@ interface CompactCustomPerfume {
 
 interface ShippingAddress {
   name?: string;
+  acs_checkpoint?: string;
+  acs_checkpoint_code?: string;
   address?: {
     line1?: string;
     line2?: string;
@@ -52,6 +55,15 @@ interface ShippingAddress {
     postal_code?: string;
     country?: string;
   };
+}
+
+function readCheckoutCustomField(session: Stripe.Checkout.Session, key: string): string | null {
+  const field = session.custom_fields?.find((customField) => customField.key === key);
+  if (!field) return null;
+  if (field.type === 'dropdown') return field.dropdown?.value ?? null;
+  if (field.type === 'numeric') return field.numeric?.value ?? null;
+  if (field.type === 'text') return field.text?.value ?? null;
+  return null;
 }
 
 async function persistOrder(
@@ -213,11 +225,13 @@ async function sendOrderConfirmationEmail(
     })
     .join('');
 
+  const acsCheckpoint = orderDetails.shippingAddress?.acs_checkpoint;
   const shippingHtml = orderDetails.shippingAddress?.address ? `
     <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
       <h3 style="color: #333; margin-top: 0;">Shipping Address</h3>
       <p style="color: #555; margin: 0;">
         ${escapeHtml(orderDetails.shippingAddress.name || '')}<br>
+        ${acsCheckpoint ? `<strong>ACS checkpoint:</strong> ${escapeHtml(acsCheckpoint)}<br>` : ''}
         ${escapeHtml(orderDetails.shippingAddress.address.line1 || '')}<br>
         ${orderDetails.shippingAddress.address.line2 ? escapeHtml(orderDetails.shippingAddress.address.line2) + '<br>' : ''}
         ${escapeHtml(orderDetails.shippingAddress.address.city || '')}, ${escapeHtml(orderDetails.shippingAddress.address.postal_code || '')}<br>
@@ -341,8 +355,9 @@ async function sendStoreOrderNotification(
     .join('');
 
   const addr = orderDetails.shippingAddress?.address;
+  const acsCheckpoint = orderDetails.shippingAddress?.acs_checkpoint;
   const shippingText = addr
-    ? `${escapeHtml(orderDetails.shippingAddress?.name || '')}<br>${escapeHtml(addr.line1 || '')}${addr.line2 ? '<br>' + escapeHtml(addr.line2) : ''}<br>${escapeHtml(addr.city || '')} ${escapeHtml(addr.postal_code || '')}<br>${escapeHtml(addr.country || '')}`
+    ? `${escapeHtml(orderDetails.shippingAddress?.name || '')}<br>${acsCheckpoint ? `<strong>ACS checkpoint:</strong> ${escapeHtml(acsCheckpoint)}<br>` : ''}${escapeHtml(addr.line1 || '')}${addr.line2 ? '<br>' + escapeHtml(addr.line2) : ''}<br>${escapeHtml(addr.city || '')} ${escapeHtml(addr.postal_code || '')}<br>${escapeHtml(addr.country || '')}`
     : 'No shipping address provided';
 
   try {
@@ -581,6 +596,18 @@ export async function POST(request: NextRequest) {
             postal_code: shippingDetails.address.postal_code ?? undefined,
             country: shippingDetails.address.country ?? undefined,
           } : undefined,
+        };
+      }
+
+      const acsCheckpointCode = readCheckoutCustomField(session, 'acscheckpoint');
+      const acsCheckpoint = formatAcsCheckpoint(acsCheckpointCode);
+      if (acsCheckpoint) {
+        orderTags['acs-checkpoint'] = acsCheckpoint;
+        if (acsCheckpointCode) orderTags['acs-checkpoint-code'] = acsCheckpointCode;
+        shippingAddress = {
+          ...(shippingAddress ?? {}),
+          acs_checkpoint: acsCheckpoint,
+          ...(acsCheckpointCode ? { acs_checkpoint_code: acsCheckpointCode } : {}),
         };
       }
 

@@ -197,6 +197,49 @@ describe('POST /api/checkout', () => {
       );
     });
 
+    it('should require an ACS checkpoint in Stripe Checkout', async () => {
+      const mockCreate = jest.fn().mockResolvedValue(mockCheckoutSession);
+      mockGetStripe.mockReturnValue({
+        checkout: {
+          sessions: {
+            create: mockCreate,
+          },
+        },
+      });
+
+      const request = createMockRequest({
+        items: [
+          {
+            productId: 'prod_1',
+            variantId: 'var_1',
+            name: 'Test Perfume',
+            price: 45,
+            quantity: 1,
+          },
+        ],
+      });
+      await POST(request);
+
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          custom_fields: [
+            expect.objectContaining({
+              key: 'acscheckpoint',
+              type: 'dropdown',
+              optional: false,
+              dropdown: expect.objectContaining({
+                options: expect.arrayContaining([
+                  { label: 'Nicosia - Ay.Dometios', value: 'ACS001' },
+                  { label: 'Limassol - Tsireio', value: 'ACS018' },
+                  { label: 'Paphos - Paphos', value: 'ACS039' },
+                ]),
+              }),
+            }),
+          ],
+        })
+      );
+    });
+
     it('should store minimal metadata for webhook reconstruction', async () => {
       const mockCreate = jest.fn().mockResolvedValue(mockCheckoutSession);
       mockGetStripe.mockReturnValue({

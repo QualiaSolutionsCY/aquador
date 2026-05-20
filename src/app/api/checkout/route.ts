@@ -8,6 +8,7 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { getProductTypeLabel, SHIPPING_COUNTRIES, FREE_SHIPPING_THRESHOLD, DELIVERY_FEE } from '@/lib/constants';
 import { getStripe } from '@/lib/stripe';
 import { cartItemSchema, validateCartPrices } from '@/lib/validation/cart';
+import { ACS_CHECKPOINT_OPTIONS } from '@/lib/acs-checkpoints';
 
 export const maxDuration = 10;
 
@@ -112,6 +113,25 @@ export async function POST(request: NextRequest) {
         allowed_countries: [...SHIPPING_COUNTRIES],
       },
       phone_number_collection: { enabled: true },
+      custom_fields: [
+        {
+          key: 'acscheckpoint',
+          label: { type: 'custom', custom: 'ACS checkpoint' },
+          type: 'dropdown',
+          optional: false,
+          dropdown: {
+            options: ACS_CHECKPOINT_OPTIONS.map((checkpoint) => ({
+              label: checkpoint.label,
+              value: checkpoint.value,
+            })),
+          },
+        },
+      ],
+      custom_text: {
+        shipping_address: {
+          message: 'Choose the ACS checkpoint where this order should be delivered for pickup.',
+        },
+      },
       shipping_options: [
         {
           shipping_rate_data: {

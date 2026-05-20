@@ -112,6 +112,7 @@ function readShipping(addr: Order['shipping_address']): string[] {
   if (!addr || typeof addr !== 'object' || Array.isArray(addr)) return [];
   const o = addr as Record<string, unknown>;
   const name = typeof o.name === 'string' ? o.name : null;
+  const acsCheckpoint = typeof o.acs_checkpoint === 'string' ? `ACS checkpoint: ${o.acs_checkpoint}` : null;
   const inner = o.address && typeof o.address === 'object' && !Array.isArray(o.address)
     ? (o.address as Record<string, unknown>) : null;
   const line1 = inner && typeof inner.line1 === 'string' ? inner.line1 : null;
@@ -119,7 +120,7 @@ function readShipping(addr: Order['shipping_address']): string[] {
   const city = inner && typeof inner.city === 'string' ? inner.city : null;
   const postal = inner && typeof inner.postal_code === 'string' ? inner.postal_code : null;
   const country = inner && typeof inner.country === 'string' ? inner.country : null;
-  return [name, line1, line2, [city, postal].filter(Boolean).join(' ') || null, country].filter((s): s is string => !!s);
+  return [name, acsCheckpoint, line1, line2, [city, postal].filter(Boolean).join(' ') || null, country].filter((s): s is string => !!s);
 }
 
 export default function OrderDetail({ order, customer }: OrderDetailProps) {

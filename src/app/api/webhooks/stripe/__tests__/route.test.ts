@@ -131,6 +131,20 @@ describe('Stripe Webhook Handler', () => {
         phone: null,
       },
     },
+    custom_fields: [
+      {
+        key: 'acscheckpoint',
+        label: { type: 'custom', custom: 'ACS checkpoint' },
+        optional: false,
+        type: 'dropdown',
+        dropdown: {
+          value: 'ACS001',
+          options: [],
+        },
+        numeric: null,
+        text: null,
+      },
+    ],
     // Required Stripe fields
     livemode: false,
     status: 'complete',
@@ -282,6 +296,11 @@ describe('Stripe Webhook Handler', () => {
         currency: 'eur',
         status: 'confirmed',
       });
+      expect(upsertCall.shipping_address).toMatchObject({
+        acs_checkpoint: 'Nicosia - Ay.Dometios - 9 Prigkipos Karolou, 2373 Ag. Dometios',
+        acs_checkpoint_code: 'ACS001',
+      });
+      expect(upsertCall.tags['acs-checkpoint']).toBe('Nicosia - Ay.Dometios - 9 Prigkipos Karolou, 2373 Ag. Dometios');
       expect(upsertCall.items).toHaveLength(1);
       expect(upsertCall.items[0]).toMatchObject({
         name: 'Luxury Perfume',
