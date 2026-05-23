@@ -136,6 +136,7 @@ export default function ProductEditor({ product, mode }: ProductEditorProps) {
           errors={errors}
           setValue={setValue}
           watch={watch}
+          productId={product?.id}
         />
       </EditorSection>
       <EditorSection title="Tags" caption="Surfaced in shop filters and the recommendation engine.">

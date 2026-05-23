@@ -94,4 +94,21 @@ test.describe('PDP → Add to cart → drawer', () => {
     await page.keyboard.press('Escape');
     await expect(drawerTitle).not.toBeVisible({ timeout: 5_000 });
   });
+
+  test("Aquad'or house PDP exposes synced perfume, oil, and lotion choices", async ({ page }) => {
+    await page.goto('/products/pure-musk', { waitUntil: 'domcontentloaded' });
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Pure Musk' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Perfume' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Essence Oil' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Body Lotion' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /50ml/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /100ml\s+€49\.99/ })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Essence Oil' }).click();
+    await expect(page.getByRole('button', { name: /10ml\s+€19\.99/ })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Body Lotion' }).click();
+    await expect(page.getByRole('button', { name: /150ml\s+€29\.99/ })).toBeVisible();
+  });
 });

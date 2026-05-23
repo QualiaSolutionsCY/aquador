@@ -17,12 +17,36 @@ function escapePostgrestQuery(query: string): string {
 /** Explicit column selection for product queries (avoids select(*) overhead) */
 const PRODUCT_COLUMNS = 'id, name, description, price, sale_price, image, images, category, product_type, gender, brand, size, tags, in_stock, is_active, created_at, updated_at' as const;
 
+function hasPublicSupabaseEnv(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
 function filterPublicProducts<T extends { size: string | null }>(products: T[] | null): T[] {
   return (products || []).filter((product) => !isDisallowedSampleSize(product.size));
 }
 
+const VARIANT_SUFFIXES = ['-100ml', '-50ml', '-essence-oil', '-body-lotion'] as const;
+const VARIANT_ORDER: Record<string, number> = {
+  'perfume:50ml': 0,
+  'perfume:100ml': 1,
+  'essence-oil:10ml': 2,
+  'body-lotion:150ml': 3,
+};
+
+function getVariantBaseId(id: string): string {
+  return VARIANT_SUFFIXES.reduce(
+    (base, suffix) => base.endsWith(suffix) ? base.slice(0, -suffix.length) : base,
+    id,
+  );
+}
+
+function getVariantSortKey(product: Pick<Product, 'product_type' | 'size'>): number {
+  return VARIANT_ORDER[`${product.product_type}:${product.size}`] ?? 99;
+}
+
 // Get all products from Supabase (public-facing, filters inactive)
 export async function getAllProducts(): Promise<Product[]> {
+  if (!hasPublicSupabaseEnv()) return [];
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('products')
@@ -41,6 +65,7 @@ export async function getAllProducts(): Promise<Product[]> {
 
 // Get product by ID (returns null if inactive)
 export async function getProductById(id: string): Promise<Product | null> {
+  if (!hasPublicSupabaseEnv()) return null;
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('products')
@@ -60,6 +85,7 @@ export async function getProductById(id: string): Promise<Product | null> {
 // Batch fetch products by IDs (single query, no N+1)
 export async function getProductsByIds(ids: string[]): Promise<Product[]> {
   if (ids.length === 0) return [];
+  if (!hasPublicSupabaseEnv()) return [];
 
   const supabase = createPublicClient();
   const { data, error } = await supabase
@@ -80,8 +106,32 @@ export const getProductBySlug = cache(async (slug: string): Promise<Product | nu
   return getProductById(slug);
 });
 
+// Get buyable sibling rows for one Aquad'or scent. The products table is the
+// variant table: 50ml perfume, 100ml perfume, 10ml oil, and 150ml lotion are
+// separate rows whose ids share a base slug.
+export async function getProductVariantGroup(product: Product): Promise<Product[]> {
+  const baseId = getVariantBaseId(product.id);
+  const variantIds = [
+    baseId,
+    `${baseId}-100ml`,
+    `${baseId}-essence-oil`,
+    `${baseId}-body-lotion`,
+  ];
+  const products = await getProductsByIds(variantIds);
+  const seen = new Set<string>();
+
+  return products
+    .filter((candidate) => {
+      if (seen.has(candidate.id)) return false;
+      seen.add(candidate.id);
+      return candidate.is_active !== false;
+    })
+    .sort((a, b) => getVariantSortKey(a) - getVariantSortKey(b));
+}
+
 // Get products by category (filters inactive)
 export async function getProductsByCategory(category: string): Promise<Product[]> {
+  if (!hasPublicSupabaseEnv()) return [];
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('products')
@@ -159,6 +209,7 @@ function interleave<T>(primary: T[], secondary: T[], cadence: number): T[] {
 // Get featured products (active + in stock only, curated category mix with
 // brand-family interleave).
 export async function getFeaturedProducts(count: number = 12): Promise<Product[]> {
+  if (!hasPublicSupabaseEnv()) return [];
   const supabase = createPublicClient();
 
   const houseQueries = FEATURED_HOUSE_MIX.map(({ category, take }) =>
@@ -259,6 +310,7 @@ export async function getFeaturedProducts(count: number = 12): Promise<Product[]
 
 // Get all product slugs for static generation
 export async function getAllProductSlugs(): Promise<string[]> {
+  if (!hasPublicSupabaseEnv()) return [];
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('products')
@@ -274,6 +326,7 @@ export async function getAllProductSlugs(): Promise<string[]> {
 
 // Get all product slugs with their updated_at timestamp for sitemap lastModified
 export async function getAllProductSlugsForSitemap(): Promise<Array<{ id: string; updated_at: string | null }>> {
+  if (!hasPublicSupabaseEnv()) return [];
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('products')
@@ -294,6 +347,7 @@ export async function getRelatedProducts(
   category: ProductCategory,
   count: number = 4
 ): Promise<Product[]> {
+  if (!hasPublicSupabaseEnv()) return [];
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('products')
@@ -315,6 +369,7 @@ export async function getProductOrdersCount(
   productId: string,
   days: number
 ): Promise<number | null> {
+  if (!hasPublicSupabaseEnv()) return null;
   const supabase = createPublicClient();
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
@@ -351,6 +406,7 @@ export async function getProductOrdersCount(
 
 // Search products (active only, sanitized against PostgREST injection)
 export async function searchProducts(query: string): Promise<Product[]> {
+  if (!hasPublicSupabaseEnv()) return [];
   const supabase = createPublicClient();
   const escaped = escapePostgrestQuery(query);
   const { data, error } = await supabase
@@ -382,6 +438,7 @@ export async function searchProducts(query: string): Promise<Product[]> {
 export const getAllProductBrands = cache(async (): Promise<
   Array<{ id: string; label: string; count: number }>
 > => {
+  if (!hasPublicSupabaseEnv()) return [];
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('products')

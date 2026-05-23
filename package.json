@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "generate:catalogue": "tsx scripts/generate-ai-catalogue.ts",
+    "sync:aquador-variants": "node scripts/sync-aquador-variants.js",
     "verify:indexes": "tsx scripts/verify-indexes.ts",
     "prebuild": "npm run generate:catalogue",
     "build": "next build",

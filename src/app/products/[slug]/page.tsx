@@ -6,6 +6,7 @@ import {
   getAllProductSlugs,
   getProductBySlug,
   getProductOrdersCount,
+  getProductVariantGroup,
   getRelatedProducts,
 } from '@/lib/supabase/product-service';
 import { buildPageMetadata } from '@/lib/seo/metadata';
@@ -16,7 +17,6 @@ import SocialProof from '@/components/storefront/SocialProof';
 import TrustBar from '@/components/storefront/TrustBar';
 import ProductActions from '@/components/storefront/ProductActions';
 import { ProductViewTracker } from '@/components/products/ProductViewTracker';
-import { formatPrice } from '@/lib/currency';
 import type { Product } from '@/lib/supabase/types';
 import { stripProductDescription } from '@/lib/product-description';
 
@@ -24,12 +24,6 @@ export const revalidate = 3600;
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
-}
-
-function getDisplayPrice(product: Product): number {
-  return product.sale_price && product.sale_price < product.price
-    ? product.sale_price
-    : product.price;
 }
 
 function buildImageList(product: Product) {
@@ -112,14 +106,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const [relatedProducts, ordersCount] = await Promise.all([
+  const [relatedProducts, ordersCount, productVariants] = await Promise.all([
     getRelatedProducts(product.id, product.category, 6),
     getProductOrdersCount(product.id, 30),
+    getProductVariantGroup(product),
   ]);
 
   const productImages = product.images ?? [];
   const inStock = product.in_stock ?? true;
-  const displayPrice = getDisplayPrice(product);
   const notes = splitNotes(product);
   const plainDescription = stripProductDescription(product.description, 260);
 
@@ -219,19 +213,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <h1 className="mt-3 font-display text-[length:var(--font-display-xl)] leading-[1.05] text-fg">
                   {product.name}
                 </h1>
-                <div className="mt-5 flex flex-wrap items-baseline gap-3">
-                  <p className="font-display text-[length:var(--font-h2)] text-fg">
-                    {formatPrice(displayPrice)}
-                  </p>
-                  {product.sale_price && product.sale_price < product.price && (
-                    <p className="font-body text-[length:var(--font-size-body-sm)] text-fg-muted line-through">
-                      {formatPrice(product.price)}
-                    </p>
-                  )}
-                  <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
-                    {product.size}
-                  </p>
-                </div>
               </header>
 
               <div className="border-y border-border-dark bg-bg-alt/60 py-5">
@@ -242,7 +223,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   </span>
                 </div>
                 <div className="pt-5">
-                  <ProductActions product={product} price={displayPrice} />
+                  <ProductActions product={product} variants={productVariants} />
                   <p className="mt-4 flex items-center gap-2 font-body text-[length:var(--font-size-body-sm)] text-fg-muted">
                     <PackageCheck aria-hidden className="h-4 w-4 text-accent-deep" strokeWidth={1.5} />
                     {inStock ? 'Prepared from the Nicosia desk.' : 'This bottle is resting before the next release.'}

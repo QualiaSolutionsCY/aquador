@@ -4,17 +4,6 @@ import { getProductsByIds } from '@/lib/supabase/product-service';
 import { MIN_QUANTITY, MAX_QUANTITY } from '@/lib/constants';
 import { isDisallowedSampleSize } from '@/lib/product-description';
 
-// Aquador's own categories sell the same fragrance in multiple formats
-// with fixed pricing that's not stored per-variant in the DB.
-const AQUADOR_CATEGORIES = new Set(['women', 'men', 'niche']);
-
-// Server-side source of truth for Aquador variant pricing
-const AQUADOR_VARIANT_PRICES: Record<string, Record<string, number>> = {
-  'perfume':     { '50ml': 29.99, '100ml': 49.99 },
-  'essence-oil': { '10ml': 19.99 },
-  'body-lotion': { '150ml': 29.99 },
-};
-
 /**
  * Zod schema for CartItem validation
  *
@@ -106,23 +95,8 @@ export async function validateCartPrices(items: CartItem[]): Promise<{
       continue;
     }
 
-    // Aquador's own products support virtual variants (perfume/oil/lotion)
-    // with fixed pricing — the DB stores the base product, variants are derived.
-    if (AQUADOR_CATEGORIES.has(product.category)) {
-      const variantPrices = AQUADOR_VARIANT_PRICES[item.productType];
-      const variantPrice = variantPrices?.[item.size];
-      if (!variantPrice) {
-        errors.push({
-          productId: item.productId,
-          reason: `Invalid variant: ${item.productType} / ${item.size}`,
-        });
-        continue;
-      }
-      correctedItems.push({ ...item, price: variantPrice });
-      continue;
-    }
-
-    // Branded products: type and size must exactly match the catalog row
+    // Every buyable catalogue option is a product row. Type and size must
+    // match the row selected on the PDP, then checkout uses the DB amount.
     if (item.productType !== product.product_type) {
       errors.push({
         productId: item.productId,
