@@ -52,7 +52,7 @@ async function generateCatalogue() {
     name: p.name,
     brand: p.brand || 'Unknown',
     gender: capitalize(p.gender || 'unisex') as 'Men' | 'Women' | 'Unisex',
-    type: (p.product_type || 'perfume') as 'perfume' | 'essence-oil',
+    type: (p.product_type || 'perfume') as 'perfume' | 'essence-oil' | 'body-lotion',
     searchTerms: p.tags || [],
   }));
 
@@ -71,7 +71,7 @@ export interface CatalogueProduct {
   name: string;
   brand: string;
   gender: 'Men' | 'Women' | 'Unisex';
-  type: 'perfume' | 'essence-oil';
+  type: 'perfume' | 'essence-oil' | 'body-lotion';
   searchTerms?: string[];
 }
 

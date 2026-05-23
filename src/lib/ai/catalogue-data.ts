@@ -8,7 +8,7 @@ export interface CatalogueProduct {
   name: string;
   brand: string;
   gender: 'Men' | 'Women' | 'Unisex';
-  type: 'perfume' | 'essence-oil';
+  type: 'perfume' | 'essence-oil' | 'body-lotion';
   searchTerms?: string[]; // For better matching
 }
 
@@ -322,6 +322,6 @@ export function getProductsByGender(gender: 'Men' | 'Women' | 'Unisex'): Catalog
 /**
  * Get products by type
  */
-export function getProductsByType(type: 'perfume' | 'essence-oil'): CatalogueProduct[] {
+export function getProductsByType(type: 'perfume' | 'essence-oil' | 'body-lotion'): CatalogueProduct[] {
   return catalogueProducts.filter(p => p.type === type);
 }
