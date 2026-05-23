@@ -6,17 +6,16 @@ export const TEST_DATA_PREFIX = '[E2E-TEST]';
 /**
  * A known active + in-stock product slug from the live Supabase catalogue.
  * Sourced 2026-05-17 via:
- *   npx supabase db query --linked \
- *     "select id from products where in_stock=true and is_active=true limit 5"
+ *   service-role REST check after Aquad'or variant sync:
+ *     select id from products where id='pure-musk' and in_stock=true and is_active=true
  *
  * The `id` column doubles as the product slug — `getProductBySlug` in
  * src/lib/supabase/product-service.ts:74 calls `getProductById(slug)`.
  *
- * This particular row is "Washwasha by Lattafa Perfumes" (€35.00), a Lattafa
- * Originals catalogue staple. If the row is ever deleted, swap for any other
- * `in_stock=true and is_active=true` product id.
+ * This particular row is "Pure Musk" (€29.99), an Aquad'or house scent with
+ * sibling product rows for 100ml perfume, essence oil, and body lotion.
  */
-export const ANY_IN_STOCK_SLUG = '39485568-d841-4ac0-ae9e-59e51e852ab3';
+export const ANY_IN_STOCK_SLUG = 'pure-musk';
 
 /**
  * Generates a unique test product name

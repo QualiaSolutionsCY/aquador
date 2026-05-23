@@ -46,6 +46,7 @@ export interface ImageUploaderProps {
   bucket: StorageBucket;
   pathPrefix: string;
   onUploaded: (publicUrl: string, path: string) => void;
+  onRemoved?: () => void;
   /** Optional override for the file input `accept` attribute. */
   accept?: string;
   /** Optional starting preview URL (e.g. existing image being replaced). */
@@ -57,6 +58,7 @@ export function ImageUploader({
   bucket,
   pathPrefix,
   onUploaded,
+  onRemoved,
   accept,
   initialPreviewUrl,
   className,
@@ -129,8 +131,9 @@ export function ImageUploader({
   const clearPreview = useCallback(() => {
     setPreviewUrl(null);
     setError(null);
+    onRemoved?.();
     inputRef.current?.focus();
-  }, []);
+  }, [onRemoved]);
 
   const borderColor = error
     ? 'var(--critical)'
