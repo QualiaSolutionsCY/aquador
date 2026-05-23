@@ -80,7 +80,12 @@ function toSlug(name: string): string {
 function serializeCatalogue(products: readonly CatalogueProduct[]): string {
   const lines = products.map((p) => {
     const slug = toSlug(p.name);
-    const typeTag = p.type === 'essence-oil' ? ' [essence oil]' : '';
+    const typeTag =
+      p.type === 'essence-oil'
+        ? ' [essence oil]'
+        : p.type === 'body-lotion'
+          ? ' [body lotion]'
+          : '';
     return `- ${p.name} by ${p.brand} (${p.gender}, #${p.number})${typeTag} slug=${slug}`;
   });
   return lines.join('\n');
