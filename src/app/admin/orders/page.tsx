@@ -14,6 +14,7 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
@@ -63,6 +64,7 @@ function formatDate(iso: string): string {
 }
 
 export default function OrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -240,6 +242,7 @@ export default function OrdersPage() {
         loading={loading}
         emptyText="No orders match your filters."
         toolbar={toolbar}
+        onRowClick={(row) => router.push(`/admin/orders/${row.id}`)}
       />
 
       {totalPages > 1 ? (
