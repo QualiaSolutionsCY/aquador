@@ -14,13 +14,14 @@ import OrderDetail from '@/components/admin/OrderDetail';
 import type { Customer } from '@/lib/supabase/types';
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminOrderDetailPage({ params }: PageProps) {
-  const { data: order } = await getAdminOrderById(params.id);
+  const { id } = await params;
+  const { data: order } = await getAdminOrderById(id);
   if (!order) {
     notFound();
   }
