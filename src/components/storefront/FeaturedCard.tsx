@@ -185,7 +185,7 @@ export default function FeaturedCard({
             fill
             sizes={styles.imageSizes}
             priority={isHero && index < 2}
-            className="object-cover transition-transform duration-[600ms] ease-[var(--ease-out-quart)] group-hover:scale-[1.03]"
+            className="object-contain p-6 transition-transform duration-[600ms] ease-[var(--ease-out-quart)] group-hover:scale-[1.03]"
           />
           {showCrossfade && (
             <Image
@@ -194,7 +194,7 @@ export default function FeaturedCard({
               aria-hidden="true"
               fill
               sizes={styles.imageSizes}
-              className="object-cover opacity-0 transition-opacity duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:opacity-100"
+              className="object-contain p-6 opacity-0 transition-opacity duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:opacity-100"
             />
           )}
 

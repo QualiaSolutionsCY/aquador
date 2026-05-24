@@ -117,7 +117,7 @@ export function ProductCard({ product, priority = false, variant = 'default' }: 
               alt={product.name}
               variant="card"
               priority={priority}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain p-4"
             />
           </motion.div>
 

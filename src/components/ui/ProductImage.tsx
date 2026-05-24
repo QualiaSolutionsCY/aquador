@@ -62,7 +62,7 @@ export function ProductImage({
       quality={quality}
       priority={priority}
       className={className}
-      objectFit="cover"
+      objectFit="contain"
     />
   );
 }
