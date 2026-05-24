@@ -59,7 +59,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         ref={triggerRef}
         type="button"
         aria-label={`Open ${productName} gallery`}
-        className="group relative mx-auto block aspect-[4/5] w-full max-w-[460px] overflow-hidden border border-border-dark bg-bg-alt text-left lg:max-w-[520px]"
+        className="group relative mx-auto block aspect-square w-full max-w-[520px] overflow-hidden border border-border-dark bg-bg-alt text-left"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
         onClick={() => setLightboxIndex(visibleIndex)}
@@ -69,7 +69,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           alt={safeImages[0].alt || `${productName}, fragrance detail 1`}
           fill
           sizes="(min-width: 1024px) 55vw, 100vw"
-          className="object-contain p-4 transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:scale-[1.01]"
+          className="object-contain p-6 transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:scale-[1.01] md:p-8"
           priority
         />
         {safeImages[1] && (
@@ -79,7 +79,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             fill
             sizes="(min-width: 1024px) 55vw, 100vw"
             className={cn(
-              'object-contain p-4 transition-opacity duration-[var(--duration-base)] ease-[var(--ease-out-quart)]',
+              'object-contain p-6 transition-opacity duration-[var(--duration-base)] ease-[var(--ease-out-quart)] md:p-8',
               isHovering ? 'opacity-100' : 'opacity-0',
             )}
           />
@@ -100,13 +100,13 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           className="max-h-[92vh] max-w-[min(92vw,72rem)] gap-6 overflow-hidden p-4 md:p-6"
         >
           <DialogTitle className="sr-only">{productName} gallery</DialogTitle>
-          <div className="relative aspect-[4/5] max-h-[72vh] w-full bg-bg-alt md:aspect-[16/10]">
+          <div className="relative mx-auto aspect-square max-h-[72vh] w-full max-w-[72vh] bg-bg-alt">
             <Image
               src={activeImage.src}
               alt={activeImage.alt || `${productName}, fragrance detail ${activeIndex + 1}`}
               fill
               sizes="92vw"
-              className="object-contain"
+              className="object-contain p-4 md:p-6"
             />
 
             {safeImages.length > 1 && (
@@ -140,7 +140,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                   aria-label={`Show image ${index + 1}`}
                   aria-current={index === activeIndex}
                   onClick={() => setLightboxIndex(index)}
-                  className="relative h-20 w-16 shrink-0 border border-border-dark bg-bg-alt transition-opacity duration-[var(--duration-fast)] hover:opacity-80 aria-current:border-accent"
+                  className="relative h-20 w-20 shrink-0 border border-border-dark bg-bg-alt transition-opacity duration-[var(--duration-fast)] hover:opacity-80 aria-current:border-accent"
                 >
                   <Image
                     src={image.src}
