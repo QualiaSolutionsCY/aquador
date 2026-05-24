@@ -120,6 +120,30 @@ const reportSchema = z.object({
   })).max(8).catch([]),
 });
 
+function createFallbackReport(perfumeName?: string): PerfumeIntelReport {
+  return {
+    perfumeName: perfumeName?.trim() || 'Unknown perfume',
+    brand: 'Unknown brand',
+    audience: 'General fragrance customer',
+    summary: 'The research model returned a partial response. Use this as a starting profile, then save any counter learnings so the next lookup is stronger.',
+    mainAccords: [],
+    pyramid: { top: [], middle: [], base: [] },
+    performance: fallbackPerformance,
+    demographics: fallbackDemographics,
+    aquadorUse: fallbackAquadorUse,
+    similarPerfumes: [],
+    aquadorRecommendations: [],
+    sources: [],
+  };
+}
+
+function parseReportPayload(value: unknown, perfumeName?: string): PerfumeIntelReport {
+  const parsed = reportSchema.safeParse(value);
+  if (parsed.success) return parsed.data as PerfumeIntelReport;
+  console.warn('perfume intel partial report fallback:', parsed.error.issues);
+  return createFallbackReport(perfumeName);
+}
+
 interface AdminOk {
   ok: true;
   userId: string;
@@ -446,13 +470,13 @@ async function generateReport({
     throw new Error('The research model returned an empty perfume report');
   }
 
-  const parsedJson = JSON.parse(stripJsonFence(content)) as unknown;
-  const parsed = reportSchema.safeParse(parsedJson);
-  if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message || 'Invalid perfume report shape');
+  try {
+    const parsedJson = JSON.parse(stripJsonFence(content)) as unknown;
+    return parseReportPayload(parsedJson, perfumeName);
+  } catch (error) {
+    console.warn('perfume intel JSON fallback:', error);
+    return createFallbackReport(perfumeName);
   }
-
-  return parsed.data as PerfumeIntelReport;
 }
 
 async function saveReport(
