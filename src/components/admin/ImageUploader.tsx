@@ -36,7 +36,7 @@ import {
 const DEFAULT_ACCEPT = ACCEPTED_IMAGE_MIME.join(',');
 
 const ERROR_COPY: Record<string, string> = {
-  'too-large': 'File is over 5 MB. Pick a smaller image.',
+  'too-large': 'File is over 25 MB. Pick a smaller image.',
   'wrong-type': 'Only JPEG, PNG, WebP, or AVIF.',
   'upload-failed': 'Upload failed. Try again.',
   'unauthenticated': 'Your session expired. Sign back in.',
@@ -232,7 +232,7 @@ export function ImageUploader({
             opacity: 0.7,
           }}
         >
-          JPEG, PNG, WebP, AVIF · 5 MB max
+          JPEG, PNG, WebP, AVIF · 25 MB max
         </span>
 
         {uploading ? (
