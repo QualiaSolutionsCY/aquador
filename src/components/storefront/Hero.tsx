@@ -32,8 +32,12 @@ import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } fr
 import { ArrowRight, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { SearchBar } from '@/components/search';
 
+// Pill-nav link list (desktop only). The mobile overlay uses the full
+// Navbar.tsx link list so the two top affordances open identical menus.
 const navLinks = [
   { label: 'Dubai Shop', href: '/shop' },
   { label: 'Lattafa', href: '/shop/lattafa' },
@@ -42,9 +46,22 @@ const navLinks = [
   { label: 'Contact', href: '/contact' },
 ];
 
+// Mirrors src/components/layout/Navbar.tsx so the hero hamburger opens the
+// same side menu as the global Navbar hamburger.
+const mobileMenuLinks = [
+  { label: 'Dubai Shop', href: '/shop' },
+  { label: 'Lattafa Originals', href: '/shop/lattafa' },
+  { label: 'Create Your Own', href: '/create-perfume' },
+  { label: 'Re-Order', href: '/reorder' },
+  { label: 'About', href: '/about' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Contact', href: '/contact' },
+];
+
 export default function Hero() {
   const prefersReducedMotion = useReducedMotion();
   const overlayRest = 0.28;
+  const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -53,6 +70,21 @@ export default function Hero() {
       document.body.style.overflow = '';
     };
   }, [isMobileOpen]);
+
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [pathname]);
+
+  const checkActive = (href: string) => {
+    if (href === '/shop')
+      return (
+        pathname === '/shop' ||
+        (pathname?.startsWith('/shop/') &&
+          pathname !== '/shop/lattafa' &&
+          !pathname.startsWith('/shop/lattafa/'))
+      );
+    return pathname === href || (href !== '/' && pathname?.startsWith(href));
+  };
 
   // Scroll-driven parallax exit. Bound to the hero's own visibility range
   // (start of section at top of viewport → end of section at top of viewport)
@@ -211,7 +243,9 @@ export default function Hero() {
         </motion.div>
       </nav>
 
-      {/* Mobile full-screen overlay (hero scope) */}
+      {/* Mobile full-screen overlay. Mirrors src/components/layout/Navbar.tsx
+          so the pill-nav hamburger opens the same side menu as the global
+          Navbar's hamburger. */}
       <AnimatePresence>
         {isMobileOpen && (
           <motion.div
@@ -219,61 +253,75 @@ export default function Hero() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md md:hidden"
+            className="fixed inset-0 z-50 md:hidden bg-bg"
           >
-            <div className="flex h-full flex-col px-7 pb-10 pt-6">
-              <div className="flex items-center justify-between border-b border-white/15 pb-5">
-                <Link
-                  href="/"
-                  aria-label="Aquad'or, home"
-                  onClick={() => setIsMobileOpen(false)}
-                  className="shrink-0"
-                >
-                  <Image
-                    src="/aquador-tight.webp"
-                    alt="Aquad'or"
-                    width={220}
-                    height={215}
-                    className="h-12 w-auto object-contain"
-                  />
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setIsMobileOpen(false)}
-                  className="inline-flex h-11 w-11 items-center justify-center text-white transition-colors duration-[var(--duration-fast)] hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                  aria-label="Close menu"
-                >
-                  <X className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
-                </button>
-              </div>
+            <div className="relative h-full flex flex-col pt-20 pb-8 px-8 sm:px-12 overflow-y-auto">
+              <button
+                type="button"
+                onClick={() => setIsMobileOpen(false)}
+                className="absolute top-4 right-4 inline-flex h-11 w-11 items-center justify-center text-fg hover:text-accent-deep transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+                aria-label="Close menu"
+              >
+                <X className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
+              </button>
 
-              <ul className="flex flex-1 flex-col justify-center gap-1">
-                {navLinks.map((link, i) => (
-                  <motion.li
-                    key={link.href}
-                    initial={{ opacity: 0, x: -12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{
-                      delay: 0.08 + i * 0.04,
-                      duration: 0.35,
-                      ease: [0.22, 1, 0.36, 1],
-                    }}
-                  >
-                    <Link
-                      href={link.href}
-                      onClick={() => setIsMobileOpen(false)}
-                      className="flex items-center gap-4 border-b border-white/10 py-4 font-display text-2xl text-white transition-colors duration-[var(--duration-fast)] hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.06,
+                  duration: 0.4,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="mb-10"
+              >
+                <SearchBar variant="shop" placeholder="Search fragrances" />
+              </motion.div>
+
+              <nav className="flex-1">
+                <ul className="space-y-0">
+                  {mobileMenuLinks.map((link, i) => (
+                    <motion.li
+                      key={link.label}
+                      initial={{ opacity: 0, x: -16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{
+                        delay: 0.1 + i * 0.04,
+                        duration: 0.4,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
                     >
-                      <span aria-hidden="true" className="h-px w-6 bg-white/30" />
-                      {link.label}
-                    </Link>
-                  </motion.li>
-                ))}
-              </ul>
+                      <Link
+                        href={link.href}
+                        onClick={() => setIsMobileOpen(false)}
+                        className={`flex items-center gap-4 py-3.5 border-b border-border transition-colors duration-150 ${
+                          checkActive(link.href)
+                            ? 'text-accent-deep'
+                            : 'text-fg hover:text-accent-deep'
+                        }`}
+                      >
+                        <span
+                          className={`w-6 h-px flex-shrink-0 ${
+                            checkActive(link.href) ? 'bg-accent' : 'bg-border'
+                          }`}
+                        />
+                        <span className="font-display text-[21px] sm:text-2xl tracking-tight">
+                          {link.label}
+                        </span>
+                      </Link>
+                    </motion.li>
+                  ))}
+                </ul>
+              </nav>
 
-              <p className="mt-auto pt-6 font-micro text-[10px] uppercase tracking-[0.35em] text-white/50">
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.55, duration: 0.4 }}
+                className="mt-auto pt-7 font-micro uppercase tracking-[0.35em] text-[10px] text-fg-muted"
+              >
                 Where luxury meets distinction
-              </p>
+              </motion.p>
             </div>
           </motion.div>
         )}
