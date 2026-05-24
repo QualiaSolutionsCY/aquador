@@ -22,6 +22,7 @@
  */
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { sanitizeDescriptionHtml } from '@/lib/product-description';
 
 export interface ProductNotesStoryProps {
   topNotes?: string[];
@@ -138,9 +139,10 @@ export function ProductNotesStory({
             {familyLine}
           </h2>
           {description ? (
-            <p className="mt-6 font-body text-[length:var(--font-size-body-lg)] leading-relaxed text-fg-muted">
-              {description}
-            </p>
+            <div
+              className="mt-6 font-body text-[length:var(--font-size-body-lg)] leading-relaxed text-fg-muted prose prose-sm max-w-none prose-p:my-3 prose-headings:font-display prose-headings:text-fg prose-headings:tracking-tight prose-strong:text-fg prose-em:text-fg-muted prose-ul:my-3 prose-ol:my-3 prose-li:my-1"
+              dangerouslySetInnerHTML={{ __html: sanitizeDescriptionHtml(description) }}
+            />
           ) : null}
         </Reveal>
 

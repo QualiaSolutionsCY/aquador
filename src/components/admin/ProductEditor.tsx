@@ -126,8 +126,8 @@ export default function ProductEditor({ product, mode }: ProductEditorProps) {
       <EditorSection title="Pricing" caption="Per-unit pricing. Sale price overrides on the storefront when set.">
         <PricingSection register={register} control={control} errors={errors} />
       </EditorSection>
-      <EditorSection title="Description" caption="Plain text. Rich formatting lands with the blog editor.">
-        <DescriptionSection register={register} errors={errors} />
+      <EditorSection title="Description" caption="Rich text — bold, italic, headings, lists.">
+        <DescriptionSection control={control} errors={errors} />
       </EditorSection>
       <EditorSection title="Images" caption="Paste hosted image URLs. Drag-and-drop upload arrives in M4.">
         <ImagesSection

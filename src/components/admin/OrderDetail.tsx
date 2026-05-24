@@ -195,7 +195,7 @@ export default function OrderDetail({ order, customer }: OrderDetailProps) {
               <img
                 src={r.image}
                 alt=""
-                className="h-12 w-12 rounded-sm border border-border object-cover"
+                className="h-12 w-12 rounded-sm border border-border bg-bg-alt object-contain p-0.5"
                 loading="lazy"
               />
             </Link>
@@ -204,7 +204,7 @@ export default function OrderDetail({ order, customer }: OrderDetailProps) {
             <img
               src={r.image}
               alt=""
-              className="h-12 w-12 rounded-sm border border-border object-cover"
+              className="h-12 w-12 rounded-sm border border-border bg-bg-alt object-contain p-0.5"
               loading="lazy"
             />
           )

@@ -168,7 +168,7 @@ export default function SearchBar({
                         src={product.image}
                         alt={product.name}
                         fill
-                        className="object-cover"
+                        className="object-contain p-1"
                         sizes="48px"
                       />
                     </div>

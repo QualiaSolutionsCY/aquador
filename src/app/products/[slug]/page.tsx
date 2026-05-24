@@ -241,7 +241,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             heartNotes={notes.heartNotes}
             baseNotes={notes.baseNotes}
             fragranceFamily={getFragranceFamily(product)}
-            description={plainDescription}
+            description={product.description ?? plainDescription}
           />
 
           <RelatedCarousel products={relatedProducts} />

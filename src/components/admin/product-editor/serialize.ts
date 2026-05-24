@@ -9,7 +9,7 @@
 
 import type { Product } from '@/lib/supabase/types';
 import type { ProductFormValues } from './schema';
-import { htmlToPlainDescription } from '@/lib/product-description';
+import { sanitizeDescriptionHtml } from '@/lib/product-description';
 
 export const FEATURED_TAG = 'featured';
 
@@ -25,7 +25,7 @@ export function buildDefaults(product: Product | null): ProductFormValues {
     price: product?.price ?? 0,
     sale_price: product?.sale_price ?? '',
     in_stock: product?.in_stock ?? true,
-    description: htmlToPlainDescription(product?.description),
+    description: product?.description ?? '',
     image: product?.image ?? '',
     images: product?.images ?? [],
     tags,
@@ -50,7 +50,7 @@ export function toPayload(values: ProductFormValues, productId?: string) {
     size: values.size,
     price: values.price,
     sale_price: salePrice,
-    description: htmlToPlainDescription(values.description),
+    description: sanitizeDescriptionHtml(values.description),
     image: values.image,
     images: values.images,
     tags: mergedTags.length > 0 ? Array.from(new Set(mergedTags)) : null,

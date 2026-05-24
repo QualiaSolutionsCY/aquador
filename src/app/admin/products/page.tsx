@@ -156,7 +156,7 @@ export default function ProductsPage() {
               alt={row.name}
               fill
               sizes="40px"
-              className="object-cover"
+              className="object-contain p-0.5"
               unoptimized
             />
           </div>

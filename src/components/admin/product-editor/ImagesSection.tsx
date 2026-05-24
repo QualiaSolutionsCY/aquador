@@ -96,7 +96,7 @@ export function ImagesSection({ register, control, errors, setValue, watch, prod
             <img
               src={primaryImage}
               alt="Primary product preview"
-              className="h-32 w-full rounded-sm object-cover"
+              className="h-32 w-full rounded-sm object-contain"
             />
           ) : (
             <div className="flex h-32 items-center justify-center rounded-sm border border-dashed border-border-strong text-fg-muted">
@@ -152,7 +152,7 @@ export function ImagesSection({ register, control, errors, setValue, watch, prod
                           <img
                             src={images[idx]}
                             alt={`Product image ${idx + 1} preview`}
-                            className="h-full w-full object-cover"
+                            className="h-full w-full object-contain"
                           />
                         ) : (
                           <div className="flex h-full items-center justify-center text-fg-muted">
