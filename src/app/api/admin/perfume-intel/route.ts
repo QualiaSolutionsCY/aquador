@@ -54,12 +54,12 @@ const reportSchema = z.object({
   brand: z.string().min(1).max(120),
   audience: z.string().min(1).max(160),
   summary: z.string().min(1).max(700),
-  mainAccords: z.array(accordSchema).min(3).max(9),
+  mainAccords: z.array(accordSchema).max(9).default([]),
   pyramid: z.object({
-    top: z.array(noteSchema).max(9),
-    middle: z.array(noteSchema).max(9),
-    base: z.array(noteSchema).max(9),
-  }),
+    top: z.array(noteSchema).max(9).default([]),
+    middle: z.array(noteSchema).max(9).default([]),
+    base: z.array(noteSchema).max(9).default([]),
+  }).default({ top: [], middle: [], base: [] }),
   performance: z.object({
     longevity: metricSchema,
     sillage: metricSchema,
@@ -70,25 +70,25 @@ const reportSchema = z.object({
   }),
   aquadorUse: z.object({
     customerProfile: z.string().min(1).max(500),
-    sellingAngles: z.array(z.string().min(1).max(220)).min(2).max(8),
-    objections: z.array(z.string().min(1).max(220)).max(6),
-    questionsToAsk: z.array(z.string().min(1).max(180)).min(2).max(8),
+    sellingAngles: z.array(z.string().min(1).max(220)).max(8).default([]),
+    objections: z.array(z.string().min(1).max(220)).max(6).default([]),
+    questionsToAsk: z.array(z.string().min(1).max(180)).max(8).default([]),
   }),
   similarPerfumes: z.array(z.object({
     name: z.string().min(1).max(120),
     brand: z.string().min(1).max(120),
     reason: z.string().min(1).max(240),
-  })).max(10),
+  })).max(10).default([]),
   aquadorRecommendations: z.array(z.object({
     name: z.string().min(1).max(120),
     brand: z.string().min(1).max(120),
     path: z.string().min(1).max(220),
     reason: z.string().min(1).max(240),
-  })).min(1).max(8),
+  })).max(8).default([]),
   sources: z.array(z.object({
     title: z.string().min(1).max(180),
     url: z.string().url().max(700),
-  })).min(1).max(8),
+  })).max(8).default([]),
 });
 
 interface AdminOk {
