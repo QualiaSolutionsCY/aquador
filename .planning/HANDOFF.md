@@ -15,7 +15,7 @@
 - Supabase: project ref `hznpuxplqgszbacxzbhv`
 - GitHub: https://github.com/QualiaSolutionsCY/aquador
 - Vercel: https://vercel.com/qualiasolutionscy/aquador
-- Latest production deployment: `dpl_6hScyXNSEr9aWcajzH64YmeHLTEt`
+- Latest production deployment: `dpl_GjPeT7geFwYcXz9PbvLzAhgXyyks`
 - Walkthrough: deliver as an out-of-band video link or live admin walkthrough; no recording is stored in this repository.
 
 ## How to Use
