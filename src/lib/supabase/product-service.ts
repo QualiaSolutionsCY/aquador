@@ -63,6 +63,28 @@ export async function getAllProducts(): Promise<Product[]> {
   return filterPublicProducts(data);
 }
 
+// Get products for the main Dubai shop. Lattafa has its own route and
+// non-perfume product types are variants on PDPs, not standalone listing rows.
+export async function getShopProducts(): Promise<Product[]> {
+  if (!hasPublicSupabaseEnv()) return [];
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select(PRODUCT_COLUMNS)
+    .eq('is_active', true)
+    .eq('product_type', 'perfume')
+    .neq('category', 'lattafa-original')
+    .order('in_stock', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    Sentry.addBreadcrumb({ category: 'product-service', message: 'Error fetching shop products', level: 'error', data: { error } });
+    return [];
+  }
+
+  return filterPublicProducts(data);
+}
+
 // Get product by ID (returns null if inactive)
 export async function getProductById(id: string): Promise<Product | null> {
   if (!hasPublicSupabaseEnv()) return null;
@@ -143,6 +165,26 @@ export async function getProductsByCategory(category: string): Promise<Product[]
 
   if (error) {
     Sentry.addBreadcrumb({ category: 'product-service', message: 'Error fetching products by category', level: 'error', data: { error, category } });
+    return [];
+  }
+
+  return filterPublicProducts(data);
+}
+
+export async function getPerfumeProductsByCategory(category: string): Promise<Product[]> {
+  if (!hasPublicSupabaseEnv()) return [];
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select(PRODUCT_COLUMNS)
+    .eq('category', category as ProductCategory)
+    .eq('product_type', 'perfume')
+    .eq('is_active', true)
+    .order('in_stock', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    Sentry.addBreadcrumb({ category: 'product-service', message: 'Error fetching perfume products by category', level: 'error', data: { error, category } });
     return [];
   }
 
@@ -363,45 +405,6 @@ export async function getRelatedProducts(
   }
 
   return filterPublicProducts(data);
-}
-
-export async function getProductOrdersCount(
-  productId: string,
-  days: number
-): Promise<number | null> {
-  if (!hasPublicSupabaseEnv()) return null;
-  const supabase = createPublicClient();
-  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-
-  const { data, error } = await supabase
-    .from('orders')
-    .select('items')
-    .gte('created_at', since);
-
-  if (error) {
-    Sentry.addBreadcrumb({
-      category: 'product-service',
-      message: 'Orders count unavailable for social proof',
-      level: 'warning',
-      data: { error, productId, days },
-    });
-    return null;
-  }
-
-  return (data || []).reduce((total, order) => {
-    const items = Array.isArray(order.items) ? order.items : [];
-    const matches = items.filter((item) => {
-      if (!item || typeof item !== 'object' || Array.isArray(item)) return false;
-      const record = item as Record<string, unknown>;
-      return (
-        record.productId === productId ||
-        record.product_id === productId ||
-        record.id === productId
-      );
-    });
-
-    return total + matches.length;
-  }, 0);
 }
 
 // Search products (active only, sanitized against PostgREST injection)

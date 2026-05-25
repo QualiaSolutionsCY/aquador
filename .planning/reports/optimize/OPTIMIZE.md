@@ -2,8 +2,8 @@
 date: 2026-05-25 13:51 +03
 mode: full
 critical: 0
-high: 4
-medium: 5
+high: 2
+medium: 4
 low: 3
 status: needs_attention
 ---
@@ -35,13 +35,14 @@ Ran a Qualia full-site pass with parallel frontend/UX, backend/security, and per
 | F13 | Admin | Orders admin lacked date/amount sort controls | `src/app/admin/orders/page.tsx` | Added server-side Supabase sort control for newest, oldest, highest total, and lowest total |
 | F14 | Performance | Visitor heartbeat wrote every 30 seconds | `src/hooks/useVisitorHeartbeat.ts` | Reduced recurring heartbeat cadence to every 2 minutes while preserving immediate page-load presence |
 | F15 | Security | Supabase advisors still reported permissive RLS/storage/RPC exposure | `supabase/migrations/20260525111500_clear_remaining_security_advisors.sql` | Applied migration through Supabase MCP; Security Advisor now returns zero lints |
+| F16 | Frontend | Persistent floating AI bubble conflicted with the editorial concierge entrypoint | `src/components/ai/AiConciergeWidget.tsx` | Kept the global drawer event host but removed the always-present floating trigger |
+| F17 | Performance | PDP social proof scanned recent order JSON in app code | `src/app/products/[slug]/page.tsx`, `src/lib/supabase/product-service.ts` | Removed the live order scan and use the static seasonal proof fallback |
+| F18 | Performance | Shop pages fetched broad product sets and filtered in JS | `src/app/shop/page.tsx`, `src/app/shop/[category]/page.tsx`, `src/lib/supabase/product-service.ts` | Added Supabase-filtered shop/category product queries |
 
 ## Remaining High Priority
 
 | # | Dimension | Finding | Location | Fix |
 |---|-----------|---------|----------|-----|
-| H1 | Frontend | Persistent AI bubble conflicts with planned concierge entrypoint | `src/components/layout/StorefrontChrome.tsx`, `src/components/ai/AiConciergeWidget.tsx` | Split drawer host from trigger; render only the editorial entrypoint globally |
-| H2 | Performance | PDP social proof scans recent order JSON in app code | `src/lib/supabase/product-service.ts`, `src/app/products/[slug]/page.tsx` | Replace with DB-side RPC/view or remove live count |
 | H3 | Performance | Admin dashboard aggregates multiple full-row scans in Node | `src/app/admin/page.tsx`, `src/lib/supabase/admin-service.ts` | Add one `dashboard_metrics(period)` RPC/view-backed endpoint |
 | H4 | Performance | Product grids hydrate every card with Framer Motion and quick-view state | `src/components/ui/ProductCard.tsx` | Make base card a server component and lazy-load quick view as an optional island |
 
@@ -51,7 +52,6 @@ Ran a Qualia full-site pass with parallel frontend/UX, backend/security, and per
 |---|-----------|---------|----------|-----|
 | M1 | UX | Customer detail page still uses off-system dark cards | `src/app/admin/customers/[id]/page.tsx` | Convert to admin token surfaces and reuse table primitives |
 | M2 | Admin | Products admin lacks brand/status/stock filters and bulk actions | `src/app/admin/products/page.tsx` | Add filter controls and bulk activate/deactivate |
-| M4 | Performance | Shop fetches broad product sets and filters in JS | `src/app/shop/page.tsx`, `src/app/shop/[category]/page.tsx` | Push product type/category filters into Supabase queries |
 | M5 | Performance | Root layout hydrates storefront-only providers for admin too | `src/app/layout.tsx` | Move storefront providers into public route group/layout |
 | M6 | Performance | Page transitions add site-wide Framer Motion/analytics work | `src/components/providers/PageTransition.tsx` | Gate to public layout or remove for handoff performance |
 

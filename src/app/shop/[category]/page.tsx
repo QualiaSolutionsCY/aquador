@@ -2,10 +2,10 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import {
-  getProductsByCategory,
   categories,
   getCategoryBySlug,
   getAllProductBrands,
+  getPerfumeProductsByCategory,
 } from '@/lib/supabase/product-service';
 import { CATEGORY_OPTIONS } from '@/lib/constants';
 import { buildPageMetadata } from '@/lib/seo/metadata';
@@ -55,12 +55,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     notFound();
   }
 
-  const [allProducts, brandOptions] = await Promise.all([
-    getProductsByCategory(categorySlug),
+  const [products, brandOptions] = await Promise.all([
+    getPerfumeProductsByCategory(categorySlug),
     getAllProductBrands(),
   ]);
-  // Only show perfumes. Oils and lotions are variants on the product page, not separate listings.
-  const products = allProducts.filter((p) => p.product_type === 'perfume');
 
   // BreadcrumbList structured data
   const breadcrumbSchema = {

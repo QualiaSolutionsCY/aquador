@@ -5,7 +5,6 @@ import { ArrowLeft, PackageCheck } from 'lucide-react';
 import {
   getAllProductSlugs,
   getProductBySlug,
-  getProductOrdersCount,
   getProductVariantGroup,
   getRelatedProducts,
 } from '@/lib/supabase/product-service';
@@ -106,9 +105,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const [relatedProducts, ordersCount, productVariants] = await Promise.all([
+  const [relatedProducts, productVariants] = await Promise.all([
     getRelatedProducts(product.id, product.category, 6),
-    getProductOrdersCount(product.id, 30),
     getProductVariantGroup(product),
   ]);
 
@@ -217,7 +215,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
               <div className="border-y border-border-dark bg-bg-alt/60 py-5">
                 <div className="flex items-center justify-between gap-4 border-b border-border px-0 pb-5">
-                  <SocialProof ordersCount={ordersCount} />
+                  <SocialProof />
                   <span className="hidden font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-fg-muted sm:inline">
                     {inStock ? 'Ready to pack' : 'Resting'}
                   </span>
