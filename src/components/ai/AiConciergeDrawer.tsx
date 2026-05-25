@@ -78,6 +78,27 @@ function newId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+function newUuid(): string {
+  const browserCrypto = globalThis.crypto;
+  if (browserCrypto?.randomUUID) {
+    return browserCrypto.randomUUID();
+  }
+
+  const bytes = new Uint8Array(16);
+  browserCrypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0'));
+  return [
+    hex.slice(0, 4).join(''),
+    hex.slice(4, 6).join(''),
+    hex.slice(6, 8).join(''),
+    hex.slice(8, 10).join(''),
+    hex.slice(10, 16).join(''),
+  ].join('-');
+}
+
 function seedGreeting(): Message {
   return {
     id: newId(),
@@ -335,20 +356,20 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
         localStorage.setItem(visitorIdKey, visitorId);
       }
 
-      const { data: session, error: sessionError } = await supabase
+      const sessionId = newUuid();
+      const { error: sessionError } = await supabase
         .from('live_chat_sessions')
         .insert({
+          id: sessionId,
           visitor_id: visitorId,
           visitor_name: null,
           status: 'waiting',
-        })
-        .select('id')
-        .single();
+        });
 
-      if (sessionError || !session) throw sessionError ?? new Error('Missing session');
+      if (sessionError) throw sessionError;
 
       await supabase.from('live_chat_messages').insert({
-        session_id: session.id,
+        session_id: sessionId,
         sender_type: 'system',
         content: 'A visitor requested a live agent from the AI desk.',
       });
@@ -356,7 +377,7 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
       await fetch('/api/live-chat/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: session.id }),
+        body: JSON.stringify({ sessionId }),
       });
 
       setMessages((prev) => [
