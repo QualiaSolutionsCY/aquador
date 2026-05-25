@@ -10,7 +10,7 @@ const mockSupabaseInsert = jest.fn();
 
 // Mock rate limiter
 jest.mock('@/lib/rate-limit', () => ({
-  checkRateLimit: (...args: any[]) => mockCheckRateLimit(...args),
+  checkRateLimit: (...args: unknown[]) => mockCheckRateLimit(...args),
 }));
 
 // Mock Supabase public (anon) client — heartbeat now uses createPublicClient
@@ -18,7 +18,7 @@ jest.mock('@/lib/rate-limit', () => ({
 // by pg_cron, so the route no longer calls .delete().lt(...).
 jest.mock('@/lib/supabase/public', () => ({
   createPublicClient: jest.fn(() => ({
-    from: (...args: any[]) => mockSupabaseFrom(...args),
+    from: (...args: unknown[]) => mockSupabaseFrom(...args),
   })),
 }));
 
@@ -40,7 +40,7 @@ afterAll(() => {
 import { POST } from '../route';
 
 describe('POST /api/heartbeat', () => {
-  const createMockRequest = (body: any, headers: Record<string, string> = {}) => {
+  const createMockRequest = (body: unknown, headers: Record<string, string> = {}) => {
     return new NextRequest('https://aquadorcy.com/api/heartbeat', {
       method: 'POST',
       headers: {

@@ -11,7 +11,7 @@ const mockCheckRateLimit = jest.fn();
 
 // Mock Stripe
 jest.mock('@/lib/stripe', () => ({
-  getStripe: (...args: any[]) => mockGetStripe(...args),
+  getStripe: (...args: unknown[]) => mockGetStripe(...args),
 }));
 
 // Mock cart validation
@@ -26,12 +26,12 @@ jest.mock('@/lib/validation/cart', () => ({
     size: require('zod').z.string().optional(),
     image: require('zod').z.string().optional(),
   }),
-  validateCartPrices: (...args: any[]) => mockValidateCartPrices(...args),
+  validateCartPrices: (...args: unknown[]) => mockValidateCartPrices(...args),
 }));
 
 // Mock rate limiter
 jest.mock('@/lib/rate-limit', () => ({
-  checkRateLimit: (...args: any[]) => mockCheckRateLimit(...args),
+  checkRateLimit: (...args: unknown[]) => mockCheckRateLimit(...args),
 }));
 
 // Mock Sentry
@@ -73,7 +73,7 @@ afterAll(() => {
 import { POST } from '../route';
 
 describe('POST /api/checkout', () => {
-  const createMockRequest = (body: any) => {
+  const createMockRequest = (body: unknown) => {
     return new NextRequest('https://aquadorcy.com/api/checkout', {
       method: 'POST',
       headers: {
@@ -106,7 +106,7 @@ describe('POST /api/checkout', () => {
     mockCheckRateLimit.mockResolvedValue(null);
 
     // Default: prices are valid — correctedItems mirrors input
-    mockValidateCartPrices.mockImplementation(async (items: any[]) => ({
+    mockValidateCartPrices.mockImplementation(async (items: unknown[]) => ({
       valid: true,
       errors: [],
       correctedItems: items,

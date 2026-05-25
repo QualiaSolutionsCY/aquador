@@ -263,6 +263,35 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_cohorts: {
+        Row: {
+          cohort: string
+          created_at: string
+          created_by: string | null
+          customer_id: string
+        }
+        Insert: {
+          cohort: string
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+        }
+        Update: {
+          cohort?: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_cohorts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       products: {
         Row: {
           brand: string | null
@@ -320,6 +349,57 @@ export type Database = {
           size?: string
           tags?: string[] | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      store_settings: {
+        Row: {
+          contact_email: string
+          contact_phone: string
+          facebook_url: string
+          free_shipping_threshold_cents: number
+          id: number
+          instagram_url: string
+          returns_policy_summary: string
+          seo_default_description: string
+          seo_default_title: string
+          shipping_policy_summary: string
+          stripe_apple_pay_enabled: boolean
+          stripe_google_pay_enabled: boolean
+          stripe_payment_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string
+          contact_phone?: string
+          facebook_url?: string
+          free_shipping_threshold_cents?: number
+          id?: number
+          instagram_url?: string
+          returns_policy_summary?: string
+          seo_default_description?: string
+          seo_default_title?: string
+          shipping_policy_summary?: string
+          stripe_apple_pay_enabled?: boolean
+          stripe_google_pay_enabled?: boolean
+          stripe_payment_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string
+          contact_phone?: string
+          facebook_url?: string
+          free_shipping_threshold_cents?: number
+          id?: number
+          instagram_url?: string
+          returns_policy_summary?: string
+          seo_default_description?: string
+          seo_default_title?: string
+          shipping_policy_summary?: string
+          stripe_apple_pay_enabled?: boolean
+          stripe_google_pay_enabled?: boolean
+          stripe_payment_enabled?: boolean
+          updated_at?: string
         }
         Relationships: []
       }
@@ -509,6 +589,8 @@ export type OrderStatus = Database['public']['Enums']['order_status'];
 
 export type Customer = Database['public']['Tables']['customers']['Row'];
 export type CustomerInsert = Database['public']['Tables']['customers']['Insert'];
+export type CustomerCohort = Database['public']['Tables']['customer_cohorts']['Row'];
+export type StoreSettings = Database['public']['Tables']['store_settings']['Row'];
 
 export type SiteVisitor = Database['public']['Tables']['site_visitors']['Row'];
 export type LiveChatSession = Database['public']['Tables']['live_chat_sessions']['Row'];

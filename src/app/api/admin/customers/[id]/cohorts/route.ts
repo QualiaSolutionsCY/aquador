@@ -30,11 +30,6 @@ const cohortSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'Use lowercase letters, digits, and hyphens only'),
 });
 
-interface CohortRow {
-  cohort: string;
-  created_at: string;
-}
-
 async function assertAdmin(supabase: Awaited<ReturnType<typeof createClient>>) {
   const {
     data: { user },
@@ -60,15 +55,13 @@ async function listCohorts(
   supabase: Awaited<ReturnType<typeof createClient>>,
   customerId: string,
 ): Promise<string[]> {
-  // customer_cohorts is not in generated Database types yet — cast.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('customer_cohorts')
     .select('cohort, created_at')
     .eq('customer_id', customerId)
     .order('created_at', { ascending: true });
   if (error || !data) return [];
-  return (data as CohortRow[]).map((r) => r.cohort);
+  return data.map((r) => r.cohort);
 }
 
 export async function GET(
@@ -116,8 +109,7 @@ export async function POST(
     const cohort = parsed.data.cohort;
     // Upsert with ON CONFLICT (customer_id, cohort) DO NOTHING — duplicate
     // adds become a no-op rather than throwing a unique-violation.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: insertError } = await (supabase as any)
+    const { error: insertError } = await supabase
       .from('customer_cohorts')
       .upsert(
         { customer_id: id, cohort, created_by: auth.userId },
@@ -165,8 +157,7 @@ export async function DELETE(
     }
 
     const cohort = parsed.data.cohort;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: deleteError } = await (supabase as any)
+    const { error: deleteError } = await supabase
       .from('customer_cohorts')
       .delete()
       .eq('customer_id', id)

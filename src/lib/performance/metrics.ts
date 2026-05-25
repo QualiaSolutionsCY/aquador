@@ -11,6 +11,11 @@ interface LoadMetrics {
 
 const loadMetrics = new Map<string, LoadMetrics>();
 
+type WebVitalMetric = {
+  name: string;
+  value: number;
+};
+
 export function measureLoadTime(component: string): void {
   loadMetrics.set(component, {
     component,
@@ -48,8 +53,7 @@ export function isSlowDevice(component: string, thresholdMs = 3000): boolean {
   return metric.duration > thresholdMs;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function reportWebVitals(metric: any): void {
+export function reportWebVitals(metric: WebVitalMetric): void {
   if (process.env.NODE_ENV === 'development') {
     console.log(`[Web Vitals] ${metric.name}:`, metric.value);
   }

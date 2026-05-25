@@ -16,7 +16,7 @@ const mockSupabaseAuthGetUser = jest.fn();
 // Mock Supabase client
 jest.mock('@/lib/supabase/server', () => ({
   createClient: jest.fn(() => ({
-    from: (...args: any[]) => mockSupabaseFrom(...args),
+    from: (...args: unknown[]) => mockSupabaseFrom(...args),
     auth: {
       getUser: () => mockSupabaseAuthGetUser(),
     },
@@ -33,7 +33,7 @@ jest.mock('@/lib/blog', () => ({
 import { GET, POST } from '../route';
 
 describe('Blog API Routes', () => {
-  const createMockRequest = (url: string, body?: any) => {
+  const createMockRequest = (url: string, body?: unknown) => {
     return new NextRequest(url, {
       method: body ? 'POST' : 'GET',
       headers: {

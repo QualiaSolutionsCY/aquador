@@ -892,9 +892,7 @@ export async function getCustomerCohorts(customerId: string): Promise<string[]> 
   try {
     const supabase = createAdminClient();
     const { data, error } = await supabase
-      // customer_cohorts is present in migrations but not generated types yet.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .from('customer_cohorts' as any)
+      .from('customer_cohorts')
       .select('cohort, created_at')
       .eq('customer_id', customerId)
       .order('created_at', { ascending: true });
