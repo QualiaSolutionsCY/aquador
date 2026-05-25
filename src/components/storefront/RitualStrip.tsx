@@ -44,7 +44,7 @@ const PROMISES: ReadonlyArray<Promise> = [
     number: 'Two',
     title: 'Posted from Nicosia.',
     body:
-      'Same day inside the city, two to three days across Cyprus. Free shipping over thirty-five euro, no compromises on the seal.',
+      'Same day inside the city, two to three days across Cyprus. Shipping is included, no compromises on the seal.',
     icon: PackageCheck,
   },
   {

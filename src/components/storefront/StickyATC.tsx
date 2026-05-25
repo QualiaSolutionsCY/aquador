@@ -8,6 +8,7 @@ export interface StickyATCProps {
   productName: string;
   onAddToCart: () => void;
   disabled?: boolean;
+  label?: string;
 }
 
 const priceFormatter = new Intl.NumberFormat('en-IE', {
@@ -20,6 +21,7 @@ export function StickyATC({
   productName,
   onAddToCart,
   disabled = false,
+  label = 'Add to bag',
 }: StickyATCProps) {
   const [elevated, setElevated] = useState(false);
 
@@ -45,7 +47,7 @@ export function StickyATC({
           </p>
         </div>
         <Button onClick={onAddToCart} disabled={disabled} className="shrink-0">
-          Add to bag
+          {label}
         </Button>
       </div>
     </div>

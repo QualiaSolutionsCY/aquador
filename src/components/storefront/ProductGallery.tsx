@@ -59,7 +59,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         ref={triggerRef}
         type="button"
         aria-label={`Open ${productName} gallery`}
-        className="group relative mx-auto block aspect-square w-full max-w-[520px] overflow-hidden border border-border-dark bg-bg-alt text-left"
+        className="group relative mx-auto block aspect-square w-full max-w-[min(100%,800px)] overflow-hidden border border-border-dark bg-bg-alt text-left"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
         onClick={() => setLightboxIndex(visibleIndex)}

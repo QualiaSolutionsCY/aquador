@@ -4,14 +4,13 @@
  * Overlay that appears on product card hover (desktop) or tap (mobile).
  * Reveals product details progressively without leaving the grid.
  *
- * Design: Absolute-positioned overlay with dark backdrop, gold accents
+ * Design: Absolute-positioned overlay with tokenized scrim and accents
  * Interaction: Hover to reveal (desktop), tap to reveal (mobile)
  * Performance: GPU-accelerated animations, respects reduced motion
  */
 
 'use client';
 
-import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { hoverRevealVariants, staggerContainerVariants, staggerItemVariants } from '@/lib/animations/discovery-animations';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -82,11 +81,10 @@ export function ProductQuickView({ product, isVisible, onClose }: ProductQuickVi
           animate="visible"
           exit="exit"
           variants={variants}
-          className="absolute inset-0 z-10 flex flex-col justify-end rounded-xl pointer-events-none overflow-hidden"
+          className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-end overflow-hidden"
           onMouseLeave={onClose}
         >
-          {/* Gradient only at bottom — image stays visible */}
-          <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/75 via-black/30 to-transparent rounded-b-xl" />
+          <div className="absolute inset-x-0 bottom-0 h-3/4 bg-[linear-gradient(to_top,var(--scrim),transparent)]" />
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -96,7 +94,7 @@ export function ProductQuickView({ product, isVisible, onClose }: ProductQuickVi
             {/* Product Description */}
             <motion.p
               variants={itemVariants}
-              className="text-[11px] text-gray-300 line-clamp-2 leading-relaxed"
+              className="line-clamp-2 text-[11px] leading-relaxed text-bg"
             >
               {truncatedDescription}
             </motion.p>
@@ -107,7 +105,7 @@ export function ProductQuickView({ product, isVisible, onClose }: ProductQuickVi
                 {fragranceNotes.map((note) => (
                   <span
                     key={note}
-                    className="text-[9px] px-2 py-0.5 bg-gold-500/10 border border-gold-500/30 text-gold-400 rounded-full uppercase tracking-wider font-medium"
+                    className="border border-bg/35 bg-bg/10 px-2 py-0.5 font-micro text-[9px] uppercase tracking-[0.08em] text-bg"
                   >
                     {note}
                   </span>
@@ -117,16 +115,12 @@ export function ProductQuickView({ product, isVisible, onClose }: ProductQuickVi
 
             {/* Quick View Button */}
             <motion.div variants={itemVariants}>
-              <Link
-                href={`/products/${product.id}`}
-                className="inline-block pointer-events-auto text-[10px] md:text-[11px] px-3 py-1.5 border border-gold-500/50 hover:border-gold-500 text-gold-500 hover:text-gold-400 rounded-full uppercase tracking-wider font-medium transition-all duration-200 hover:bg-gold-500/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                onClick={(e) => {
-                  // Don't prevent default - allow navigation
-                  e.stopPropagation();
-                }}
+              <span
+                aria-hidden="true"
+                className="inline-block border border-bg/50 px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] text-bg md:text-[11px]"
               >
-                Quick View
-              </Link>
+                Open perfume
+              </span>
             </motion.div>
           </motion.div>
         </motion.div>

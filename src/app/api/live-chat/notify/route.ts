@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { createPublicClient } from '@/lib/supabase/public';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const maxDuration = 10;
 
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate session exists and is in 'waiting' state
-    const supabase = createPublicClient();
+    const supabase = createAdminClient();
     const { data: session } = await supabase
       .from('live_chat_sessions')
       .select('id, status')

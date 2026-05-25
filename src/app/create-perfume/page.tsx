@@ -12,7 +12,7 @@
  *   1. Pick the top note (1)
  *   2. Pick the heart note (1)
  *   3. Pick the base note (1)
- *   4. Pick the volume (50ml €29.99 / 100ml €49.99)
+ *   4. Pick the volume (50ml €29.99 / 100ml €199.00)
  *   5. Review and pay
  *
  * The hero image and side-by-side magazine layout from the previous build

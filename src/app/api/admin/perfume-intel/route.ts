@@ -52,6 +52,45 @@ interface CachedReportRow {
   usage_count: number;
 }
 
+interface MemoryRow {
+  id: string;
+  note: string;
+  source?: string | null;
+  created_at: string;
+}
+
+interface ConversationRow {
+  id: string;
+  perfume_name: string;
+  normalized_query: string;
+  input_type: string;
+  report: PerfumeIntelReport;
+  learned_memories: string[] | null;
+  created_at: string;
+}
+
+interface PerfumeIntelQuery<T> extends PromiseLike<{ data: T; error: { message: string } | null }> {
+  select(columns?: string): PerfumeIntelQuery<T>;
+  eq(column: string, value: unknown): PerfumeIntelQuery<T>;
+  order(column: string, options?: { ascending?: boolean }): PerfumeIntelQuery<T>;
+  limit(count: number): PerfumeIntelQuery<T>;
+  maybeSingle(): PerfumeIntelQuery<T | null>;
+  single(): PerfumeIntelQuery<T>;
+  update(values: Record<string, unknown>): PerfumeIntelQuery<T>;
+  insert(values: unknown): PerfumeIntelQuery<T>;
+  upsert(values: unknown, options?: { onConflict?: string }): PerfumeIntelQuery<T>;
+}
+
+interface PerfumeIntelDb {
+  from<T>(table: string): PerfumeIntelQuery<T>;
+}
+
+type ServerSupabase = Awaited<ReturnType<typeof createClient>>;
+
+function perfumeIntelDb(supabase: ServerSupabase): PerfumeIntelDb {
+  return supabase as unknown as PerfumeIntelDb;
+}
+
 interface ImageInput {
   dataUrl: string;
   mime: string;
@@ -59,7 +98,7 @@ interface ImageInput {
 }
 
 async function assertAdmin(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ServerSupabase,
 ): Promise<AdminOk | AdminFail> {
   const {
     data: { user },
@@ -106,7 +145,7 @@ function parseImageDataUrl(value?: string): ImageInput | null {
 }
 
 function memoryRowsToShape(
-  rows: Array<{ id: string; note: string; source?: string | null; created_at: string }>,
+  rows: MemoryRow[],
 ): PerfumeIntelMemory[] {
   return rows.map((row) => ({
     id: row.id,
@@ -117,15 +156,7 @@ function memoryRowsToShape(
 }
 
 function conversationRowsToShape(
-  rows: Array<{
-    id: string;
-    perfume_name: string;
-    normalized_query: string;
-    input_type: string;
-    report: PerfumeIntelReport;
-    learned_memories: string[] | null;
-    created_at: string;
-  }>,
+  rows: ConversationRow[],
 ): PerfumeIntelConversation[] {
   return rows.map((row) => ({
     id: row.id,
@@ -139,11 +170,11 @@ function conversationRowsToShape(
 }
 
 async function getMemories(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ServerSupabase,
   normalizedQuery: string,
 ): Promise<PerfumeIntelMemory[]> {
-  const { data, error } = await (supabase as any)
-    .from('perfume_intel_memories')
+  const { data, error } = await perfumeIntelDb(supabase)
+    .from<MemoryRow[]>('perfume_intel_memories')
     .select('id,note,source,created_at')
     .eq('normalized_query', normalizedQuery)
     .order('created_at', { ascending: false })
@@ -157,11 +188,11 @@ async function getMemories(
 }
 
 async function getCachedReport(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ServerSupabase,
   normalizedQuery: string,
 ): Promise<CachedReportRow | null> {
-  const { data, error } = await (supabase as any)
-    .from('perfume_intel_reports')
+  const { data, error } = await perfumeIntelDb(supabase)
+    .from<CachedReportRow>('perfume_intel_reports')
     .select('id,report,model,updated_at,usage_count')
     .eq('normalized_query', normalizedQuery)
     .maybeSingle();
@@ -174,10 +205,10 @@ async function getCachedReport(
 }
 
 async function getHistory(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ServerSupabase,
 ): Promise<PerfumeIntelConversation[]> {
-  const { data, error } = await (supabase as any)
-    .from('perfume_intel_conversations')
+  const { data, error } = await perfumeIntelDb(supabase)
+    .from<ConversationRow[]>('perfume_intel_conversations')
     .select('id,perfume_name,normalized_query,input_type,report,learned_memories,created_at')
     .order('created_at', { ascending: false })
     .limit(18);
@@ -190,12 +221,12 @@ async function getHistory(
 }
 
 async function bumpCachedReport(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ServerSupabase,
   id: string,
   usageCount: number,
 ) {
-  await (supabase as any)
-    .from('perfume_intel_reports')
+  await perfumeIntelDb(supabase)
+    .from<unknown>('perfume_intel_reports')
     .update({
       usage_count: usageCount + 1,
       last_used_at: new Date().toISOString(),
@@ -369,15 +400,15 @@ async function generateReport({
 }
 
 async function saveReport(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ServerSupabase,
   normalizedQuery: string,
   perfumeName: string,
   report: PerfumeIntelReport,
   userId: string,
 ) {
   const now = new Date().toISOString();
-  const { data, error } = await (supabase as any)
-    .from('perfume_intel_reports')
+  const { data, error } = await perfumeIntelDb(supabase)
+    .from<{ id: string }>('perfume_intel_reports')
     .upsert({
       normalized_query: normalizedQuery,
       perfume_name: perfumeName,
@@ -403,15 +434,15 @@ async function saveAutoMemories({
   report,
   userId,
 }: {
-  supabase: Awaited<ReturnType<typeof createClient>>;
+	  supabase: ServerSupabase;
   normalizedQuery: string;
   perfumeName: string;
   report: PerfumeIntelReport;
   userId: string;
 }) {
   const learned = inferLearningNotes(report);
-  const { error } = await (supabase as any)
-    .from('perfume_intel_memories')
+  const { error } = await perfumeIntelDb(supabase)
+    .from<unknown>('perfume_intel_memories')
     .insert(learned.map((note) => ({
       normalized_query: normalizedQuery,
       perfume_name: perfumeName,
@@ -435,7 +466,7 @@ async function saveConversation({
   learnedMemories,
   userId,
 }: {
-  supabase: Awaited<ReturnType<typeof createClient>>;
+	  supabase: ServerSupabase;
   normalizedQuery: string;
   requestedName: string;
   image: ImageInput | null;
@@ -444,8 +475,8 @@ async function saveConversation({
   userId: string;
 }) {
   const inputType = image && requestedName ? 'mixed' : image ? 'image' : 'text';
-  const { error } = await (supabase as any)
-    .from('perfume_intel_conversations')
+  const { error } = await perfumeIntelDb(supabase)
+    .from<unknown>('perfume_intel_conversations')
     .insert({
       normalized_query: normalizedQuery,
       perfume_name: report.perfumeName,
@@ -594,8 +625,8 @@ export async function PUT(request: NextRequest) {
     }
 
     const normalizedQuery = normalizePerfumeName(parsed.data.perfumeName);
-    const { error } = await (supabase as any)
-      .from('perfume_intel_memories')
+    const { error } = await perfumeIntelDb(supabase)
+      .from<unknown>('perfume_intel_memories')
       .insert({
         normalized_query: normalizedQuery,
         perfume_name: parsed.data.perfumeName,

@@ -31,8 +31,8 @@ export const SHIPPING_COUNTRIES = [
 /**
  * Shipping configuration
  */
-export const FREE_SHIPPING_THRESHOLD = 35; // EUR — orders at or above this get free shipping
-export const DELIVERY_FEE = 3; // EUR — flat fee for orders below threshold
+export const FREE_SHIPPING_THRESHOLD = 0; // EUR — every order gets free shipping
+export const DELIVERY_FEE = 0; // EUR — shipping is included for v3.0
 
 /**
  * Cart configuration constants

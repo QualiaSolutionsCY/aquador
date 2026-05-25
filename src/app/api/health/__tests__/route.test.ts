@@ -31,41 +31,11 @@ describe('GET /api/health', () => {
     expect(data.status).toBe('ok');
   });
 
-  it('should include timestamp', async () => {
+  it('should not expose deployment or service configuration details', async () => {
     const response = await GET();
     const data = await response.json();
 
-    expect(data.timestamp).toBeDefined();
-    expect(new Date(data.timestamp).getTime()).toBeGreaterThan(0);
-  });
-
-  it('should include environment', async () => {
-    const response = await GET();
-    const data = await response.json();
-
-    expect(data.environment).toBe('test');
-  });
-
-  it('should include service checks', async () => {
-    const response = await GET();
-    const data = await response.json();
-
-    expect(data.checks).toBeDefined();
-    expect(data.checks.stripe).toBe(true);
-    expect(data.checks.resend).toBe(true);
-    expect(data.checks.sentry).toBe(true);
-  });
-
-  it('should detect missing services', async () => {
-    const savedStripeKey = process.env.STRIPE_SECRET_KEY;
-    delete process.env.STRIPE_SECRET_KEY;
-
-    const response = await GET();
-    const data = await response.json();
-
-    expect(data.checks.stripe).toBe(false);
-
-    process.env.STRIPE_SECRET_KEY = savedStripeKey;
+    expect(data).toEqual({ status: 'ok' });
   });
 
   it('should include no-cache headers', async () => {

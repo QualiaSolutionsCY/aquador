@@ -17,7 +17,7 @@
  */
 
 import { useCallback, useMemo, useReducer } from 'react';
-import { fragranceDatabase } from '@/lib/perfume/notes';
+import { customPerfumeLayerNotes, fragranceDatabase } from '@/lib/perfume/notes';
 import type {
   FragranceNote,
   FragranceCategory,
@@ -120,15 +120,9 @@ export function noteByName(name: string): FragranceNote | undefined {
 }
 
 export const NOTES_BY_LAYER: Record<Layer, FragranceNote[]> = {
-  // Top: bright, lifted. Fruity plus a hand of floral.
-  top: [...fragranceDatabase.fruity, ...fragranceDatabase.floral.slice(0, 4)],
-  // Heart: the emotional core. Floral plus a hand of gourmand.
-  heart: [
-    ...fragranceDatabase.floral,
-    ...fragranceDatabase.gourmand.slice(0, 4),
-  ],
-  // Base: foundation. Woody plus oriental.
-  base: [...fragranceDatabase.woody, ...fragranceDatabase.oriental],
+  top: [...customPerfumeLayerNotes.top],
+  heart: [...customPerfumeLayerNotes.heart],
+  base: [...customPerfumeLayerNotes.base],
 };
 
 export interface BuilderApi {

@@ -7,6 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getStripe } from '@/lib/stripe';
 import { getProductsByIds } from '@/lib/supabase/product-service';
 import { formatAcsCheckpoint } from '@/lib/acs-checkpoints';
+import { calculatePrice, type PerfumeVolume } from '@/lib/perfume/pricing';
 
 export const maxDuration = 30;
 
@@ -509,8 +510,8 @@ export async function POST(request: NextRequest) {
           for (const shortItem of shortItems) {
             if (shortItem.pid === 'custom-perfume') {
               const custom = customPerfumesByVariant.get(shortItem.vid);
-              const volume = custom?.v || (shortItem.vid.split('-').pop() || '50ml');
-              const price = volume === '100ml' ? 49.99 : 29.99;
+              const volume = (custom?.v || shortItem.vid.split('-').pop() || '50ml') as PerfumeVolume;
+              const price = calculatePrice(volume);
               items.push({
                 name: custom?.n ? `${custom.n} Custom Perfume` : `Custom Perfume (${volume})`,
                 quantity: shortItem.qty,
@@ -562,11 +563,11 @@ export async function POST(request: NextRequest) {
         }
       } else if (metadata.productType === 'custom-perfume') {
         // Custom perfume checkout — reconstruct item from individual metadata fields
-        const volume = metadata.volume || '50ml';
+        const volume = (metadata.volume || '50ml') as PerfumeVolume;
         items = [{
           name: `Custom Perfume: ${metadata.perfumeName || 'Unnamed'}`,
           quantity: 1,
-          price: volume === '100ml' ? 49.99 : 29.99,
+          price: calculatePrice(volume),
           productType: 'custom-perfume',
           size: volume,
           customPerfume: {

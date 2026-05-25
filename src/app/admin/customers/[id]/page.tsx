@@ -35,23 +35,24 @@ export default function CustomerDetailPage() {
         supabase
           .from('orders')
           .select('*')
-          .eq('customer_email', '') // placeholder — will be set after customer loads
+          .eq('customer_id', id)
           .order('created_at', { ascending: false }),
       ]);
 
       if (customerRes.data) {
         setCustomer(customerRes.data as Customer);
-        // Now fetch orders by email
-        const { data: orderData } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('customer_email', customerRes.data.email)
-          .order('created_at', { ascending: false });
-        setOrders((orderData || []) as Order[]);
+        if (ordersRes.data && ordersRes.data.length > 0) {
+          setOrders(ordersRes.data as Order[]);
+        } else {
+          // Legacy fallback for any pre-backfill order rows that still lack customer_id.
+          const { data: orderData } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('customer_email', customerRes.data.email)
+            .order('created_at', { ascending: false });
+          setOrders((orderData || []) as Order[]);
+        }
       }
-
-      // suppress unused var
-      void ordersRes;
 
       setLoading(false);
     };

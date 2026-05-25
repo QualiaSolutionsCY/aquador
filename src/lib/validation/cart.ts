@@ -3,6 +3,7 @@ import type { CartItem } from '@/types/cart';
 import { getProductsByIds } from '@/lib/supabase/product-service';
 import { MIN_QUANTITY, MAX_QUANTITY } from '@/lib/constants';
 import { isDisallowedSampleSize } from '@/lib/product-description';
+import { calculatePrice, type PerfumeVolume } from '@/lib/perfume/pricing';
 
 /**
  * Zod schema for CartItem validation
@@ -80,7 +81,14 @@ export async function validateCartPrices(items: CartItem[]): Promise<{
         });
         continue;
       }
-      const customPrice = item.size === '100ml' ? 49.99 : 29.99;
+      if (item.size !== '50ml' && item.size !== '100ml') {
+        errors.push({
+          productId: item.productId,
+          reason: 'Custom perfume volume must be 50ml or 100ml',
+        });
+        continue;
+      }
+      const customPrice = calculatePrice(item.size as PerfumeVolume);
       correctedItems.push({ ...item, price: customPrice, productType: 'perfume' });
       continue;
     }

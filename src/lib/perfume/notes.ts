@@ -54,3 +54,16 @@ export const fragranceCategories: { key: FragranceCategory; label: string }[] = 
   { key: 'oriental', label: 'Oriental' },
   { key: 'gourmand', label: 'Gourmand' },
 ]
+
+export const customPerfumeLayerNotes = {
+  top: [...fragranceDatabase.fruity, ...fragranceDatabase.floral.slice(0, 4)],
+  heart: [...fragranceDatabase.floral, ...fragranceDatabase.gourmand.slice(0, 4)],
+  base: [...fragranceDatabase.woody, ...fragranceDatabase.oriental],
+} as const
+
+export type CustomPerfumeLayer = keyof typeof customPerfumeLayerNotes
+
+export function isAllowedCustomPerfumeNote(layer: CustomPerfumeLayer, noteName: string): boolean {
+  const normalized = noteName.trim().toLowerCase()
+  return customPerfumeLayerNotes[layer].some((note) => note.name.toLowerCase() === normalized)
+}

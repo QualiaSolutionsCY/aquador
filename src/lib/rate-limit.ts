@@ -94,6 +94,18 @@ export const rateLimiters = {
 
 export type RateLimiterKey = keyof typeof rateLimiters;
 
+const fallbackLimits: Record<RateLimiterKey, { limit: number; windowMs: number }> = {
+  checkout: { limit: 5, windowMs: 60_000 },
+  contact: { limit: 3, windowMs: 60_000 },
+  payment: { limit: 5, windowMs: 60_000 },
+  heartbeat: { limit: 30, windowMs: 60_000 },
+  'ai-assistant': { limit: 10, windowMs: 60_000 },
+  'live-chat-notify': { limit: 3, windowMs: 60_000 },
+  'email-capture': { limit: 3, windowMs: 60_000 },
+};
+
+const fallbackBuckets = new Map<string, { count: number; reset: number }>();
+
 /**
  * Get client IP from request
  */
@@ -123,9 +135,39 @@ export async function checkRateLimit(
 ): Promise<NextResponse | null> {
   const limiter = rateLimiters[limiterKey];
 
-  // If rate limiting is not configured, allow all requests
   if (!limiter) {
-    return null;
+    if (process.env.NODE_ENV !== 'production') return null;
+
+    const ip = getClientIp(request);
+    const config = fallbackLimits[limiterKey];
+    const now = Date.now();
+    const bucketKey = `${limiterKey}:${ip}`;
+    const bucket = fallbackBuckets.get(bucketKey);
+
+    if (!bucket || bucket.reset <= now) {
+      fallbackBuckets.set(bucketKey, { count: 1, reset: now + config.windowMs });
+      return null;
+    }
+
+    bucket.count += 1;
+    if (bucket.count <= config.limit) return null;
+
+    const retryAfter = Math.ceil((bucket.reset - now) / 1000);
+    return NextResponse.json(
+      {
+        error: 'Too many requests. Please try again later.',
+        retryAfter,
+      },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': config.limit.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': bucket.reset.toString(),
+          'Retry-After': retryAfter.toString(),
+        },
+      }
+    );
   }
 
   const ip = getClientIp(request);
