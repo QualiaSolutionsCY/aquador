@@ -134,6 +134,43 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
   return filterPublicProducts(data);
 }
 
+export async function findActiveProductByCartFingerprint(
+  name: string,
+  size: string,
+  productType: Product['product_type'],
+): Promise<Product | null> {
+  if (!hasPublicSupabaseEnv()) return null;
+
+  const variantName = productType === 'essence-oil'
+    ? `${name} (Essence Oil)`
+    : productType === 'body-lotion'
+      ? `${name} (Body Lotion)`
+      : `${name} (${size})`;
+  const candidateNames = [...new Set([name, variantName])];
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select(PRODUCT_COLUMNS)
+    .in('name', candidateNames)
+    .eq('size', size)
+    .eq('product_type', productType)
+    .eq('is_active', true)
+    .limit(1);
+
+  if (error) {
+    Sentry.addBreadcrumb({
+      category: 'product-service',
+      message: 'Error recovering stale cart product',
+      level: 'error',
+      data: { error, name, size, productType },
+    });
+    return null;
+  }
+
+  const product = data?.[0] ?? null;
+  return product && !isDisallowedSampleSize(product.size) ? product : null;
+}
+
 // Get product by slug — cached per request to dedup generateMetadata + page component calls
 export const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
   return getProductById(slug);

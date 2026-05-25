@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { CartItem } from '@/types/cart';
-import { getProductsByIds } from '@/lib/supabase/product-service';
+import { findActiveProductByCartFingerprint, getProductsByIds } from '@/lib/supabase/product-service';
 import { MIN_QUANTITY, MAX_QUANTITY } from '@/lib/constants';
 import { isDisallowedSampleSize } from '@/lib/product-description';
 import { calculatePrice, type PerfumeVolume } from '@/lib/perfume/pricing';
@@ -93,7 +93,8 @@ export async function validateCartPrices(items: CartItem[]): Promise<{
       continue;
     }
 
-    const product = productMap.get(item.productId);
+    const product = productMap.get(item.productId)
+      ?? await findActiveProductByCartFingerprint(item.name, item.size, item.productType);
 
     if (!product) {
       errors.push({
@@ -123,7 +124,16 @@ export async function validateCartPrices(items: CartItem[]): Promise<{
 
     // Always use catalog price (sale price takes precedence)
     const catalogPrice = Number(product.sale_price ?? product.price);
-    correctedItems.push({ ...item, price: catalogPrice });
+    correctedItems.push({
+      ...item,
+      productId: product.id,
+      variantId: `${product.id}-${product.product_type}-${product.size}`,
+      name: product.name,
+      image: product.image,
+      price: catalogPrice,
+      size: product.size as CartItem['size'],
+      productType: product.product_type as CartItem['productType'],
+    });
   }
 
   if (errors.length > 0) {
