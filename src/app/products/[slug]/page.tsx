@@ -183,7 +183,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       <main className="min-h-screen bg-bg pb-24 pt-24 text-fg md:pb-0 md:pt-28 lg:pt-32">
         <article>
-          <div className="mx-auto max-w-[var(--container-full)]">
+          <div className="mx-auto max-w-[96rem]">
           <div className="px-[var(--page-px)]">
             <nav className="mb-8" aria-label="Breadcrumb">
               <Link
@@ -196,12 +196,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </nav>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12">
-            <div className="min-w-0 px-[var(--page-px)]">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.45fr)_minmax(22rem,0.75fr)] lg:gap-14">
+            <div className="min-w-0 px-[var(--page-px)] lg:pr-0">
               <ProductGallery images={buildImageList(product)} productName={product.name} />
             </div>
 
-            <aside className="flex min-w-0 flex-col gap-6 px-[var(--page-px)] py-10 lg:sticky lg:top-28 lg:self-start lg:py-0">
+            <aside className="flex min-w-0 flex-col gap-6 px-[var(--page-px)] py-10 lg:sticky lg:top-28 lg:self-start lg:py-0 lg:pl-0">
               <header>
                 {product.brand && (
                   <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">

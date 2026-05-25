@@ -59,7 +59,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         ref={triggerRef}
         type="button"
         aria-label={`Open ${productName} gallery`}
-        className="group relative mx-auto block aspect-square w-full max-w-[min(100%,800px)] overflow-hidden border border-border-dark bg-bg-alt text-left"
+        className="group relative mx-auto block aspect-square w-full max-w-[min(100%,58rem)] overflow-hidden border border-border-dark bg-bg-alt text-left"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
         onClick={() => setLightboxIndex(visibleIndex)}
@@ -68,7 +68,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           src={safeImages[0].src}
           alt={safeImages[0].alt || `${productName}, fragrance detail 1`}
           fill
-          sizes="(min-width: 1024px) 55vw, 100vw"
+          sizes="(min-width: 1280px) 58vw, (min-width: 1024px) 62vw, 100vw"
           className="object-contain p-0 transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:scale-[1.01]"
           priority
         />
@@ -77,7 +77,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             src={safeImages[1].src}
             alt={safeImages[1].alt || `${productName}, fragrance detail 2`}
             fill
-            sizes="(min-width: 1024px) 55vw, 100vw"
+            sizes="(min-width: 1280px) 58vw, (min-width: 1024px) 62vw, 100vw"
             className={cn(
               'object-contain p-0 transition-opacity duration-[var(--duration-base)] ease-[var(--ease-out-quart)]',
               isHovering ? 'opacity-100' : 'opacity-0',
