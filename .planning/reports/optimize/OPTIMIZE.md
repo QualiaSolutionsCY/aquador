@@ -4,7 +4,7 @@ mode: full
 critical: 0
 high: 0
 medium: 0
-low: 2
+low: 1
 status: needs_attention
 ---
 
@@ -45,10 +45,10 @@ Ran a Qualia full-site pass with parallel frontend/UX, backend/security, and per
 | F23 | UX | Customer detail page still used off-system dark cards | `src/app/admin/customers/[id]/page.tsx`, `src/components/admin/CustomerDetail.tsx` | Routed customer detail through the tokenized admin component with MetricCards, cohort tags, and AdminTable order history |
 | F24 | Performance | Product grids hydrated every card with Framer Motion and quick-view state | `src/components/storefront/ProductGrid.tsx`, `src/components/storefront/ProductGridFrame.tsx`, `src/components/ui/ProductCard.tsx` | Moved shop filtering and card rendering to the server, isolated URL controls in a client frame, and converted ProductCard to a static server-renderable tile without Framer Motion or per-card state |
 | F25 | Performance | Unused 3D stack remained in source and dependencies | `src/components/3d`, `src/lib/three`, `package.json` | Removed the inactive 3D components, hooks, type augmentation, config, and React Three dependencies |
+| F26 | Backend | Admin write helpers still kept a service-role fallback | `src/lib/supabase/admin-service.ts`, `src/app/api/admin/products/route.ts`, `src/app/api/admin/orders/[id]/route.ts` | Made write helpers require the cookie-bound admin client so product/order mutations cannot bypass RLS by omission |
 
 ## Remaining Low Priority
 
 | # | Dimension | Finding | Location | Fix |
 |---|-----------|---------|----------|-----|
-| L1 | Backend | Admin write helpers still keep a service-role fallback | `src/lib/supabase/admin-service.ts` | Require explicit write client for admin mutations |
 | L3 | Quality | `any` type count remains non-zero | app/components/src/lib scan | Tighten opportunistically when touching those modules |

@@ -31,7 +31,7 @@
 - EUR-only. Multi-currency is out of scope for v3.
 - Loyalty, rewards, subscriptions, sample-of-the-month, native mobile apps, and ERP integrations are deferred.
 - GitHub auto-deploy is disabled. Production deploys are manual with `vercel --prod`.
-- Some low-priority optimization items remain for future cleanup, including legacy admin write fallbacks and stricter `any` typing in legacy modules.
+- One low-priority optimization item remains for future cleanup: stricter `any` typing in legacy modules.
 
 ## Maintenance
 

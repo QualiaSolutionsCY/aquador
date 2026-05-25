@@ -10,9 +10,8 @@ import type { Database, Json } from './types';
  * cookie-bound `createClient()` instance through to keep `auth.uid()`
  * non-null in the audit trail and let RLS gate the write (the
  * `is_admin()` predicate added in 20260515110000_security_hardening_from_optimize.sql
- * is dormant when callers use service-role). When omitted, the writer
- * falls back to `createAdminClient()` for back-compat with any code path
- * not yet migrated.
+ * is dormant when callers use service-role). Writers require this client so
+ * new admin mutations cannot silently bypass RLS with the service-role client.
  */
 export type AdminWriteClient = SupabaseClient<Database>;
 
@@ -572,17 +571,15 @@ export async function getAdminProductById(
 }
 
 /**
- * Insert a new product. When a cookie-bound `client` is supplied (route
- * handlers pass `createClient()` from `lib/supabase/server.ts`), the write
- * is gated by RLS and `auth.uid()` is recorded in the audit trail. With no
- * client argument, falls back to service-role for legacy callers.
+ * Insert a new product. Route handlers pass a cookie-bound `client`
+ * from `lib/supabase/server.ts`; the write is gated by RLS and
+ * `auth.uid()` is recorded in the audit trail.
  */
 export async function createProduct(
   input: ProductInsert,
-  client?: AdminWriteClient
+  supabase: AdminWriteClient
 ): Promise<{ data: ProductRow | null; error: string | null }> {
   try {
-    const supabase = client ?? createAdminClient();
     const { data, error } = await supabase
       .from('products')
       .insert(input)
@@ -600,17 +597,15 @@ export async function createProduct(
 }
 
 /**
- * Update a product in place. Pass a cookie-bound `client` from a route to
- * preserve `auth.uid()` in the audit trail; omit for legacy service-role
- * callers.
+ * Update a product in place. Route handlers pass a cookie-bound `client`
+ * to preserve `auth.uid()` in the audit trail.
  */
 export async function updateProduct(
   id: string,
   input: ProductUpdate,
-  client?: AdminWriteClient
+  supabase: AdminWriteClient
 ): Promise<{ data: ProductRow | null; error: string | null }> {
   try {
-    const supabase = client ?? createAdminClient();
     const { data, error } = await supabase
       .from('products')
       .update(input)
@@ -629,15 +624,14 @@ export async function updateProduct(
 }
 
 /**
- * Delete a product. Pass a cookie-bound `client` from a route to preserve
- * `auth.uid()` in the audit trail; omit for legacy service-role callers.
+ * Delete a product. Route handlers pass a cookie-bound `client` to preserve
+ * `auth.uid()` in the audit trail.
  */
 export async function deleteProduct(
   id: string,
-  client?: AdminWriteClient
+  supabase: AdminWriteClient
 ): Promise<{ data: { id: string } | null; error: string | null }> {
   try {
-    const supabase = client ?? createAdminClient();
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) {
       reportSafe('deleteProduct', error, { id });
@@ -713,18 +707,16 @@ export async function getAdminOrderById(
 }
 
 /**
- * Update an order's fulfillment status. Pass a cookie-bound `client` from
- * a route to preserve `auth.uid()` in the audit trail (RLS gates the
- * write via the `is_admin()` predicate); omit for legacy service-role
- * callers.
+ * Update an order's fulfillment status. Route handlers pass a cookie-bound
+ * `client` to preserve `auth.uid()` in the audit trail; RLS gates the write
+ * via the `is_admin()` predicate.
  */
 export async function updateOrderStatus(
   id: string,
   status: OrderStatus,
-  client?: AdminWriteClient
+  supabase: AdminWriteClient
 ): Promise<{ data: OrderRow | null; error: string | null }> {
   try {
-    const supabase = client ?? createAdminClient();
     const { data, error } = await supabase
       .from('orders')
       .update({ status })
@@ -757,11 +749,9 @@ export async function updateOrderStatus(
 export async function updateOrderNotes(
   id: string,
   notes: string,
-  client?: AdminWriteClient
+  supabase: AdminWriteClient
 ): Promise<{ data: OrderRow | null; error: string | null }> {
   try {
-    const supabase = client ?? createAdminClient();
-
     const { data: existing, error: readErr } = await supabase
       .from('orders')
       .select('tags')
