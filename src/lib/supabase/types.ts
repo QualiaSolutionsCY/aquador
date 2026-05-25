@@ -448,6 +448,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      dashboard_metrics: {
+        Args: {
+          p_period?: string
+        }
+        Returns: Json
+      }
       decrement_gift_set_stock: {
         Args: {
           p_id: string

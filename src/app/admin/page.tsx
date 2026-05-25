@@ -3,10 +3,10 @@ import 'server-only';
 /**
  * /admin — operator dashboard (Phase 2 Task 5).
  *
- * Server component coordinator. Calls `admin-service` directly via
- * `Promise.all` so the six metric tiles, the top-products list, the
- * LTV buckets, and the recent-orders table all render on first paint —
- * no spinner waterfall, no skeleton flash.
+ * Server component coordinator. Calls the database-side dashboard metrics
+ * RPC plus the two detail lists in parallel, so the six metric tiles, the
+ * top-products list, the LTV buckets, and the recent-orders table all render
+ * on first paint — no spinner waterfall, no skeleton flash.
  *
  * Layout (DESIGN.md §10, magazine-spread editorial stack):
  *
@@ -23,11 +23,8 @@ import 'server-only';
  */
 
 import {
-  getConversionRate,
-  getCustomerMetrics,
-  getOrderMetrics,
+  getDashboardMetrics,
   getRecentOrders,
-  getRevenueMetrics,
   getTopProducts,
 } from '@/lib/supabase/admin-service';
 import { MetricCard } from './_components/MetricCard';
@@ -47,20 +44,15 @@ const PCT = new Intl.NumberFormat('en-IE', {
 
 export default async function AdminDashboardPage() {
   const [
-    revenue,
-    orderMetrics,
-    conversion,
-    customers,
+    metrics,
     recentOrders,
     initialTopProducts,
   ] = await Promise.all([
-    getRevenueMetrics('30d'),
-    getOrderMetrics('30d'),
-    getConversionRate('30d'),
-    getCustomerMetrics(),
+    getDashboardMetrics('30d'),
     getRecentOrders(10),
     getTopProducts('30d', 5),
   ]);
+  const { revenue, orders, conversion, customers } = metrics;
 
   return (
     <div className="flex flex-col gap-10">
@@ -90,11 +82,11 @@ export default async function AdminDashboardPage() {
         />
         <MetricCard
           label="Orders 30d"
-          value={INT.format(orderMetrics.count)}
+          value={INT.format(orders.count)}
         />
         <MetricCard
           label="AOV"
-          value={EUR.format(orderMetrics.aov / 100)}
+          value={EUR.format(orders.aov / 100)}
         />
         <MetricCard
           label="Conversion"
