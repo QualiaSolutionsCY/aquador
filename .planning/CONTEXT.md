@@ -9,7 +9,7 @@ Append-only as terms emerge. Every road agent loads this BEFORE PROJECT.md and D
 - **Variant** — a size / type variation of one perfume SKU (e.g. 50ml vs 100ml). Each variant has its own price + stock state.
 - **Note** — a single fragrance ingredient (e.g. "bergamot", "oud", "vanilla"). Notes belong to a `category` (floral, fruity, woody, oriental, gourmand) and a `layer` (top, heart, base).
 - **Composition** — the three-layer (top / heart / base) note arrangement of a custom perfume.
-- **Custom perfume** — a user-built perfume via `/create-perfume`. Has a `composition` and a chosen `volume` (50ml or 100ml). Priced flat: 50ml = €29.99, 100ml = €199.00.
+- **Custom perfume** — a user-built perfume via `/create-perfume`. Has a `composition` and a chosen `volume` (50ml or 100ml). Priced flat: 50ml = €29.99, 100ml = €49.99.
 - **Order** — a completed purchase persisted to Supabase `orders`. Created by the Stripe webhook, not the client.
 - **Customer** — a buyer. Avoid: "user" in customer-facing contexts (User is reserved for admin in code).
 - **Admin** — an entry in the `admin_users` Supabase table. Has a role (`admin` or `super_admin`). Admins access `/admin/*` via middleware-gated auth.

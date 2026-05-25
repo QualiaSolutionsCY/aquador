@@ -22,7 +22,7 @@ Ran a Qualia full-site pass with parallel frontend/UX, backend/security, and per
 |---|-----------|---------|----------|-----|
 | F1 | Backend | Manual order creation used service role and did not attach `orders.customer_id` | `src/app/api/admin/orders/route.ts` | Switched to cookie-bound admin client, resolves/creates customer first, inserts manual order with `customer_id` |
 | F2 | Backend | Customer detail order history queried by email only | `src/app/admin/customers/[id]/page.tsx` | Primary lookup now uses `customer_id`, with email fallback for legacy rows |
-| F3 | Backend | Custom perfume 100ml price contradicted project contract | `src/lib/perfume/pricing.ts`, checkout/session/webhook paths | Centralized custom perfume price: 50ml EUR 29.99, 100ml EUR 199.00 |
+| F3 | Backend | Custom perfume price knowledge was stale in planning docs | `src/lib/perfume/pricing.ts`, `.planning/CONTEXT.md` | Preserved production price source: 50ml EUR 29.99, 100ml EUR 49.99 |
 | F4 | Backend | Custom perfume payment endpoint accepted arbitrary note strings | `src/app/api/create-perfume/payment/route.ts`, `src/lib/perfume/notes.ts` | Added server-side layer note allowlists |
 | F5 | Security | Public live-chat notify depended on anon session SELECT | `src/app/api/live-chat/notify/route.ts`, `supabase/migrations/20260525093000_tighten_live_chat_session_select.sql` | Notify route validates with server service role; migration removes anon-wide session SELECT |
 | F6 | Security | Public health endpoint exposed environment/service flags | `src/app/api/health/route.ts` | Public response reduced to `{ status: "ok" }` |

@@ -72,7 +72,7 @@ Four Supabase clients exist for distinct contexts (`src/lib/supabase/`): `client
 
 ### Custom perfume builder
 1. User picks notes in `src/app/create-perfume/page.tsx` from `fragranceDatabase` (`src/lib/perfume/notes.ts`)
-2. `src/lib/perfume/composition.ts` validates 3-layer composition; `pricing.ts` computes price by volume (50ml=€29.99, 100ml=€199.00)
+2. `src/lib/perfume/composition.ts` validates 3-layer composition; `pricing.ts` computes price by volume (50ml=€29.99, 100ml=€49.99)
 3. Submit → POST `/api/create-perfume/payment` (`src/app/api/create-perfume/payment/route.ts`) — Zod validates, creates Stripe PaymentIntent with perfume metadata
 4. Redirect to `src/app/create-perfume/success/page.tsx`
 

@@ -4,13 +4,13 @@ export type { PerfumeVolume } from './types'
 
 export const CUSTOM_PERFUME_PRICES: Record<PerfumeVolume, number> = {
   '50ml': 29.99,
-  '100ml': 199,
+  '100ml': 49.99,
 }
 
 /**
  * Calculate price based on perfume volume
  * 50ml = €29.99
- * 100ml = €199.00
+ * 100ml = €49.99
  */
 export function calculatePrice(volume: PerfumeVolume): number {
   if (!volume) {
