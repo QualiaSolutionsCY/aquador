@@ -19,7 +19,7 @@ import {
   deleteProduct,
 } from '@/lib/supabase/admin-service';
 import type { Database } from '@/lib/supabase/types';
-import { htmlToPlainDescription, isDisallowedSampleSize } from '@/lib/product-description';
+import { isDisallowedSampleSize, sanitizeDescriptionHtml } from '@/lib/product-description';
 
 export const maxDuration = 10;
 
@@ -38,7 +38,7 @@ const productTypeEnum = z.enum(['perfume', 'essence-oil', 'body-lotion']);
 const productGenderEnum = z.enum(['men', 'women', 'unisex']);
 
 const productBodySchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().trim().min(1).max(220).optional(),
   name: z.string().min(1, 'Name is required').max(200),
   description: z.string().min(1, 'Description is required'),
   brand: z.string().max(120).nullable().optional(),
@@ -95,7 +95,7 @@ async function requireAdmin(request: NextRequest) {
 function bodyToProductRow(body: ProductBody): Database['public']['Tables']['products']['Insert'] {
   return {
     name: body.name.trim(),
-    description: htmlToPlainDescription(body.description),
+    description: sanitizeDescriptionHtml(body.description),
     brand: body.brand?.trim() || null,
     category: body.category,
     product_type: body.product_type,
