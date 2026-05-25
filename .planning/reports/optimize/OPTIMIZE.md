@@ -2,8 +2,8 @@
 date: 2026-05-25 13:51 +03
 mode: full
 critical: 0
-high: 9
-medium: 13
+high: 4
+medium: 5
 low: 3
 status: needs_attention
 ---
@@ -31,6 +31,10 @@ Ran a Qualia full-site pass with parallel frontend/UX, backend/security, and per
 | F9 | UX | Cart/trust copy contradicted always-free shipping | `src/lib/constants.ts`, cart/storefront copy | Shipping is now consistently free/included |
 | F10 | UX | PDP gallery was capped at 520px | `src/components/storefront/ProductGallery.tsx` | Raised square image container cap to 800px while preserving `object-contain` |
 | F11 | Frontend | Product quick view nested a link inside the product card link and used legacy gold styling | `src/components/shop/ProductQuickView.tsx` | Removed nested link, tokenized overlay treatment |
+| F12 | Security | Paid checkout session details exposed shipping PII by bearer `session_id` | `src/app/api/checkout/session-details/route.ts` | Public response now omits session id, customer name, address, postal code, country, and ACS checkpoint data |
+| F13 | Admin | Orders admin lacked date/amount sort controls | `src/app/admin/orders/page.tsx` | Added server-side Supabase sort control for newest, oldest, highest total, and lowest total |
+| F14 | Performance | Visitor heartbeat wrote every 30 seconds | `src/hooks/useVisitorHeartbeat.ts` | Reduced recurring heartbeat cadence to every 2 minutes while preserving immediate page-load presence |
+| F15 | Security | Supabase advisors still reported permissive RLS/storage/RPC exposure | `supabase/migrations/20260525111500_clear_remaining_security_advisors.sql` | Applied migration through Supabase MCP; Security Advisor now returns zero lints |
 
 ## Remaining High Priority
 
@@ -40,7 +44,6 @@ Ran a Qualia full-site pass with parallel frontend/UX, backend/security, and per
 | H2 | Performance | PDP social proof scans recent order JSON in app code | `src/lib/supabase/product-service.ts`, `src/app/products/[slug]/page.tsx` | Replace with DB-side RPC/view or remove live count |
 | H3 | Performance | Admin dashboard aggregates multiple full-row scans in Node | `src/app/admin/page.tsx`, `src/lib/supabase/admin-service.ts` | Add one `dashboard_metrics(period)` RPC/view-backed endpoint |
 | H4 | Performance | Product grids hydrate every card with Framer Motion and quick-view state | `src/components/ui/ProductCard.tsx` | Make base card a server component and lazy-load quick view as an optional island |
-| H5 | Security | Paid checkout session details expose PII by bearer `session_id` | `src/app/api/checkout/session-details/route.ts` | Return non-PII publicly or add signed lookup token in success URL |
 
 ## Remaining Medium Priority
 
@@ -48,11 +51,9 @@ Ran a Qualia full-site pass with parallel frontend/UX, backend/security, and per
 |---|-----------|---------|----------|-----|
 | M1 | UX | Customer detail page still uses off-system dark cards | `src/app/admin/customers/[id]/page.tsx` | Convert to admin token surfaces and reuse table primitives |
 | M2 | Admin | Products admin lacks brand/status/stock filters and bulk actions | `src/app/admin/products/page.tsx` | Add filter controls and bulk activate/deactivate |
-| M3 | Admin | Orders admin lacks date/amount sort controls | `src/app/admin/orders/page.tsx` | Add sort select mapped to Supabase `.order()` |
 | M4 | Performance | Shop fetches broad product sets and filters in JS | `src/app/shop/page.tsx`, `src/app/shop/[category]/page.tsx` | Push product type/category filters into Supabase queries |
 | M5 | Performance | Root layout hydrates storefront-only providers for admin too | `src/app/layout.tsx` | Move storefront providers into public route group/layout |
 | M6 | Performance | Page transitions add site-wide Framer Motion/analytics work | `src/components/providers/PageTransition.tsx` | Gate to public layout or remove for handoff performance |
-| M7 | Performance | Visitor heartbeat writes every 30 seconds | `src/hooks/useVisitorHeartbeat.ts`, `src/app/api/heartbeat/route.ts` | Increase interval or upsert one session row |
 
 ## Remaining Low Priority
 

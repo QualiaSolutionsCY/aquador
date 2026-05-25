@@ -40,6 +40,15 @@ const STATUSES: { label: string; value: OrderStatus | 'all' }[] = [
   { label: 'Refunded', value: 'refunded' },
 ];
 
+const SORT_OPTIONS = [
+  { label: 'Newest first', value: 'created_desc', column: 'created_at', ascending: false },
+  { label: 'Oldest first', value: 'created_asc', column: 'created_at', ascending: true },
+  { label: 'Highest total', value: 'total_desc', column: 'total', ascending: false },
+  { label: 'Lowest total', value: 'total_asc', column: 'total', ascending: true },
+] as const;
+
+type SortValue = (typeof SORT_OPTIONS)[number]['value'];
+
 const STATUS_VARIANT: Record<OrderStatus, BadgeVariant> = {
   pending: 'warning',
   confirmed: 'accent',
@@ -69,17 +78,19 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
+  const [sort, setSort] = useState<SortValue>('created_desc');
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     const supabase = createClient();
+    const sortOption = SORT_OPTIONS.find((option) => option.value === sort) ?? SORT_OPTIONS[0];
 
     let query = supabase
       .from('orders')
       .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
+      .order(sortOption.column, { ascending: sortOption.ascending })
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
     if (statusFilter !== 'all') {
@@ -97,7 +108,7 @@ export default function OrdersPage() {
     setOrders((data || []) as Order[]);
     setTotalCount(count || 0);
     setLoading(false);
-  }, [page, statusFilter, search]);
+  }, [page, statusFilter, search, sort]);
 
   useEffect(() => {
     fetchOrders();
@@ -194,24 +205,41 @@ export default function OrdersPage() {
       }}
       searchPlaceholder="Search by name or email"
       filters={
-        <div className="flex flex-wrap gap-1">
-          {STATUSES.map((s) => (
-            <button
-              key={s.value}
-              type="button"
-              onClick={() => {
-                setStatusFilter(s.value);
-                setPage(0);
-              }}
-              className={`rounded-sm px-3 py-1.5 text-[12px] font-micro uppercase tracking-[0.05em] transition-colors ${
-                statusFilter === s.value
-                  ? 'bg-accent/12 text-accent-deep'
-                  : 'border border-border text-fg-muted hover:text-fg hover:bg-bg-alt'
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={sort}
+            onChange={(event) => {
+              setSort(event.target.value as SortValue);
+              setPage(0);
+            }}
+            aria-label="Sort orders"
+            className="h-9 rounded-sm border border-border bg-bg px-3 font-body text-[13px] text-fg outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          >
+            {SORT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <div className="flex flex-wrap gap-1">
+            {STATUSES.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                onClick={() => {
+                  setStatusFilter(s.value);
+                  setPage(0);
+                }}
+                className={`rounded-sm px-3 py-1.5 text-[12px] font-micro uppercase tracking-[0.05em] transition-colors ${
+                  statusFilter === s.value
+                    ? 'bg-accent/12 text-accent-deep'
+                    : 'border border-border text-fg-muted hover:text-fg hover:bg-bg-alt'
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
         </div>
       }
     />

@@ -4,7 +4,6 @@ import { formatApiError } from '@/lib/api-utils';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { getStripe } from '@/lib/stripe';
 import { getProductsByIds } from '@/lib/supabase/product-service';
-import { formatAcsCheckpoint } from '@/lib/acs-checkpoints';
 import { calculatePrice, type PerfumeVolume } from '@/lib/perfume/pricing';
 
 export const maxDuration = 10;
@@ -32,37 +31,12 @@ interface CompactCustomPerfume {
 }
 
 interface SessionDetailsResponse {
-  sessionId: string;
   orderNumber: string;
   items: OrderItem[];
   total: number;
   shipping: number;
   currency: string;
-  shippingAddress?: {
-    name?: string;
-    acs_checkpoint?: string;
-    acs_checkpoint_code?: string;
-    address?: {
-      line1?: string;
-      line2?: string;
-      city?: string;
-      postal_code?: string;
-      country?: string;
-    };
-  } | null;
   createdAt: number;
-}
-
-function readCheckoutCustomField(
-  session: Awaited<ReturnType<ReturnType<typeof getStripe>['checkout']['sessions']['retrieve']>>,
-  key: string
-): string | null {
-  const field = session.custom_fields?.find((customField) => customField.key === key);
-  if (!field) return null;
-  if (field.type === 'dropdown') return field.dropdown?.value ?? null;
-  if (field.type === 'numeric') return field.numeric?.value ?? null;
-  if (field.type === 'text') return field.text?.value ?? null;
-  return null;
 }
 
 export async function GET(request: NextRequest) {
@@ -198,38 +172,15 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Extract shipping address
-    const shippingDetails = session.collected_information?.shipping_details;
-    const acsCheckpointCode = readCheckoutCustomField(session, 'acscheckpoint');
-    const acsCheckpoint = formatAcsCheckpoint(acsCheckpointCode);
-    const shippingAddress = shippingDetails || acsCheckpoint
-      ? {
-          name: shippingDetails?.name ?? undefined,
-          acs_checkpoint: acsCheckpoint ?? undefined,
-          acs_checkpoint_code: acsCheckpointCode ?? undefined,
-          address: shippingDetails?.address
-            ? {
-                line1: shippingDetails.address.line1 ?? undefined,
-                line2: shippingDetails.address.line2 ?? undefined,
-                city: shippingDetails.address.city ?? undefined,
-                postal_code: shippingDetails.address.postal_code ?? undefined,
-                country: shippingDetails.address.country ?? undefined,
-              }
-            : undefined,
-        }
-      : null;
-
     // Generate order number from session ID (last 8 chars uppercase)
     const orderNumber = session.id.slice(-8).toUpperCase();
 
     const response: SessionDetailsResponse = {
-      sessionId: session.id,
       orderNumber: `#${orderNumber}`,
       items,
       total: session.amount_total || 0,
       shipping: session.total_details?.amount_shipping || 0,
       currency: session.currency || 'eur',
-      shippingAddress,
       createdAt: session.created,
     };
 
