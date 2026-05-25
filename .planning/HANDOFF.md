@@ -15,7 +15,7 @@
 - Supabase: project ref `hznpuxplqgszbacxzbhv`
 - GitHub: https://github.com/QualiaSolutionsCY/aquador
 - Vercel: https://vercel.com/qualiasolutionscy/aquador
-- Latest production deployment: `dpl_8Ldp9jmYUpC9EDD7j7abHgnuussQ`
+- Latest production deployment: `dpl_6hScyXNSEr9aWcajzH64YmeHLTEt`
 - Walkthrough: deliver as an out-of-band video link or live admin walkthrough; no recording is stored in this repository.
 
 ## How to Use
@@ -31,7 +31,7 @@
 - EUR-only. Multi-currency is out of scope for v3.
 - Loyalty, rewards, subscriptions, sample-of-the-month, native mobile apps, and ERP integrations are deferred.
 - GitHub auto-deploy is disabled. Production deploys are manual with `vercel --prod`.
-- Some low-priority optimization items remain for future cleanup, including unused 3D dependencies, legacy admin write fallbacks, and stricter `any` typing in legacy modules.
+- Some low-priority optimization items remain for future cleanup, including legacy admin write fallbacks and stricter `any` typing in legacy modules.
 
 ## Maintenance
 
