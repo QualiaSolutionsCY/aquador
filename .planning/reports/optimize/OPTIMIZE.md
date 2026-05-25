@@ -3,7 +3,7 @@ date: 2026-05-25 13:51 +03
 mode: full
 critical: 0
 high: 2
-medium: 2
+medium: 1
 low: 3
 status: needs_attention
 ---
@@ -40,6 +40,7 @@ Ran a Qualia full-site pass with parallel frontend/UX, backend/security, and per
 | F18 | Performance | Shop pages fetched broad product sets and filtered in JS | `src/app/shop/page.tsx`, `src/app/shop/[category]/page.tsx`, `src/lib/supabase/product-service.ts` | Added Supabase-filtered shop/category product queries |
 | F19 | Performance | Root layout mounted storefront-only providers on admin routes | `src/app/layout.tsx`, `src/components/providers/AppRuntimeShell.tsx`, `src/components/providers/PublicRuntime.tsx` | Admin routes now bypass cart, storefront chrome, splash, visitor heartbeat, scroll tracking, animation budget, and page transitions |
 | F20 | Performance | Page transitions ran across admin routes | `src/components/providers/PublicRuntime.tsx` | Page transitions are now scoped to public runtime only |
+| F21 | Admin | Products admin lacked brand/status/stock filters and bulk actions | `src/app/admin/products/page.tsx`, `src/components/admin/AdminTable.tsx` | Added brand, visibility, and stock filters plus selected-row bulk show/hide and stock toggles |
 
 ## Remaining High Priority
 
@@ -53,7 +54,6 @@ Ran a Qualia full-site pass with parallel frontend/UX, backend/security, and per
 | # | Dimension | Finding | Location | Fix |
 |---|-----------|---------|----------|-----|
 | M1 | UX | Customer detail page still uses off-system dark cards | `src/app/admin/customers/[id]/page.tsx` | Convert to admin token surfaces and reuse table primitives |
-| M2 | Admin | Products admin lacks brand/status/stock filters and bulk actions | `src/app/admin/products/page.tsx` | Add filter controls and bulk activate/deactivate |
 
 ## Remaining Low Priority
 
