@@ -59,13 +59,13 @@ export function ProductCard({ product, priority = false, variant = 'default' }: 
       aria-label={`View ${product.name}`}
       prefetch={false}
     >
-      <div className="relative mb-3 aspect-[4/5] overflow-hidden md:mb-4">
+      <div className="relative mb-3 aspect-square overflow-hidden md:mb-4">
         <ProductImage
           src={product.image}
           alt={product.name}
           variant="card"
           priority={priority}
-          className="h-full w-full object-contain p-4 transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover/card:scale-[1.03]"
+          className="h-full w-full object-contain p-0 transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover/card:scale-[1.02]"
         />
 
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-end overflow-hidden opacity-0 transition-opacity duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover/card:opacity-100 group-focus-visible/card:opacity-100">

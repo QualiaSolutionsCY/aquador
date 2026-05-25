@@ -69,7 +69,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           alt={safeImages[0].alt || `${productName}, fragrance detail 1`}
           fill
           sizes="(min-width: 1024px) 55vw, 100vw"
-          className="object-contain p-6 transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:scale-[1.01] md:p-8"
+          className="object-contain p-0 transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover:scale-[1.01]"
           priority
         />
         {safeImages[1] && (
@@ -79,7 +79,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             fill
             sizes="(min-width: 1024px) 55vw, 100vw"
             className={cn(
-              'object-contain p-6 transition-opacity duration-[var(--duration-base)] ease-[var(--ease-out-quart)] md:p-8',
+              'object-contain p-0 transition-opacity duration-[var(--duration-base)] ease-[var(--ease-out-quart)]',
               isHovering ? 'opacity-100' : 'opacity-0',
             )}
           />
@@ -106,7 +106,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
               alt={activeImage.alt || `${productName}, fragrance detail ${activeIndex + 1}`}
               fill
               sizes="92vw"
-              className="object-contain p-4 md:p-6"
+              className="object-contain p-0"
             />
 
             {safeImages.length > 1 && (

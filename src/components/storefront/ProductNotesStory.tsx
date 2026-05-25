@@ -11,9 +11,7 @@
  * Behaviour: PDP-02 requires editorial PROSE composition, not a top-level
  * bullet list. Three short paragraphs anchored by font-micro eyebrows
  * ("THE OPENING" / "THE HEART" / "THE DRYDOWN") with the notes woven into
- * sentences via `weaveNotes`. An inline native `<details>` accordion labelled
- * "Read the composition" exposes the raw lists for the niche reader who wants
- * the data table view (Khaled persona).
+ * sentences via `weaveNotes`.
  *
  * Motion: each prose block fades up from `opacity-0 translate-y-4` to
  * `opacity-100 translate-y-0` when scrolled into view via `IntersectionObserver`
@@ -109,9 +107,6 @@ export function ProductNotesStory({
   fragranceFamily,
   description,
 }: ProductNotesStoryProps) {
-  const hasAnyNotes =
-    topNotes.length > 0 || heartNotes.length > 0 || baseNotes.length > 0;
-
   const familyLine = fragranceFamily
     ? `A ${fragranceFamily.toLowerCase()} composition, read top to base.`
     : 'A composition read top to base.';
@@ -175,41 +170,8 @@ export function ProductNotesStory({
           </Reveal>
         </div>
 
-        {hasAnyNotes ? (
-          <details className="mt-12 border-t border-border-dark pt-6 md:mt-16">
-            <summary className="cursor-pointer font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.08em] text-fg-muted hover:text-fg transition-colors duration-[var(--duration-fast)]">
-              Read the composition
-            </summary>
-            <div className="mt-6 grid gap-6 md:grid-cols-3">
-              {topNotes.length > 0 ? (
-                <NoteList eyebrow="Top" notes={topNotes} />
-              ) : null}
-              {heartNotes.length > 0 ? (
-                <NoteList eyebrow="Heart" notes={heartNotes} />
-              ) : null}
-              {baseNotes.length > 0 ? (
-                <NoteList eyebrow="Base" notes={baseNotes} />
-              ) : null}
-            </div>
-          </details>
-        ) : null}
       </div>
     </section>
-  );
-}
-
-function NoteList({ eyebrow, notes }: { eyebrow: string; notes: string[] }) {
-  return (
-    <div>
-      <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.08em] text-fg-muted">
-        {eyebrow}
-      </p>
-      <ul className="mt-3 space-y-1 font-body text-fg">
-        {notes.map((note) => (
-          <li key={note}>{note}</li>
-        ))}
-      </ul>
-    </div>
   );
 }
 
