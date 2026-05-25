@@ -16,6 +16,7 @@ export const revalidate = 60;
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 // Generate static params for all categories
@@ -47,8 +48,9 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   });
 }
 
-export default async function CategoryPage({ params }: CategoryPageProps) {
+export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { category: categorySlug } = await params;
+  const resolvedSearchParams = await searchParams;
   const category = getCategoryBySlug(categorySlug);
 
   if (!category) {
@@ -110,6 +112,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             brandOptions={brandOptions}
             categoryOptions={CATEGORY_OPTIONS}
             categorySlug={categorySlug}
+            searchParams={resolvedSearchParams}
           />
         </Suspense>
       </main>

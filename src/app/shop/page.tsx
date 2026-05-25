@@ -16,7 +16,12 @@ export const metadata: Metadata = buildPageMetadata({
   ogImage: '/og/shop.jpg',
 });
 
-export default async function ShopPage() {
+interface ShopPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function ShopPage({ searchParams }: ShopPageProps) {
+  const resolvedSearchParams = await searchParams;
   const [products, brandOptions] = await Promise.all([
     getShopProducts(),
     getAllProductBrands(),
@@ -47,6 +52,7 @@ export default async function ShopPage() {
           products={products}
           brandOptions={brandOptions}
           categoryOptions={categoryOptions}
+          searchParams={resolvedSearchParams}
         />
       </Suspense>
     </main>

@@ -31,8 +31,7 @@
 - EUR-only. Multi-currency is out of scope for v3.
 - Loyalty, rewards, subscriptions, sample-of-the-month, native mobile apps, and ERP integrations are deferred.
 - GitHub auto-deploy is disabled. Production deploys are manual with `vercel --prod`.
-- The product grid still uses client-side interactive product cards; a server-component card split is tracked as a future performance improvement.
-- Some low-priority optimization items remain for future cleanup, including unused 3D dependencies and stricter `any` typing in legacy modules.
+- Some low-priority optimization items remain for future cleanup, including unused 3D dependencies, legacy admin write fallbacks, and stricter `any` typing in legacy modules.
 
 ## Maintenance
 

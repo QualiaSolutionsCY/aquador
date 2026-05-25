@@ -29,7 +29,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function LattafaPage() {
+interface LattafaPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function LattafaPage({ searchParams }: LattafaPageProps) {
+  const resolvedSearchParams = await searchParams;
   const [products, brandOptions] = await Promise.all([
     getProductsByCategory('lattafa-original'),
     getAllProductBrands(),
@@ -80,6 +85,7 @@ export default async function LattafaPage() {
           brandOptions={brandOptions}
           categoryOptions={CATEGORY_OPTIONS}
           categorySlug="lattafa-original"
+          searchParams={resolvedSearchParams}
         />
       </Suspense>
     </main>
