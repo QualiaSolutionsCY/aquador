@@ -3,7 +3,7 @@ date: 2026-05-25 13:51 +03
 mode: full
 critical: 0
 high: 2
-medium: 4
+medium: 2
 low: 3
 status: needs_attention
 ---
@@ -38,6 +38,8 @@ Ran a Qualia full-site pass with parallel frontend/UX, backend/security, and per
 | F16 | Frontend | Persistent floating AI bubble conflicted with the editorial concierge entrypoint | `src/components/ai/AiConciergeWidget.tsx` | Kept the global drawer event host but removed the always-present floating trigger |
 | F17 | Performance | PDP social proof scanned recent order JSON in app code | `src/app/products/[slug]/page.tsx`, `src/lib/supabase/product-service.ts` | Removed the live order scan and use the static seasonal proof fallback |
 | F18 | Performance | Shop pages fetched broad product sets and filtered in JS | `src/app/shop/page.tsx`, `src/app/shop/[category]/page.tsx`, `src/lib/supabase/product-service.ts` | Added Supabase-filtered shop/category product queries |
+| F19 | Performance | Root layout mounted storefront-only providers on admin routes | `src/app/layout.tsx`, `src/components/providers/AppRuntimeShell.tsx`, `src/components/providers/PublicRuntime.tsx` | Admin routes now bypass cart, storefront chrome, splash, visitor heartbeat, scroll tracking, animation budget, and page transitions |
+| F20 | Performance | Page transitions ran across admin routes | `src/components/providers/PublicRuntime.tsx` | Page transitions are now scoped to public runtime only |
 
 ## Remaining High Priority
 
@@ -52,8 +54,6 @@ Ran a Qualia full-site pass with parallel frontend/UX, backend/security, and per
 |---|-----------|---------|----------|-----|
 | M1 | UX | Customer detail page still uses off-system dark cards | `src/app/admin/customers/[id]/page.tsx` | Convert to admin token surfaces and reuse table primitives |
 | M2 | Admin | Products admin lacks brand/status/stock filters and bulk actions | `src/app/admin/products/page.tsx` | Add filter controls and bulk activate/deactivate |
-| M5 | Performance | Root layout hydrates storefront-only providers for admin too | `src/app/layout.tsx` | Move storefront providers into public route group/layout |
-| M6 | Performance | Page transitions add site-wide Framer Motion/analytics work | `src/components/providers/PageTransition.tsx` | Gate to public layout or remove for handoff performance |
 
 ## Remaining Low Priority
 

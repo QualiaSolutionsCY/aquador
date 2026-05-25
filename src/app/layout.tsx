@@ -4,14 +4,8 @@ import { GeistSans } from "geist/font/sans";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
-import { CartProvider } from "@/components/cart";
-import { StorefrontChromeTop, StorefrontChromeBottom } from "@/components/layout/StorefrontChrome";
-import SplashScreen from "@/components/layout/SplashScreen";
 import { ErrorBoundary, AbortErrorSuppressor } from "@/components/providers/ErrorBoundary";
-import VisitorTracker from "@/components/VisitorTracker";
-import { PageTransition } from "@/components/providers/PageTransition";
-import { AnimationBudgetProvider } from "@/lib/performance/animation-budget";
-import { ScrollDepthTracker } from "@/components/analytics/ScrollDepthTracker";
+import { AppRuntimeShell } from "@/components/providers/AppRuntimeShell";
 // v3.0 overlay primitives (Phase 3, PRIM-05 barrel).
 import { TooltipProvider, Toaster } from '@/components/ui';
 import { organizationJsonLd, websiteJsonLd } from '@/lib/seo/jsonld';
@@ -136,23 +130,10 @@ export default function RootLayout({
           Skip to content
         </a>
         <AbortErrorSuppressor />
-        <SplashScreen />
         <ErrorBoundary>
           <TooltipProvider delayDuration={200}>
             <Toaster>
-              <AnimationBudgetProvider>
-                <CartProvider>
-                  <StorefrontChromeTop />
-                  <PageTransition>
-                    <main id="main-content" className="min-h-screen">
-                      {children}
-                    </main>
-                  </PageTransition>
-                  <StorefrontChromeBottom />
-                  <ScrollDepthTracker />
-                  <VisitorTracker />
-                </CartProvider>
-              </AnimationBudgetProvider>
+              <AppRuntimeShell>{children}</AppRuntimeShell>
             </Toaster>
           </TooltipProvider>
         </ErrorBoundary>
