@@ -3,7 +3,7 @@ date: 2026-05-25 13:51 +03
 mode: full
 critical: 0
 high: 1
-medium: 1
+medium: 0
 low: 3
 status: needs_attention
 ---
@@ -42,18 +42,13 @@ Ran a Qualia full-site pass with parallel frontend/UX, backend/security, and per
 | F20 | Performance | Page transitions ran across admin routes | `src/components/providers/PublicRuntime.tsx` | Page transitions are now scoped to public runtime only |
 | F21 | Admin | Products admin lacked brand/status/stock filters and bulk actions | `src/app/admin/products/page.tsx`, `src/components/admin/AdminTable.tsx` | Added brand, visibility, and stock filters plus selected-row bulk show/hide and stock toggles |
 | F22 | Performance | Admin dashboard headline metrics used multiple full-row scans in Node | `src/app/admin/page.tsx`, `src/lib/supabase/admin-service.ts`, `supabase/migrations/20260525152000_dashboard_metrics_rpc.sql` | Added one `dashboard_metrics(period)` RPC for revenue, order, conversion, and customer/LTV metrics |
+| F23 | UX | Customer detail page still used off-system dark cards | `src/app/admin/customers/[id]/page.tsx`, `src/components/admin/CustomerDetail.tsx` | Routed customer detail through the tokenized admin component with MetricCards, cohort tags, and AdminTable order history |
 
 ## Remaining High Priority
 
 | # | Dimension | Finding | Location | Fix |
 |---|-----------|---------|----------|-----|
 | H4 | Performance | Product grids hydrate every card with Framer Motion and quick-view state | `src/components/ui/ProductCard.tsx` | Make base card a server component and lazy-load quick view as an optional island |
-
-## Remaining Medium Priority
-
-| # | Dimension | Finding | Location | Fix |
-|---|-----------|---------|----------|-----|
-| M1 | UX | Customer detail page still uses off-system dark cards | `src/app/admin/customers/[id]/page.tsx` | Convert to admin token surfaces and reuse table primitives |
 
 ## Remaining Low Priority
 

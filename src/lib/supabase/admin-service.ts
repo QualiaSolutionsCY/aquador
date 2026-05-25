@@ -896,3 +896,29 @@ export async function getCustomerOrderHistory(
     return { data: [], error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
+
+/** Read admin-managed cohort tags for a customer. */
+export async function getCustomerCohorts(customerId: string): Promise<string[]> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      // customer_cohorts is present in migrations but not generated types yet.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .from('customer_cohorts' as any)
+      .select('cohort, created_at')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      reportSafe('getCustomerCohorts', error, { customerId });
+      return [];
+    }
+
+    return ((data ?? []) as Array<{ cohort?: unknown }>)
+      .map((row) => row.cohort)
+      .filter((cohort): cohort is string => typeof cohort === 'string');
+  } catch (err) {
+    reportSafe('getCustomerCohorts unexpected', err, { customerId });
+    return [];
+  }
+}
