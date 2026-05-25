@@ -2,16 +2,31 @@
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import {
+  Apple,
   BrainCircuit,
+  Candy,
+  Citrus,
   Clock,
+  Coffee,
+  Droplets,
   ExternalLink,
+  Flame,
+  Flower2,
+  Gem,
   Image as ImageIcon,
+  Leaf,
+  Milk,
   RefreshCw,
   Search,
   Sparkles,
   Star,
+  Sun,
+  Trees,
   Upload,
+  Waves,
+  Wind,
   X,
+  type LucideIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -41,6 +56,59 @@ function fileToDataUrl(file: File): Promise<string> {
 
 function scoreWidth(score: number) {
   return `${Math.max(4, Math.min(100, score))}%`;
+}
+
+interface ScentVisual {
+  Icon: LucideIcon;
+  background: string;
+  color: string;
+}
+
+function getScentVisual(name: string): ScentVisual {
+  const value = name.toLowerCase();
+  if (/(citrus|orange|lemon|bergamot|grapefruit|lime|mandarin|neroli|petitgrain)/.test(value)) {
+    return { Icon: Citrus, background: 'oklch(0.94 0.12 92)', color: 'oklch(0.48 0.12 74)' };
+  }
+  if (/(flower|floral|jasmine|rose|honeysuckle|lily|violet|iris|tuberose|ylang|magnolia|peony)/.test(value)) {
+    return { Icon: Flower2, background: 'oklch(0.92 0.09 350)', color: 'oklch(0.52 0.16 342)' };
+  }
+  if (/(green|leaf|basil|mint|herbal|grass|tea|sage|lavender|rosemary)/.test(value)) {
+    return { Icon: Leaf, background: 'oklch(0.91 0.11 145)', color: 'oklch(0.43 0.13 148)' };
+  }
+  if (/(fruit|apple|berry|blueberry|pear|peach|plum|fig|melon|pineapple|currant)/.test(value)) {
+    return { Icon: Apple, background: 'oklch(0.91 0.10 24)', color: 'oklch(0.53 0.18 28)' };
+  }
+  if (/(wood|cedar|sandalwood|oud|agarwood|patchouli|vetiver|oak|moss|pine)/.test(value)) {
+    return { Icon: Trees, background: 'oklch(0.88 0.08 70)', color: 'oklch(0.42 0.11 58)' };
+  }
+  if (/(water|aquatic|marine|ozonic|sea|salt|rain)/.test(value)) {
+    return { Icon: Waves, background: 'oklch(0.91 0.08 220)', color: 'oklch(0.45 0.14 235)' };
+  }
+  if (/(spice|spicy|pepper|cardamom|cinnamon|clove|ginger|saffron)/.test(value)) {
+    return { Icon: Flame, background: 'oklch(0.91 0.10 48)', color: 'oklch(0.52 0.15 42)' };
+  }
+  if (/(sweet|vanilla|caramel|tonka|candy|sugar|praline|chocolate)/.test(value)) {
+    return { Icon: Candy, background: 'oklch(0.93 0.07 330)', color: 'oklch(0.55 0.18 330)' };
+  }
+  if (/(amber|resin|benzoin|labdanum|incense|smoke)/.test(value)) {
+    return { Icon: Gem, background: 'oklch(0.90 0.08 83)', color: 'oklch(0.48 0.13 71)' };
+  }
+  if (/(musk|musky|powder|cotton|clean|soap)/.test(value)) {
+    return { Icon: Milk, background: 'oklch(0.93 0.02 260)', color: 'oklch(0.45 0.04 265)' };
+  }
+  if (/(honey|nectar|syrup)/.test(value)) {
+    return { Icon: Droplets, background: 'oklch(0.92 0.10 88)', color: 'oklch(0.50 0.13 78)' };
+  }
+  if (/(coffee|cacao|cocoa|espresso)/.test(value)) {
+    return { Icon: Coffee, background: 'oklch(0.87 0.06 55)', color: 'oklch(0.36 0.08 48)' };
+  }
+  if (/(aromatic|airy|aldehyde|fresh)/.test(value)) {
+    return { Icon: Wind, background: 'oklch(0.93 0.04 200)', color: 'oklch(0.44 0.09 205)' };
+  }
+  if (/(solar|warm|sun)/.test(value)) {
+    return { Icon: Sun, background: 'oklch(0.93 0.09 100)', color: 'oklch(0.51 0.13 85)' };
+  }
+  return { Icon: Sparkles, background: 'oklch(0.91 0.03 90)', color: 'oklch(0.45 0.06 92)' };
 }
 
 function MetricBlock({
@@ -97,19 +165,29 @@ function NoteGroup({
         <div className="h-px flex-1 bg-border" />
       </div>
       <div className="flex flex-wrap justify-center gap-2">
-        {notes.length > 0 ? notes.map((note) => (
-          <span
-            key={`${title}-${note.name}`}
-            className="rounded-[8px] border border-border bg-bg px-3 py-2 text-center"
-          >
-            <span className="block font-body text-[14px] text-fg">{note.name}</span>
-            {note.detail && (
-              <span className="mt-1 block max-w-36 font-micro text-[10px] uppercase tracking-[0.05em] text-fg-muted">
-                {note.detail}
+        {notes.length > 0 ? notes.map((note) => {
+          const visual = getScentVisual(note.name);
+          const Icon = visual.Icon;
+          return (
+            <span
+              key={`${title}-${note.name}`}
+              className="flex min-w-28 max-w-40 flex-col items-center rounded-[8px] border border-border bg-bg px-3 py-3 text-center"
+            >
+              <span
+                className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full"
+                style={{ backgroundColor: visual.background, color: visual.color }}
+              >
+                <Icon aria-hidden="true" className="h-5 w-5" strokeWidth={1.6} />
               </span>
-            )}
-          </span>
-        )) : (
+              <span className="block font-body text-[14px] leading-tight text-fg">{note.name}</span>
+              {note.detail && (
+                <span className="mt-1 block max-w-36 font-micro text-[10px] uppercase tracking-[0.05em] text-fg-muted">
+                  {note.detail}
+                </span>
+              )}
+            </span>
+          );
+        }) : (
           <span className="font-body text-[13px] text-fg-muted">No clear notes found</span>
         )}
       </div>
@@ -193,20 +271,32 @@ function ReportView({
             Main accords
           </p>
           <div className="mt-5 flex flex-col gap-2">
-            {report.mainAccords.map((accord) => (
-              <div key={accord.name} className="grid grid-cols-[7rem_1fr_3rem] items-center gap-3">
-                <span className="font-body text-[14px] text-fg">{accord.name}</span>
-                <div className="h-7 overflow-hidden rounded-sm bg-bg">
-                  <div
-                    className="h-full rounded-sm"
-                    style={{ width: scoreWidth(accord.weight), backgroundColor: accord.color }}
-                  />
+            {report.mainAccords.map((accord) => {
+              const visual = getScentVisual(accord.name);
+              const Icon = visual.Icon;
+              return (
+                <div key={accord.name} className="grid grid-cols-[9rem_1fr_3rem] items-center gap-3">
+                  <span className="flex min-w-0 items-center gap-2 font-body text-[14px] text-fg">
+                    <span
+                      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+                      style={{ backgroundColor: visual.background, color: visual.color }}
+                    >
+                      <Icon aria-hidden="true" className="h-4 w-4" strokeWidth={1.6} />
+                    </span>
+                    <span className="truncate">{accord.name}</span>
+                  </span>
+                  <div className="h-7 overflow-hidden rounded-sm bg-bg">
+                    <div
+                      className="h-full rounded-sm"
+                      style={{ width: scoreWidth(accord.weight), backgroundColor: accord.color }}
+                    />
+                  </div>
+                  <span className="text-right font-micro text-[11px] text-fg-muted">
+                    {Math.round(accord.weight)}
+                  </span>
                 </div>
-                <span className="text-right font-micro text-[11px] text-fg-muted">
-                  {Math.round(accord.weight)}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
