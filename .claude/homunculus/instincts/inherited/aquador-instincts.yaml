@@ -1,0 +1,723 @@
+# Instincts generated from https://github.com/QualiaSolutionsCY/aquador
+# Generated: 2026-05-31T15:30:13.857Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: aquador-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: fix, perf, docs, chore, report
+
+## Evidence
+
+- 36 commits analyzed
+- Detected conventional commit pattern
+- Examples: fix: restore custom perfume 100ml price, perf: reduce storefront query and overlay work
+
+---
+id: aquador-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Commit Length
+
+## Action
+
+Keep commit messages concise (~38 characters)
+
+## Evidence
+
+- Average commit message length: 38 chars
+- Based on 36 commits
+
+---
+id: aquador-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: aquador-import-alias
+trigger: "when importing modules"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Import Alias
+
+## Action
+
+Use path aliases (@/, ~/) instead of relative imports
+
+## Evidence
+
+- Import analysis shows alias pattern
+- Example: import { x } from '@/lib/x'
+
+---
+id: aquador-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Export Style
+
+## Action
+
+Prefer mixed exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: mixed
+
+---
+id: aquador-arch-type-based
+trigger: "when adding new code"
+confidence: 0.8
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Arch Type Based
+
+## Action
+
+Place code in the appropriate type folder (components/, services/, utils/, etc.)
+
+## Evidence
+
+- Type-based module organization detected
+- Folders: app, components, hooks, lib, types
+
+---
+id: aquador-test-framework
+trigger: "when writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Test Framework
+
+## Action
+
+Use jest as the test framework
+
+## Evidence
+
+- Test framework detected: jest
+- File pattern: *.test.ts
+
+---
+id: aquador-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.ts
+
+## Evidence
+
+- File pattern: *.test.ts
+- Consistent across test files
+
+---
+id: aquador-test-mocking
+trigger: "when mocking dependencies in tests"
+confidence: 0.75
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Test Mocking
+
+## Action
+
+Use jest.mock for mocking
+
+## Evidence
+
+- Mocking pattern detected: jest.mock
+- Consistent across test files
+
+---
+id: aquador-test-types
+trigger: "when planning tests for a feature"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Test Types
+
+## Action
+
+Write unit, integration tests to match project standards
+
+## Evidence
+
+- Test types detected: unit, integration
+- Coverage config: yes
+
+---
+id: aquador-workflow-database-migration
+trigger: "when modifying the database schema or adding tables"
+confidence: 0.65
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Workflow Database Migration
+
+## Action
+
+Follow the database-migration workflow:
+1. Create migration file
+2. Update schema definitions
+3. Generate/update types
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~3x per month
+- Files: **/types.ts, migrations/*
+
+---
+id: aquador-workflow-admin-feature-development
+trigger: "when doing admin feature development"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Workflow Admin Feature Development
+
+## Action
+
+Follow the admin-feature-development workflow:
+1. Create or update admin page component under src/app/admin/...
+2. Implement or update client logic under src/app/admin/... or src/components/admin/...
+3. Add or update API route under src/app/api/admin/...
+4. Update shared types or logic in src/lib/...
+5. Update or create Supabase migration(s) in supabase/migrations/
+6. Optionally update sidebar/navigation in src/components/admin/AdminSidebar.tsx
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: src/app/admin/*/page.tsx, src/app/admin/*/*.tsx, src/app/api/admin/*/route.ts
+
+---
+id: aquador-workflow-api-implementation-and-hardening
+trigger: "when doing api implementation and hardening"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Workflow Api Implementation And Hardening
+
+## Action
+
+Follow the api-implementation-and-hardening workflow:
+1. Create or update API route under src/app/api/...
+2. Iteratively improve parsing, validation, or error handling in the route file
+3. Add or update related logic in src/lib/...
+4. Add or update tests in src/lib/*/__tests__/*.test.ts
+5. Optionally update types in src/lib/*/types.ts
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: src/app/api/*/route.ts, src/lib/*/*.ts, src/lib/*/__tests__/*.test.ts
+
+---
+id: aquador-workflow-database-migration-and-service-update
+trigger: "when doing database migration and service update"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Workflow Database Migration And Service Update
+
+## Action
+
+Follow the database-migration-and-service-update workflow:
+1. Create or update migration file in supabase/migrations/
+2. Update or add service logic in src/lib/supabase/*.ts
+3. Update types in src/lib/supabase/types.ts
+4. Optionally update related admin or API files
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: supabase/migrations/*.sql, src/lib/supabase/*.ts, src/lib/supabase/types.ts
+
+---
+id: aquador-workflow-feature-implementation-with-tests-and-docs
+trigger: "when doing feature implementation with tests and docs"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Workflow Feature Implementation With Tests And Docs
+
+## Action
+
+Follow the feature-implementation-with-tests-and-docs workflow:
+1. Implement or fix feature in src/app/..., src/components/..., or src/lib/...
+2. Add or update unit/integration tests in src/lib/*/__tests__/*.test.ts or src/app/api/*/__tests__/*.test.ts
+3. Update documentation in .planning/HANDOFF.md or related docs
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: src/app/**/*.ts*, src/components/**/*.ts*, src/lib/**/*.ts
+
+---
+id: aquador-workflow-project-state-and-report-tracking
+trigger: "when doing project state and report tracking"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Workflow Project State And Report Tracking
+
+## Action
+
+Follow the project-state-and-report-tracking workflow:
+1. Update .planning/STATE.md
+2. Update .planning/qualia/state.jsonl
+3. Update .planning/tracking.json
+4. Add or update report files in .planning/reports/
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: .planning/STATE.md, .planning/qualia/state.jsonl, .planning/tracking.json
+
+---
+id: aquador-workflow-storefront-optimization-and-ui-adjustment
+trigger: "when doing storefront optimization and ui adjustment"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/QualiaSolutionsCY/aquador
+---
+
+# Aquador Workflow Storefront Optimization And Ui Adjustment
+
+## Action
+
+Follow the storefront-optimization-and-ui-adjustment workflow:
+1. Update storefront page(s) in src/app/shop/..., src/app/products/...
+2. Update related components in src/components/storefront/...
+3. Update or optimize service logic in src/lib/supabase/product-service.ts
+4. Optionally update planning/optimization report in .planning/reports/optimize/OPTIMIZE.md
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: src/app/shop/**/*.ts*, src/app/products/**/*.ts*, src/components/storefront/*.ts*
+
+---
+id: aquador-camelcase-files
+trigger: "When creating or renaming a file in src/"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Camelcase Files
+
+## Action
+
+Name the file using camelCase.
+
+## Evidence
+
+- Pattern in namingConventions.files
+- Files in src/app, src/components use camelCase
+
+---
+id: aquador-camelcase-functions
+trigger: "When defining a function"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Camelcase Functions
+
+## Action
+
+Name the function using camelCase.
+
+## Evidence
+
+- Pattern in namingConventions.functions
+- Functions in src/lib and src/components use camelCase
+
+---
+id: aquador-pascalcase-classes
+trigger: "When defining a class"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Pascalcase Classes
+
+## Action
+
+Name the class using PascalCase.
+
+## Evidence
+
+- Pattern in namingConventions.classes
+- Classes in src/lib use PascalCase
+
+---
+id: aquador-screaming-snake-constants
+trigger: "When declaring a constant"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Screaming Snake Constants
+
+## Action
+
+Name the constant using SCREAMING_SNAKE_CASE.
+
+## Evidence
+
+- Pattern in namingConventions.constants
+- Constants in src/lib use SCREAMING_SNAKE_CASE
+
+---
+id: aquador-import-alias
+trigger: "When importing modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Import Alias
+
+## Action
+
+Use import aliases instead of relative paths.
+
+## Evidence
+
+- Pattern in importStyle: alias
+- Imports in src/app and src/lib use aliases
+
+---
+id: aquador-mixed-export-style
+trigger: "When exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Mixed Export Style
+
+## Action
+
+Use either named or default exports as appropriate.
+
+## Evidence
+
+- Pattern in exportStyle: mixed
+- Mixed export usage in src/lib
+
+---
+id: aquador-jest-test-pattern
+trigger: "When writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Jest Test Pattern
+
+## Action
+
+Place test files alongside code using the pattern *.test.ts.
+
+## Evidence
+
+- testing.filePattern: *.test.ts
+- Test files in src/lib/*/__tests__/*.test.ts
+
+---
+id: aquador-jest-mock-style
+trigger: "When mocking dependencies in tests"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Jest Mock Style
+
+## Action
+
+Use jest.mock for mocking.
+
+## Evidence
+
+- testing.mockingStyle: jest.mock
+- Mocks in src/lib/*/__tests__/*.test.ts
+
+---
+id: aquador-test-coverage-config
+trigger: "When configuring tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Test Coverage Config
+
+## Action
+
+Ensure coverage configuration is enabled.
+
+## Evidence
+
+- testing.coverageConfig: true
+- Presence of coverage config in jest.config
+
+---
+id: aquador-conventional-commit-prefix
+trigger: "When writing a commit message"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Conventional Commit Prefix
+
+## Action
+
+Start the commit with a conventional prefix: fix, perf, docs, chore, or report.
+
+## Evidence
+
+- commits.prefixes
+- Examples: 'fix: restore custom perfume 100ml price', 'docs: client handoff Aquador'
+
+---
+id: aquador-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Commit Length
+
+## Action
+
+Keep the commit message concise, around 38 characters on average.
+
+## Evidence
+
+- commits.averageLength: 38
+- Commit examples
+
+---
+id: aquador-admin-feature-workflow
+trigger: "When adding a new admin dashboard or feature"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Admin Feature Workflow
+
+## Action
+
+Create/update admin page in src/app/admin, client logic in src/app/admin or src/components/admin, API route in src/app/api/admin, shared types/logic in src/lib, migration in supabase/migrations, and optionally update AdminSidebar.
+
+## Evidence
+
+- Workflow: admin-feature-development
+- Files: src/app/admin/*, src/components/admin/*, supabase/migrations/*.sql
+
+---
+id: aquador-api-implementation-workflow
+trigger: "When adding or improving an API endpoint"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Api Implementation Workflow
+
+## Action
+
+Create/update API route in src/app/api, improve parsing/validation/error handling, update logic in src/lib, add/update tests in src/lib/*/__tests__, optionally update types.
+
+## Evidence
+
+- Workflow: api-implementation-and-hardening
+- Files: src/app/api/*/route.ts, src/lib/*/*.ts, src/lib/*/__tests__/*.test.ts
+
+---
+id: aquador-database-migration-workflow
+trigger: "When changing the database schema or backend logic"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Database Migration Workflow
+
+## Action
+
+Create/update migration in supabase/migrations, update/add service logic in src/lib/supabase, update types in src/lib/supabase/types.ts, optionally update related admin or API files.
+
+## Evidence
+
+- Workflow: database-migration-and-service-update
+- Files: supabase/migrations/*.sql, src/lib/supabase/*.ts
+
+---
+id: aquador-feature-tests-docs-workflow
+trigger: "When adding a new feature or fix with tests and docs"
+confidence: 0.8
+domain: workflow
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Feature Tests Docs Workflow
+
+## Action
+
+Implement/fix feature in src/app, src/components, or src/lib, add/update tests in src/lib/*/__tests__ or src/app/api/*/__tests__, update docs in .planning/HANDOFF.md.
+
+## Evidence
+
+- Workflow: feature-implementation-with-tests-and-docs
+- Files: src/app/**/*.ts*, src/lib/*/__tests__/*.test.ts, .planning/HANDOFF.md
+
+---
+id: aquador-project-state-report-workflow
+trigger: "When recording project progress, handoff, or reports"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Project State Report Workflow
+
+## Action
+
+Update .planning/STATE.md, .planning/qualia/state.jsonl, .planning/tracking.json, and add/update .planning/reports/*.md.
+
+## Evidence
+
+- Workflow: project-state-and-report-tracking
+- Files: .planning/STATE.md, .planning/reports/*.md
+
+---
+id: aquador-storefront-optimization-workflow
+trigger: "When improving storefront performance or adjusting product/shop UI"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: QualiaSolutionsCY/aquador
+---
+
+# Aquador Storefront Optimization Workflow
+
+## Action
+
+Update storefront pages in src/app/shop or src/app/products, related components in src/components/storefront, optimize service logic in src/lib/supabase/product-service.ts, optionally update .planning/reports/optimize/OPTIMIZE.md.
+
+## Evidence
+
+- Workflow: storefront-optimization-and-ui-adjustment
+- Files: src/app/shop/**/*.ts*, src/components/storefront/*.ts*
+
