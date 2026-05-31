@@ -150,10 +150,10 @@ function LoginFallback() {
 
 export default function AdminLoginPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
+    <main id="main-content" className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
       <Suspense fallback={<LoginFallback />}>
         <LoginForm />
       </Suspense>
-    </div>
+    </main>
   );
 }

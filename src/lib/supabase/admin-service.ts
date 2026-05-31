@@ -10,9 +10,8 @@ import type { Database, Json } from './types';
  * cookie-bound `createClient()` instance through to keep `auth.uid()`
  * non-null in the audit trail and let RLS gate the write (the
  * `is_admin()` predicate added in 20260515110000_security_hardening_from_optimize.sql
- * is dormant when callers use service-role). When omitted, the writer
- * falls back to `createAdminClient()` for back-compat with any code path
- * not yet migrated.
+ * is dormant when callers use service-role). Writers require this client so
+ * new admin mutations cannot silently bypass RLS with the service-role client.
  */
 export type AdminWriteClient = SupabaseClient<Database>;
 
@@ -69,6 +68,93 @@ function reportSafe(scope: string, err: unknown, extra?: Record<string, unknown>
   } catch {
     // Sentry not configured in test/local — swallow.
   }
+}
+
+export type DashboardMetrics = {
+  revenue: {
+    current: number;
+    previous: number;
+    deltaPct: number;
+    currency: typeof CURRENCY;
+  };
+  orders: {
+    count: number;
+    aov: number;
+  };
+  conversion: {
+    orders: number;
+    sessions: number;
+    rate: number;
+    source: 'site_visitors';
+  };
+  customers: {
+    total: number;
+    repeatCount: number;
+    avgLtv: number;
+    ltvBuckets: { lt50: number; lt200: number; lt500: number; gte500: number };
+  };
+};
+
+const DASHBOARD_METRICS_DEFAULTS: DashboardMetrics = {
+  revenue: { current: 0, previous: 0, deltaPct: 0, currency: CURRENCY },
+  orders: { count: 0, aov: 0 },
+  conversion: { orders: 0, sessions: 0, rate: 0, source: 'site_visitors' },
+  customers: {
+    total: 0,
+    repeatCount: 0,
+    avgLtv: 0,
+    ltvBuckets: { lt50: 0, lt200: 0, lt500: 0, gte500: 0 },
+  },
+};
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function asNumber(value: unknown): number {
+  const numeric = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
+function parseDashboardMetrics(raw: unknown): DashboardMetrics {
+  const root = asRecord(raw);
+  const revenue = asRecord(root.revenue);
+  const orders = asRecord(root.orders);
+  const conversion = asRecord(root.conversion);
+  const customers = asRecord(root.customers);
+  const ltvBuckets = asRecord(customers.ltvBuckets);
+
+  return {
+    revenue: {
+      current: asNumber(revenue.current),
+      previous: asNumber(revenue.previous),
+      deltaPct: asNumber(revenue.deltaPct),
+      currency: CURRENCY,
+    },
+    orders: {
+      count: asNumber(orders.count),
+      aov: asNumber(orders.aov),
+    },
+    conversion: {
+      orders: asNumber(conversion.orders),
+      sessions: asNumber(conversion.sessions),
+      rate: asNumber(conversion.rate),
+      source: 'site_visitors',
+    },
+    customers: {
+      total: asNumber(customers.total),
+      repeatCount: asNumber(customers.repeatCount),
+      avgLtv: asNumber(customers.avgLtv),
+      ltvBuckets: {
+        lt50: asNumber(ltvBuckets.lt50),
+        lt200: asNumber(ltvBuckets.lt200),
+        lt500: asNumber(ltvBuckets.lt500),
+        gte500: asNumber(ltvBuckets.gte500),
+      },
+    },
+  };
 }
 
 // -----------------------------------------------------------------------------
@@ -144,6 +230,30 @@ export function parseOrderItemsForTopProducts(orders: OrderItemsShard[]): TopPro
 // -----------------------------------------------------------------------------
 // Metric query functions
 // -----------------------------------------------------------------------------
+
+/** Returns dashboard headline metrics from one database-side aggregate RPC. */
+export async function getDashboardMetrics(period: Period): Promise<DashboardMetrics> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('dashboard_metrics', { p_period: period });
+
+    if (error) {
+      reportSafe('getDashboardMetrics rpc', error, { period });
+      const [revenue, orders, conversion, customers] = await Promise.all([
+        getRevenueMetrics(period),
+        getOrderMetrics(period),
+        getConversionRate(period),
+        getCustomerMetrics(),
+      ]);
+      return { revenue, orders, conversion, customers };
+    }
+
+    return parseDashboardMetrics(data);
+  } catch (err) {
+    reportSafe('getDashboardMetrics unexpected', err, { period });
+    return DASHBOARD_METRICS_DEFAULTS;
+  }
+}
 
 /** Returns the revenue total for `period` vs the immediately-prior comparable window. */
 export async function getRevenueMetrics(period: Period): Promise<{
@@ -313,9 +423,9 @@ export async function getCustomerMetrics(): Promise<{
     const ltvBuckets = { lt50: 0, lt200: 0, lt500: 0, gte500: 0 };
     for (const r of rows) {
       const v = typeof r.total_spent === 'number' ? r.total_spent : 0;
-      if (v < 50) ltvBuckets.lt50 += 1;
-      else if (v < 200) ltvBuckets.lt200 += 1;
-      else if (v < 500) ltvBuckets.lt500 += 1;
+      if (v < 5000) ltvBuckets.lt50 += 1;
+      else if (v < 20000) ltvBuckets.lt200 += 1;
+      else if (v < 50000) ltvBuckets.lt500 += 1;
       else ltvBuckets.gte500 += 1;
     }
 
@@ -461,17 +571,15 @@ export async function getAdminProductById(
 }
 
 /**
- * Insert a new product. When a cookie-bound `client` is supplied (route
- * handlers pass `createClient()` from `lib/supabase/server.ts`), the write
- * is gated by RLS and `auth.uid()` is recorded in the audit trail. With no
- * client argument, falls back to service-role for legacy callers.
+ * Insert a new product. Route handlers pass a cookie-bound `client`
+ * from `lib/supabase/server.ts`; the write is gated by RLS and
+ * `auth.uid()` is recorded in the audit trail.
  */
 export async function createProduct(
   input: ProductInsert,
-  client?: AdminWriteClient
+  supabase: AdminWriteClient
 ): Promise<{ data: ProductRow | null; error: string | null }> {
   try {
-    const supabase = client ?? createAdminClient();
     const { data, error } = await supabase
       .from('products')
       .insert(input)
@@ -489,17 +597,15 @@ export async function createProduct(
 }
 
 /**
- * Update a product in place. Pass a cookie-bound `client` from a route to
- * preserve `auth.uid()` in the audit trail; omit for legacy service-role
- * callers.
+ * Update a product in place. Route handlers pass a cookie-bound `client`
+ * to preserve `auth.uid()` in the audit trail.
  */
 export async function updateProduct(
   id: string,
   input: ProductUpdate,
-  client?: AdminWriteClient
+  supabase: AdminWriteClient
 ): Promise<{ data: ProductRow | null; error: string | null }> {
   try {
-    const supabase = client ?? createAdminClient();
     const { data, error } = await supabase
       .from('products')
       .update(input)
@@ -518,15 +624,14 @@ export async function updateProduct(
 }
 
 /**
- * Delete a product. Pass a cookie-bound `client` from a route to preserve
- * `auth.uid()` in the audit trail; omit for legacy service-role callers.
+ * Delete a product. Route handlers pass a cookie-bound `client` to preserve
+ * `auth.uid()` in the audit trail.
  */
 export async function deleteProduct(
   id: string,
-  client?: AdminWriteClient
+  supabase: AdminWriteClient
 ): Promise<{ data: { id: string } | null; error: string | null }> {
   try {
-    const supabase = client ?? createAdminClient();
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) {
       reportSafe('deleteProduct', error, { id });
@@ -602,18 +707,16 @@ export async function getAdminOrderById(
 }
 
 /**
- * Update an order's fulfillment status. Pass a cookie-bound `client` from
- * a route to preserve `auth.uid()` in the audit trail (RLS gates the
- * write via the `is_admin()` predicate); omit for legacy service-role
- * callers.
+ * Update an order's fulfillment status. Route handlers pass a cookie-bound
+ * `client` to preserve `auth.uid()` in the audit trail; RLS gates the write
+ * via the `is_admin()` predicate.
  */
 export async function updateOrderStatus(
   id: string,
   status: OrderStatus,
-  client?: AdminWriteClient
+  supabase: AdminWriteClient
 ): Promise<{ data: OrderRow | null; error: string | null }> {
   try {
-    const supabase = client ?? createAdminClient();
     const { data, error } = await supabase
       .from('orders')
       .update({ status })
@@ -646,11 +749,9 @@ export async function updateOrderStatus(
 export async function updateOrderNotes(
   id: string,
   notes: string,
-  client?: AdminWriteClient
+  supabase: AdminWriteClient
 ): Promise<{ data: OrderRow | null; error: string | null }> {
   try {
-    const supabase = client ?? createAdminClient();
-
     const { data: existing, error: readErr } = await supabase
       .from('orders')
       .select('tags')
@@ -783,5 +884,29 @@ export async function getCustomerOrderHistory(
   } catch (err) {
     reportSafe('getCustomerOrderHistory unexpected', err);
     return { data: [], error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/** Read admin-managed cohort tags for a customer. */
+export async function getCustomerCohorts(customerId: string): Promise<string[]> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('customer_cohorts')
+      .select('cohort, created_at')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      reportSafe('getCustomerCohorts', error, { customerId });
+      return [];
+    }
+
+    return ((data ?? []) as Array<{ cohort?: unknown }>)
+      .map((row) => row.cohort)
+      .filter((cohort): cohort is string => typeof cohort === 'string');
+  } catch (err) {
+    reportSafe('getCustomerCohorts unexpected', err, { customerId });
+    return [];
   }
 }

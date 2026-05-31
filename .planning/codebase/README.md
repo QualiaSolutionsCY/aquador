@@ -17,7 +17,7 @@ Based on existing code, this project already does:
 - **Supabase product catalog with category/type/gender enums** (evidence: `src/lib/supabase/product-service.ts`, `src/lib/categories.ts`)
 - **Server-side cart price re-validation against Supabase before Stripe** (evidence: `src/lib/validation/cart.ts`)
 - **Stripe Checkout Sessions + Stripe PaymentIntents + signed webhook** (evidence: `src/app/api/checkout/route.ts`, `src/app/api/create-perfume/payment/route.ts`, `src/app/api/webhooks/stripe/route.ts`)
-- **Custom 3-layer perfume builder with volume pricing (50ml=€29.99, 100ml=€199)** (evidence: `src/app/create-perfume/page.tsx`, `src/lib/perfume/{notes,composition,pricing}.ts`)
+- **Custom 3-layer perfume builder with volume pricing (50ml=€29.99, 100ml=€49.99)** (evidence: `src/app/create-perfume/page.tsx`, `src/lib/perfume/{notes,composition,pricing}.ts`)
 - **AI fragrance assistant via OpenRouter (Gemini 2.0 Flash default)** (evidence: `src/app/api/ai-assistant/route.ts`, `src/lib/ai/catalogue-data.ts`)
 - **Supabase-backed blog with categories, featured posts, admin CRUD** (evidence: `src/app/api/blog/`, `src/lib/blog.ts`, `src/app/admin/blog/`)
 - **Admin panel with middleware-gated `admin_users` membership check** (evidence: `src/middleware.ts`, `src/app/admin/`)

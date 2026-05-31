@@ -1,41 +1,12 @@
 /**
- * ProductCard — v3.0 token-driven card surface (M3 P4 T3).
- *
- * Editorial product tile used by FeaturedGrid, RelatedCarousel, DiscoveryGrid,
- * and ProductGrid. The card is intentionally restrained:
- *   - `bg-bg-alt` surface (parchment) with hairline `border-border` → strong
- *     border on hover, no shadow.
- *   - Display font for the product name (Cormorant Garamond via --font-display).
- *   - Sale chip uses the canonical <Badge variant="accent"> instead of the old
- *     bespoke `bg-black` chip with custom gold text.
- *   - Out-of-stock state shows a single Badge inside a subtle scrim — no
- *     blurred white card layered on top.
- *   - Accent underline scales from 0 to 1 on the X-axis at the card's bottom
- *     edge on hover (origin-left). Replaces the previous gold gradient sweep.
- *
- * Variants:
- *   - default  — used by ProductGrid / DiscoveryGrid (4-col shop layouts).
- *   - compact  — used by FeaturedGrid / RelatedCarousel (denser type scale).
- *
- * Hover crossfade for FeaturedGrid is handled by the parent <li> (which carries
- * its own `group` class) overlaying a sibling <HoverCrossfade> on top of this
- * card. ProductCard's internal `group` is therefore scoped to *its own* hover
- * effects (name underline) — see the named `group/card` Tailwind selector.
+ * ProductCard - server-renderable product tile used by shop grids and
+ * related-product rails.
  */
 
-'use client';
-
-import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { formatPrice } from '@/lib/currency';
 import { Badge } from '@/components/ui/Badge';
 import { ProductImage } from './ProductImage';
-import { ProductQuickView } from '@/components/shop/ProductQuickView';
-import { hoverVariants, tapVariants } from '@/lib/animations/micro-interactions';
-import { imageZoomVariants } from '@/lib/animations/discovery-animations';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { preloadProduct } from '@/lib/preload/strategy';
 import type { Product } from '@/lib/supabase/types';
 
 interface ProductCardProps {
@@ -44,19 +15,29 @@ interface ProductCardProps {
   variant?: 'default' | 'compact';
 }
 
-export function ProductCard({ product, priority = false, variant = 'default' }: ProductCardProps) {
-  const reducedMotion = useReducedMotion();
-  const [isHovered, setIsHovered] = useState(false);
-  const [isTapRevealed, setIsTapRevealed] = useState(false);
-  const cancelPreloadRef = useRef<(() => void) | null>(null);
+function extractFragranceNotes(tags: string[] | null): string[] {
+  if (!tags) return [];
+  return tags
+    .filter((tag) => tag.startsWith('note-'))
+    .map((tag) => {
+      const note = tag.replace('note-', '');
+      return note.charAt(0).toUpperCase() + note.slice(1);
+    })
+    .slice(0, 5);
+}
 
+function plainDescription(description: string): string {
+  const plain = description.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+  return plain.length > 80 ? `${plain.slice(0, 80)}...` : plain;
+}
+
+export function ProductCard({ product, priority = false, variant = 'default' }: ProductCardProps) {
   const inStock = product.in_stock ?? true;
   const salePrice = product.sale_price;
-
-  const isOnSale = !!salePrice && !!inStock;
+  const isOnSale = !!salePrice && inStock;
   const displayPrice = salePrice || product.price;
+  const notes = extractFragranceNotes(product.tags);
 
-  // Variant-specific sizing
   const isCompact = variant === 'compact';
   const padding = isCompact ? 'p-3 md:p-4' : 'p-4 md:p-5';
   const brandSize = isCompact
@@ -69,127 +50,99 @@ export function ProductCard({ product, priority = false, variant = 'default' }: 
     ? 'text-[1rem] md:text-[1.125rem]'
     : 'text-[clamp(1.125rem,1rem+0.625vw,1.5rem)]';
 
-  const cardHover = reducedMotion ? { scale: 1.01 } : hoverVariants.lift;
-  const cardTap = reducedMotion ? { scale: 0.98 } : tapVariants.shrink;
-
   return (
-    <motion.div
-      whileHover={cardHover}
-      whileTap={cardTap}
-      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-      className={!inStock ? 'opacity-75' : ''}
+    <Link
+      href={`/products/${product.id}`}
+      className={`group/card relative block border border-border-strong bg-bg-alt ${padding} transition-[border-color,transform,opacity] duration-[var(--duration-base)] ease-[var(--ease-out-quart)] hover:-translate-y-0.5 hover:border-border-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${
+        !inStock ? 'opacity-75' : ''
+      }`}
+      aria-label={`View ${product.name}`}
+      prefetch={false}
     >
-      <Link
-        href={`/products/${product.id}`}
-        className={`group/card relative block border border-border-strong bg-bg-alt ${padding} transition-colors duration-[var(--duration-base)] ease-[var(--ease-out-quart)] hover:border-border-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
-        aria-label={`View ${product.name}`}
-        onMouseEnter={() => {
-          setIsHovered(true);
-          cancelPreloadRef.current = preloadProduct(String(product.id));
-        }}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          setIsTapRevealed(false);
-          cancelPreloadRef.current?.();
-          cancelPreloadRef.current = null;
-        }}
-        onClick={(e) => {
-          // Mobile tap-to-reveal: first tap shows quick-view overlay, second tap navigates.
-          if (window.matchMedia('(pointer: coarse)').matches) {
-            if (!isTapRevealed) {
-              e.preventDefault();
-              setIsTapRevealed(true);
-              setIsHovered(true);
-            }
-          }
-        }}
-      >
-        {/* Product image */}
-        <div className="relative mb-3 aspect-[4/5] overflow-hidden md:mb-4">
-          <motion.div
-            variants={reducedMotion ? {} : imageZoomVariants}
-            initial="rest"
-            animate={isHovered ? 'hover' : 'rest'}
-            className="h-full"
-          >
-            <ProductImage
-              src={product.image}
-              alt={product.name}
-              variant="card"
-              priority={priority}
-              className="h-full w-full object-contain p-4"
-            />
-          </motion.div>
-
-          {/* Quick-view overlay (renders its own scrim + actions) */}
-          <ProductQuickView
-            product={product}
-            isVisible={isHovered}
-            onClose={() => {
-              setIsHovered(false);
-              setIsTapRevealed(false);
-            }}
-          />
-
-          {/* Sale chip — canonical Badge primitive */}
-          {isOnSale && (
-            <Badge variant="accent" className="absolute right-3 top-3">
-              Sale
-            </Badge>
-          )}
-
-          {/* Out-of-stock state — single neutral badge on a subtle scrim */}
-          {!inStock && (
-            <div className="absolute inset-0 flex items-center justify-center bg-[var(--scrim)]">
-              <Badge variant="neutral">Out of stock</Badge>
-            </div>
-          )}
-        </div>
-
-        {/* Product info */}
-        <div className="min-h-[7rem] space-y-2">
-          {/* Brand */}
-          <p
-            className={`${brandSize} font-micro font-medium uppercase tracking-[0.15em] text-fg-muted ${
-              !product.brand ? 'invisible' : ''
-            }`}
-          >
-            {product.brand || ' '}
-          </p>
-
-          {/* Name */}
-          <h3
-            className={`${nameSize} font-display font-medium leading-tight tracking-tight text-fg line-clamp-2`}
-          >
-            {product.name}
-          </h3>
-
-          {/* Price */}
-          <div className="flex items-baseline gap-2 pt-1">
-            <span className={`${priceSize} font-display font-medium text-fg`}>
-              {formatPrice(displayPrice)}
-            </span>
-            {isOnSale && (
-              <span className="text-sm text-fg-muted line-through">
-                {formatPrice(product.price)}
-              </span>
-            )}
-          </div>
-
-          {/* Size */}
-          {product.size && (
-            <p className="font-micro text-[10px] uppercase tracking-wider text-fg-muted">
-              {product.size}
-            </p>
-          )}
-        </div>
-
-        {/* Accent underline — scales in on hover from the left edge */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-accent transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover/card:scale-x-100"
+      <div className="relative mb-3 aspect-square overflow-hidden md:mb-4">
+        <ProductImage
+          src={product.image}
+          alt={product.name}
+          variant="card"
+          priority={priority}
+          className="h-full w-full object-contain p-0 transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover/card:scale-[1.02]"
         />
-      </Link>
-    </motion.div>
+
+        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-end overflow-hidden opacity-0 transition-opacity duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover/card:opacity-100 group-focus-visible/card:opacity-100">
+          <div className="absolute inset-x-0 bottom-0 h-3/4 bg-[linear-gradient(to_top,var(--scrim),transparent)]" />
+          <div className="relative z-10 space-y-2 p-3 md:p-4">
+            <p className="line-clamp-2 text-[11px] leading-relaxed text-bg">
+              {plainDescription(product.description)}
+            </p>
+            {notes.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {notes.map((note) => (
+                  <span
+                    key={note}
+                    className="border border-bg/35 bg-bg/10 px-2 py-0.5 font-micro text-[9px] uppercase tracking-[0.08em] text-bg"
+                  >
+                    {note}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            <span
+              aria-hidden="true"
+              className="inline-block border border-bg/50 px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] text-bg md:text-[11px]"
+            >
+              Open perfume
+            </span>
+          </div>
+        </div>
+
+        {isOnSale ? (
+          <Badge variant="accent" className="absolute right-3 top-3 z-20">
+            Sale
+          </Badge>
+        ) : null}
+
+        {!inStock ? (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--scrim)]">
+            <Badge variant="neutral">Out of stock</Badge>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="min-h-[7rem] space-y-2">
+        <p
+          className={`${brandSize} font-micro font-medium uppercase tracking-[0.15em] text-fg-muted ${
+            !product.brand ? 'invisible' : ''
+          }`}
+        >
+          {product.brand || ' '}
+        </p>
+
+        <h3 className={`${nameSize} line-clamp-2 font-display font-medium leading-tight text-fg`}>
+          {product.name}
+        </h3>
+
+        <div className="flex items-baseline gap-2 pt-1">
+          <span className={`${priceSize} font-display font-medium text-fg`}>
+            {formatPrice(displayPrice)}
+          </span>
+          {isOnSale ? (
+            <span className="text-sm text-fg-muted line-through">
+              {formatPrice(product.price)}
+            </span>
+          ) : null}
+        </div>
+
+        {product.size ? (
+          <p className="font-micro text-[10px] uppercase tracking-wider text-fg-muted">
+            {product.size}
+          </p>
+        ) : null}
+      </div>
+
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-accent transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-quart)] group-hover/card:scale-x-100"
+      />
+    </Link>
   );
 }

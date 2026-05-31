@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import SettingsForm, {
   type StoreSettingsValues,
 } from '@/components/admin/SettingsForm';
+import type { StoreSettings } from '@/lib/supabase/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,22 +21,7 @@ const DEFAULTS: StoreSettingsValues = {
   seoDefaultDescription: '',
 };
 
-interface StoreSettingsRow {
-  contact_email: string;
-  contact_phone: string;
-  instagram_url: string;
-  facebook_url: string;
-  shipping_policy_summary: string;
-  returns_policy_summary: string;
-  free_shipping_threshold_cents: number;
-  stripe_payment_enabled: boolean;
-  stripe_apple_pay_enabled: boolean;
-  stripe_google_pay_enabled: boolean;
-  seo_default_title: string;
-  seo_default_description: string;
-}
-
-function rowToValues(row: StoreSettingsRow): StoreSettingsValues {
+function rowToValues(row: StoreSettings): StoreSettingsValues {
   return {
     contactEmail: row.contact_email ?? '',
     contactPhone: row.contact_phone ?? '',
@@ -55,19 +41,14 @@ function rowToValues(row: StoreSettingsRow): StoreSettingsValues {
 export default async function SettingsPage() {
   const supabase = await createClient();
 
-  // store_settings is new in this phase and not yet covered by the generated
-  // Database types — cast the client to `any` for this one query so the page
-  // compiles cleanly. A future `supabase gen types` regeneration will let us
-  // drop the cast.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data } = await (supabase as any)
+  const { data } = await supabase
     .from('store_settings')
     .select('*')
     .eq('id', 1)
     .maybeSingle();
 
   const initial: StoreSettingsValues = data
-    ? rowToValues(data as StoreSettingsRow)
+    ? rowToValues(data)
     : DEFAULTS;
 
   return (

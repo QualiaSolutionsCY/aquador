@@ -4,7 +4,9 @@ import { z } from 'zod';
 import { formatApiError } from '@/lib/api-utils';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { getStripe } from '@/lib/stripe';
-import { SHIPPING_COUNTRIES, FREE_SHIPPING_THRESHOLD, DELIVERY_FEE } from '@/lib/constants';
+import { SHIPPING_COUNTRIES } from '@/lib/constants';
+import { calculatePriceCents } from '@/lib/perfume/pricing';
+import { isAllowedCustomPerfumeNote } from '@/lib/perfume/notes';
 
 export const maxDuration = 10;
 
@@ -18,6 +20,13 @@ const perfumePaymentSchema = z.object({
   volume: z.enum(['50ml', '100ml']),
   specialRequests: z.string().max(500).optional(),
 });
+
+function validateCompositionNotes(composition: z.infer<typeof perfumePaymentSchema>['composition']) {
+  if (!isAllowedCustomPerfumeNote('top', composition.top)) return 'Choose a valid top note';
+  if (!isAllowedCustomPerfumeNote('heart', composition.heart)) return 'Choose a valid heart note';
+  if (!isAllowedCustomPerfumeNote('base', composition.base)) return 'Choose a valid base note';
+  return null;
+}
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -37,11 +46,12 @@ export async function POST(request: NextRequest) {
       );
     }
     const { perfumeName, composition, volume, specialRequests } = result.data;
+    const compositionError = validateCompositionNotes(composition);
+    if (compositionError) {
+      return NextResponse.json({ error: compositionError }, { status: 400 });
+    }
 
-    // Calculate price in cents
-    const amount = volume === '100ml' ? 4999 : 2999;
-    const priceEur = amount / 100;
-    const shippingAmount = priceEur >= FREE_SHIPPING_THRESHOLD ? 0 : DELIVERY_FEE * 100;
+    const amount = calculatePriceCents(volume);
 
     // Create Stripe Checkout Session (same as regular checkout)
     const session = await stripe.checkout.sessions.create({
@@ -70,10 +80,10 @@ export async function POST(request: NextRequest) {
           shipping_rate_data: {
             type: 'fixed_amount',
             fixed_amount: {
-              amount: shippingAmount,
+              amount: 0,
               currency: 'eur',
             },
-            display_name: shippingAmount === 0 ? 'Free shipping' : 'Standard delivery',
+            display_name: 'Free shipping',
             delivery_estimate: {
               minimum: {
                 unit: 'business_day',

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 
 export const maxDuration = 10;
 
@@ -68,20 +67,59 @@ export async function POST(request: NextRequest) {
       );
     }
     const orderData = result.data;
+    const now = new Date().toISOString();
+    const email = orderData.customerEmail.trim().toLowerCase();
+    const totalCents = Math.round(orderData.total * 100);
+    const supabase = authSupabase;
 
-    const supabase = createAdminClient();
+    const { data: existing, error: existingError } = await supabase
+      .from('customers')
+      .select('id, total_orders, total_spent, shipping_addresses')
+      .eq('email', email)
+      .maybeSingle();
 
-    // Insert order
+    if (existingError) {
+      Sentry.captureException(existingError);
+      return NextResponse.json({ error: 'Failed to resolve customer' }, { status: 500 });
+    }
+
+    let customerId = existing?.id ?? null;
+
+    if (!customerId) {
+      const { data: createdCustomer, error: customerInsertError } = await supabase
+        .from('customers')
+        .insert({
+          email,
+          name: orderData.customerName?.trim() || null,
+          phone: orderData.customerPhone?.trim() || null,
+          total_orders: 0,
+          total_spent: 0,
+          first_order_at: now,
+          last_order_at: null,
+          shipping_addresses: [],
+        })
+        .select('id')
+        .single();
+
+      if (customerInsertError || !createdCustomer) {
+        Sentry.captureException(customerInsertError);
+        return NextResponse.json({ error: 'Failed to create customer' }, { status: 500 });
+      }
+
+      customerId = createdCustomer.id;
+    }
+
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
         stripe_session_id: null,
         order_source: 'manual',
-        customer_email: orderData.customerEmail.trim().toLowerCase(),
+        customer_id: customerId,
+        customer_email: email,
         customer_name: orderData.customerName?.trim() || null,
         customer_phone: orderData.customerPhone?.trim() || null,
         items: JSON.parse(JSON.stringify(orderData.items || [])),
-        total: Math.round(orderData.total * 100), // Store in cents
+        total: totalCents,
         currency: 'eur',
         status: 'confirmed' as const,
         shipping_address: orderData.shippingAddress
@@ -100,16 +138,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Upsert customer
-    const now = new Date().toISOString();
-    const email = orderData.customerEmail.trim().toLowerCase();
-
-    const { data: existing } = await supabase
-      .from('customers')
-      .select('id, total_orders, total_spent, shipping_addresses')
-      .eq('email', email)
-      .single();
-
     if (existing) {
       const addresses = (existing.shipping_addresses as unknown[]) || [];
       if (orderData.shippingAddress?.address) {
@@ -118,30 +146,34 @@ export async function POST(request: NextRequest) {
         if (!alreadyStored) addresses.push(orderData.shippingAddress);
       }
 
-      await supabase
+      const { error: customerUpdateError } = await supabase
         .from('customers')
         .update({
           name: orderData.customerName?.trim() || undefined,
           ...(orderData.customerPhone ? { phone: orderData.customerPhone.trim() } : {}),
           total_orders: existing.total_orders + 1,
-          total_spent: existing.total_spent + Math.round(orderData.total * 100),
+          total_spent: existing.total_spent + totalCents,
           last_order_at: now,
           shipping_addresses: JSON.parse(JSON.stringify(addresses)),
         })
         .eq('id', existing.id);
+
+      if (customerUpdateError) Sentry.captureException(customerUpdateError);
     } else {
-      await supabase.from('customers').insert({
-        email,
-        name: orderData.customerName?.trim() || null,
-        phone: orderData.customerPhone?.trim() || null,
-        total_orders: 1,
-        total_spent: Math.round(orderData.total * 100),
-        first_order_at: now,
-        last_order_at: now,
-        shipping_addresses: orderData.shippingAddress
-          ? JSON.parse(JSON.stringify([orderData.shippingAddress]))
-          : [],
-      });
+      const { error: customerUpdateError } = await supabase
+        .from('customers')
+        .update({
+          total_orders: 1,
+          total_spent: totalCents,
+          first_order_at: now,
+          last_order_at: now,
+          shipping_addresses: orderData.shippingAddress
+            ? JSON.parse(JSON.stringify([orderData.shippingAddress]))
+            : [],
+        })
+        .eq('id', customerId);
+
+      if (customerUpdateError) Sentry.captureException(customerUpdateError);
     }
 
     return NextResponse.json({ order });

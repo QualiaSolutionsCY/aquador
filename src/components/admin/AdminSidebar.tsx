@@ -23,6 +23,7 @@ import {
   ShoppingBag,
   Users,
   FileText,
+  Sparkles,
   Settings,
   type LucideIcon,
 } from 'lucide-react';
@@ -39,6 +40,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { label: 'Products', href: '/admin/products', icon: Package },
   { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { label: 'Customers', href: '/admin/customers', icon: Users },
+  { label: 'Perfume Intel', href: '/admin/perfume-intel', icon: Sparkles },
   { label: 'Blog', href: '/admin/blog', icon: FileText },
   { label: 'Settings', href: '/admin/settings', icon: Settings },
 ];

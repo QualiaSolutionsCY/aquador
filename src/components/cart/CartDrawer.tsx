@@ -31,6 +31,7 @@ import {
 } from '@/components/ui';
 import { TrustBar } from '@/components/storefront/TrustBar';
 import { formatPrice } from '@/lib/currency';
+import { FREE_SHIPPING_THRESHOLD, DELIVERY_FEE } from '@/lib/constants';
 import { useCart } from './CartProvider';
 import CartItem from './CartItem';
 import CheckoutButton from './CheckoutButton';
@@ -117,7 +118,9 @@ export default function CartDrawer() {
             </div>
 
             <p className="font-body text-[length:var(--font-size-body-sm)] text-fg-muted">
-              Free shipping over 35 euro.
+              {subtotal >= FREE_SHIPPING_THRESHOLD
+                ? `Free shipping over ${formatPrice(FREE_SHIPPING_THRESHOLD)}.`
+                : `${formatPrice(DELIVERY_FEE)} delivery. Add ${formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} for free shipping.`}
             </p>
 
             <TrustBar variant="compact" />

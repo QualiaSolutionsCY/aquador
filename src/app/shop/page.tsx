@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { getAllProducts, getAllProductBrands } from '@/lib/supabase/product-service';
+import { getAllProductBrands, getShopProducts } from '@/lib/supabase/product-service';
 import { CATEGORY_OPTIONS } from '@/lib/constants';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import ProductGrid from '@/components/storefront/ProductGrid';
@@ -16,18 +16,16 @@ export const metadata: Metadata = buildPageMetadata({
   ogImage: '/og/shop.jpg',
 });
 
-export default async function ShopPage() {
-  const [allProducts, brandOptions] = await Promise.all([
-    getAllProducts(),
+interface ShopPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function ShopPage({ searchParams }: ShopPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const [products, brandOptions] = await Promise.all([
+    getShopProducts(),
     getAllProductBrands(),
   ]);
-
-  // Dubai Shop excludes Lattafa (own /shop/lattafa page) and non-perfume
-  // product types (oils and lotions appear as variants on a perfume page,
-  // not standalone listings).
-  const products = allProducts.filter(
-    (p) => p.category !== 'lattafa-original' && p.product_type === 'perfume',
-  );
 
   // Category options must mirror the product set above — drop Lattafa so the
   // filter never offers a category that would yield zero matches.
@@ -54,6 +52,7 @@ export default async function ShopPage() {
           products={products}
           brandOptions={brandOptions}
           categoryOptions={categoryOptions}
+          searchParams={resolvedSearchParams}
         />
       </Suspense>
     </main>

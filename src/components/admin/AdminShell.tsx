@@ -38,7 +38,8 @@ export default function AdminShell({ children }: AdminShellProps) {
 
   // Close the mobile drawer whenever the route changes.
   useEffect(() => {
-    setMobileOpen(false);
+    const frame = window.requestAnimationFrame(() => setMobileOpen(false));
+    return () => window.cancelAnimationFrame(frame);
   }, [pathname]);
 
   // Resolve the signed-in user's email for the top-bar display.
@@ -94,7 +95,7 @@ export default function AdminShell({ children }: AdminShellProps) {
           userEmail={userEmail}
           onMobileMenuOpen={() => setMobileOpen(true)}
         />
-        <main className="flex-1 overflow-x-hidden bg-bg px-4 py-6 md:px-8 md:py-8">
+        <main id="main-content" className="flex-1 overflow-x-hidden bg-bg px-4 py-6 md:px-8 md:py-8">
           {children}
         </main>
       </div>

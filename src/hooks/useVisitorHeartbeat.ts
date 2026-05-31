@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
-const HEARTBEAT_INTERVAL = 30_000; // 30 seconds
+const HEARTBEAT_INTERVAL = 120_000; // 2 minutes
 
 function getSessionId(): string {
   if (typeof window === 'undefined') return '';
@@ -18,7 +18,10 @@ function getSessionId(): string {
 export function useVisitorHeartbeat() {
   const pathname = usePathname();
   const pathnameRef = useRef(pathname);
-  pathnameRef.current = pathname;
+
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
 
   useEffect(() => {
     const sessionId = getSessionId();

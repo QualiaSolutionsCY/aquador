@@ -47,6 +47,7 @@ export function ProductActions({ product, variants = [product] }: ProductActions
   const selectedType = getProductType(selectedProduct);
   const selectedPrice = getDisplayPrice(selectedProduct);
   const inStock = selectedProduct.in_stock ?? true;
+  const ctaLabel = inStock ? 'Add to bag' : 'Out of stock';
 
   const variantsByType = useMemo(() => {
     return availableVariants.reduce((map, variant) => {
@@ -158,14 +159,14 @@ export function ProductActions({ product, variants = [product] }: ProductActions
         </div>
       ) : null}
 
-      <div className="hidden md:block">
+      <div>
         <Button
           size="lg"
           onClick={handleAddToCart}
           disabled={!inStock}
           className="w-full"
         >
-          Add to bag
+          {ctaLabel}
         </Button>
       </div>
       <StickyATC
@@ -173,6 +174,7 @@ export function ProductActions({ product, variants = [product] }: ProductActions
         productName={selectedProduct.name}
         onAddToCart={handleAddToCart}
         disabled={!inStock}
+        label={ctaLabel}
       />
     </>
   );

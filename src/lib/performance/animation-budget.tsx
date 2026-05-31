@@ -39,6 +39,16 @@ const FPS_MEASUREMENT_WINDOW = 1000; // 1 second
  */
 const FRAME_DROP_THRESHOLD = 16; // ~60fps
 
+type ClientSentry = {
+  captureMessage: (
+    message: string,
+    options?: {
+      level?: 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug';
+      tags?: Record<string, string>;
+    },
+  ) => void;
+};
+
 /**
  * Animation budget interface
  */
@@ -274,11 +284,12 @@ export function trackAnimationPerformance(
 
   // Report to Sentry in production if duration exceeds threshold
   if (process.env.NODE_ENV === 'production' && duration > FRAME_DROP_THRESHOLD) {
-    // Only report if Sentry is available
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (typeof window !== 'undefined' && (window as any).Sentry) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).Sentry.captureMessage(
+    const sentry = typeof window !== 'undefined'
+      ? (window as Window & { Sentry?: ClientSentry }).Sentry
+      : undefined;
+
+    if (sentry) {
+      sentry.captureMessage(
         `Slow animation: ${animationName} took ${duration.toFixed(2)}ms`,
         {
           level: 'warning',

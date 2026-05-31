@@ -1,13 +1,20 @@
 import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 import * as Sentry from '@sentry/nextjs';
 import { createPublicClient } from './public';
 import type { Product, ProductCategory } from './types';
 import { categories } from '../categories';
 import { slugify } from '../utils';
 import { isDisallowedSampleSize } from '@/lib/product-description';
+import { getVariantBaseId, collapseToFragranceCards } from './variants';
 
 // Re-export categories since they're static
 export { categories };
+
+// Re-export the pure variant-collapsing helper so listing pages can import it
+// alongside the data fetchers. Implementation lives in ./variants (no React /
+// Supabase imports) so it stays unit-testable without a server runtime.
+export { collapseToFragranceCards };
 
 /** Escape PostgREST special characters in search queries */
 function escapePostgrestQuery(query: string): string {
@@ -16,6 +23,7 @@ function escapePostgrestQuery(query: string): string {
 
 /** Explicit column selection for product queries (avoids select(*) overhead) */
 const PRODUCT_COLUMNS = 'id, name, description, price, sale_price, image, images, category, product_type, gender, brand, size, tags, in_stock, is_active, created_at, updated_at' as const;
+const PRODUCT_LIST_REVALIDATE_SECONDS = 60;
 
 function hasPublicSupabaseEnv(): boolean {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -25,20 +33,12 @@ function filterPublicProducts<T extends { size: string | null }>(products: T[] |
   return (products || []).filter((product) => !isDisallowedSampleSize(product.size));
 }
 
-const VARIANT_SUFFIXES = ['-100ml', '-50ml', '-essence-oil', '-body-lotion'] as const;
 const VARIANT_ORDER: Record<string, number> = {
   'perfume:50ml': 0,
   'perfume:100ml': 1,
   'essence-oil:10ml': 2,
   'body-lotion:150ml': 3,
 };
-
-function getVariantBaseId(id: string): string {
-  return VARIANT_SUFFIXES.reduce(
-    (base, suffix) => base.endsWith(suffix) ? base.slice(0, -suffix.length) : base,
-    id,
-  );
-}
 
 function getVariantSortKey(product: Pick<Product, 'product_type' | 'size'>): number {
   return VARIANT_ORDER[`${product.product_type}:${product.size}`] ?? 99;
@@ -62,6 +62,39 @@ export async function getAllProducts(): Promise<Product[]> {
 
   return filterPublicProducts(data);
 }
+
+// Get products for the main Dubai shop. Lattafa has its own route and
+// non-perfume product types are variants on PDPs, not standalone listing rows.
+async function fetchShopProducts(): Promise<Product[]> {
+  if (!hasPublicSupabaseEnv()) return [];
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select(PRODUCT_COLUMNS)
+    .eq('is_active', true)
+    .eq('product_type', 'perfume')
+    .neq('category', 'lattafa-original')
+    .order('in_stock', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    Sentry.addBreadcrumb({ category: 'product-service', message: 'Error fetching shop products', level: 'error', data: { error } });
+    return [];
+  }
+
+  // One card per fragrance — fold size variants into the cheapest (50ml, €29.99)
+  // representative so the grid shows the entry price, not the larger sizes.
+  return collapseToFragranceCards(filterPublicProducts(data));
+}
+
+export const getShopProducts = unstable_cache(
+  fetchShopProducts,
+  ['shop-products-v1'],
+  {
+    revalidate: PRODUCT_LIST_REVALIDATE_SECONDS,
+    tags: ['products', 'shop-products'],
+  },
+);
 
 // Get product by ID (returns null if inactive)
 export async function getProductById(id: string): Promise<Product | null> {
@@ -101,6 +134,43 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
   return filterPublicProducts(data);
 }
 
+export async function findActiveProductByCartFingerprint(
+  name: string,
+  size: string,
+  productType: Product['product_type'],
+): Promise<Product | null> {
+  if (!hasPublicSupabaseEnv()) return null;
+
+  const variantName = productType === 'essence-oil'
+    ? `${name} (Essence Oil)`
+    : productType === 'body-lotion'
+      ? `${name} (Body Lotion)`
+      : `${name} (${size})`;
+  const candidateNames = [...new Set([name, variantName])];
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select(PRODUCT_COLUMNS)
+    .in('name', candidateNames)
+    .eq('size', size)
+    .eq('product_type', productType)
+    .eq('is_active', true)
+    .limit(1);
+
+  if (error) {
+    Sentry.addBreadcrumb({
+      category: 'product-service',
+      message: 'Error recovering stale cart product',
+      level: 'error',
+      data: { error, name, size, productType },
+    });
+    return null;
+  }
+
+  const product = data?.[0] ?? null;
+  return product && !isDisallowedSampleSize(product.size) ? product : null;
+}
+
 // Get product by slug — cached per request to dedup generateMetadata + page component calls
 export const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
   return getProductById(slug);
@@ -130,7 +200,7 @@ export async function getProductVariantGroup(product: Product): Promise<Product[
 }
 
 // Get products by category (filters inactive)
-export async function getProductsByCategory(category: string): Promise<Product[]> {
+async function fetchProductsByCategory(category: string): Promise<Product[]> {
   if (!hasPublicSupabaseEnv()) return [];
   const supabase = createPublicClient();
   const { data, error } = await supabase
@@ -148,6 +218,45 @@ export async function getProductsByCategory(category: string): Promise<Product[]
 
   return filterPublicProducts(data);
 }
+
+export const getProductsByCategory = unstable_cache(
+  fetchProductsByCategory,
+  ['products-by-category-v1'],
+  {
+    revalidate: PRODUCT_LIST_REVALIDATE_SECONDS,
+    tags: ['products', 'products-by-category'],
+  },
+);
+
+async function fetchPerfumeProductsByCategory(category: string): Promise<Product[]> {
+  if (!hasPublicSupabaseEnv()) return [];
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select(PRODUCT_COLUMNS)
+    .eq('category', category as ProductCategory)
+    .eq('product_type', 'perfume')
+    .eq('is_active', true)
+    .order('in_stock', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    Sentry.addBreadcrumb({ category: 'product-service', message: 'Error fetching perfume products by category', level: 'error', data: { error, category } });
+    return [];
+  }
+
+  // One card per fragrance (cheapest variant kept) — size is chosen on the PDP.
+  return collapseToFragranceCards(filterPublicProducts(data));
+}
+
+export const getPerfumeProductsByCategory = unstable_cache(
+  fetchPerfumeProductsByCategory,
+  ['perfume-products-by-category-v1'],
+  {
+    revalidate: PRODUCT_LIST_REVALIDATE_SECONDS,
+    tags: ['products', 'perfume-products-by-category'],
+  },
+);
 
 // Curator's mix for the homepage featured grid. The mix pulls 8 Aquad'or-house
 // slots (niche / essence-oil / women / men) and 4 Lattafa-originals, then
@@ -365,45 +474,6 @@ export async function getRelatedProducts(
   return filterPublicProducts(data);
 }
 
-export async function getProductOrdersCount(
-  productId: string,
-  days: number
-): Promise<number | null> {
-  if (!hasPublicSupabaseEnv()) return null;
-  const supabase = createPublicClient();
-  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-
-  const { data, error } = await supabase
-    .from('orders')
-    .select('items')
-    .gte('created_at', since);
-
-  if (error) {
-    Sentry.addBreadcrumb({
-      category: 'product-service',
-      message: 'Orders count unavailable for social proof',
-      level: 'warning',
-      data: { error, productId, days },
-    });
-    return null;
-  }
-
-  return (data || []).reduce((total, order) => {
-    const items = Array.isArray(order.items) ? order.items : [];
-    const matches = items.filter((item) => {
-      if (!item || typeof item !== 'object' || Array.isArray(item)) return false;
-      const record = item as Record<string, unknown>;
-      return (
-        record.productId === productId ||
-        record.product_id === productId ||
-        record.id === productId
-      );
-    });
-
-    return total + matches.length;
-  }, 0);
-}
-
 // Search products (active only, sanitized against PostgREST injection)
 export async function searchProducts(query: string): Promise<Product[]> {
   if (!hasPublicSupabaseEnv()) return [];
@@ -432,12 +502,10 @@ export async function searchProducts(query: string): Promise<Product[]> {
  * per-brand product count. Sorted by count desc, then label asc. Empty brand
  * cells are dropped — they would produce an unnameable filter row.
  *
- * Cached per server request via `react.cache` so the shop page header,
- * filter panel, and any other consumer all hit one query per render.
+ * Cached across server requests so dynamic shop pages do not rebuild this
+ * derived list from Supabase for every filter URL.
  */
-export const getAllProductBrands = cache(async (): Promise<
-  Array<{ id: string; label: string; count: number }>
-> => {
+async function fetchAllProductBrands(): Promise<Array<{ id: string; label: string; count: number }>> {
   if (!hasPublicSupabaseEnv()) return [];
   const supabase = createPublicClient();
   const { data, error } = await supabase
@@ -479,7 +547,16 @@ export const getAllProductBrands = cache(async (): Promise<
       if (b.count !== a.count) return b.count - a.count;
       return a.label.localeCompare(b.label);
     });
-});
+}
+
+export const getAllProductBrands = unstable_cache(
+  fetchAllProductBrands,
+  ['all-product-brands-v1'],
+  {
+    revalidate: PRODUCT_LIST_REVALIDATE_SECONDS,
+    tags: ['products', 'product-brands'],
+  },
+);
 
 // Get category by slug
 export function getCategoryBySlug(slug: string) {

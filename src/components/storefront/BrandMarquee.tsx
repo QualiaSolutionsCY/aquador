@@ -15,7 +15,7 @@ const PHRASES = [
   'Aquad’or essence oils',
   'Al Haramain Originals',
   'Curated by the desk',
-  'Free shipping over 35 euro',
+  'Free shipping over €35',
   'Three perfumers',
   'Eight notes per perfume',
 ];

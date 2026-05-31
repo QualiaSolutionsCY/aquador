@@ -49,11 +49,10 @@ const sections: Array<{ id: string; eyebrow: string; title: string; body: React.
     body: (
       <>
         <p className="font-body text-fg text-[length:var(--font-size-body-lg)] leading-relaxed">
-          Standard shipping across Cyprus is six euros, and free on any order
-          over thirty five euros. EU shipping is twelve euros, and free on any
-          order over one hundred euros. The threshold is applied to the
-          subtotal before tax. The price you see at checkout is the price you
-          pay, with no customs added on EU orders.
+          Standard delivery is three euros, and free on any order over thirty
+          five euros. The threshold is applied to the subtotal before tax. The
+          price you see at checkout is the price you pay, with no customs added
+          on EU orders.
         </p>
       </>
     ),
@@ -128,10 +127,9 @@ export default function ShippingPage() {
           </div>
           <div>
             <p className="font-body text-fg-muted text-[length:var(--font-size-body-lg)] leading-relaxed max-w-[var(--container-narrow)]">
-              Orders ship six days a week from Nicosia. Free shipping kicks in
-              at thirty five euros across Cyprus and at one hundred across the
-              EU. Returns are accepted within fourteen days on unopened
-              bottles.
+              Orders ship six days a week from Nicosia. Delivery is three
+              euros, free on any order over thirty five euros. Returns are
+              accepted within fourteen days on unopened bottles.
             </p>
           </div>
         </div>

@@ -1,54 +1,9 @@
 /**
- * ARIA label utilities for 3D scenes and animated UI elements.
+ * ARIA label utilities for animated UI elements.
  *
  * Centralizes accessible label strings so they stay consistent across
  * components and are easy to update or localize.
  */
-
-// ---------------------------------------------------------------------------
-// 3D scene labels
-// ---------------------------------------------------------------------------
-
-/**
- * Returns the accessible label for a 3D scene container.
- *
- * @param productName - Optional product name to include in the label
- * @returns ARIA label string for role="img" on the scene wrapper
- */
-export function get3DSceneLabel(productName?: string): string {
-  if (productName) {
-    return `Interactive 3D viewer for ${productName}. Use arrow keys to rotate, plus and minus to zoom, R to reset.`;
-  }
-  return 'Interactive 3D viewer. Use arrow keys to rotate, plus and minus to zoom, R to reset.';
-}
-
-/**
- * Returns a human-readable announcement for a 3D interaction state change.
- * Intended for aria-live regions that notify screen readers.
- *
- * @param action - The interaction that occurred
- * @param productName - Optional product name for context
- * @returns Announcement string, or empty string when no announcement is needed
- */
-export function get3DStateAnnouncement(
-  action: 'rotate' | 'zoom_in' | 'zoom_out' | 'reset',
-  productName?: string
-): string {
-  const subject = productName ? `${productName} view` : '3D view';
-
-  switch (action) {
-    case 'rotate':
-      return `${subject} rotated`;
-    case 'zoom_in':
-      return `${subject} zoomed in`;
-    case 'zoom_out':
-      return `${subject} zoomed out`;
-    case 'reset':
-      return `${subject} reset to default position`;
-    default:
-      return '';
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Filter bar labels

@@ -42,7 +42,7 @@ export interface AdminTableColumn<T> {
   /** Stable key — used for React lists and aria semantics. */
   key: string;
   /** Header label rendered in the <thead> micro row. No emoji in admin UI. */
-  header: string;
+  header: ReactNode;
   /** Cell renderer for a single row. Receives the full row object. */
   accessor: (row: T) => ReactNode;
   /** Right-align numeric columns (prices, counts, dates rendered as numbers). */

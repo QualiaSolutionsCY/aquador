@@ -21,11 +21,11 @@ const mockSessionsRetrieve = jest.fn();
 jest.mock('stripe', () => {
   return jest.fn().mockImplementation(() => ({
     webhooks: {
-      constructEvent: (...args: any[]) => mockConstructEvent(...args),
+      constructEvent: (...args: unknown[]) => mockConstructEvent(...args),
     },
     checkout: {
       sessions: {
-        retrieve: (...args: any[]) => mockSessionsRetrieve(...args),
+        retrieve: (...args: unknown[]) => mockSessionsRetrieve(...args),
       },
     },
   }));
@@ -34,13 +34,13 @@ jest.mock('stripe', () => {
 // Mock Supabase admin client
 jest.mock('@/lib/supabase/admin', () => ({
   createAdminClient: jest.fn(() => ({
-    from: (...args: any[]) => mockSupabaseFrom(...args),
+    from: (...args: unknown[]) => mockSupabaseFrom(...args),
   })),
 }));
 
 // Mock product service
 jest.mock('@/lib/supabase/product-service', () => ({
-  getProductsByIds: (...args: any[]) => mockGetProductsByIds(...args),
+  getProductsByIds: (...args: unknown[]) => mockGetProductsByIds(...args),
 }));
 
 // Mock Sentry
@@ -52,18 +52,18 @@ jest.mock('@sentry/nextjs', () => ({
 
 // Mock fetchWithTimeout
 jest.mock('@/lib/api-utils', () => ({
-  fetchWithTimeout: (...args: any[]) => mockFetch(...args),
+  fetchWithTimeout: (...args: unknown[]) => mockFetch(...args),
 }));
 
 // Mock getStripe
 jest.mock('@/lib/stripe', () => ({
   getStripe: jest.fn(() => ({
     webhooks: {
-      constructEvent: (...args: any[]) => mockConstructEvent(...args),
+      constructEvent: (...args: unknown[]) => mockConstructEvent(...args),
     },
     checkout: {
       sessions: {
-        retrieve: (...args: any[]) => mockSessionsRetrieve(...args),
+        retrieve: (...args: unknown[]) => mockSessionsRetrieve(...args),
       },
     },
   })),

@@ -1,4 +1,11 @@
-export type PerfumeVolume = '50ml' | '100ml'
+import type { PerfumeVolume } from './types'
+
+export type { PerfumeVolume } from './types'
+
+export const CUSTOM_PERFUME_PRICES: Record<PerfumeVolume, number> = {
+  '50ml': 29.99,
+  '100ml': 49.99,
+}
 
 /**
  * Calculate price based on perfume volume
@@ -10,12 +17,11 @@ export function calculatePrice(volume: PerfumeVolume): number {
     throw new Error('Invalid perfume volume')
   }
 
-  switch (volume) {
-    case '50ml':
-      return 29.99
-    case '100ml':
-      return 49.99
-    default:
-      throw new Error('Invalid perfume volume')
-  }
+  const price = CUSTOM_PERFUME_PRICES[volume]
+  if (price === undefined) throw new Error('Invalid perfume volume')
+  return price
+}
+
+export function calculatePriceCents(volume: PerfumeVolume): number {
+  return Math.round(calculatePrice(volume) * 100)
 }

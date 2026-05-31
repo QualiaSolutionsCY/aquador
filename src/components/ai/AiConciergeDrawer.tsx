@@ -40,7 +40,6 @@ import {
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import { useCart } from '@/components/cart/CartProvider';
-import { createClient } from '@/lib/supabase/client';
 
 // Voice strings. Locked by the verifier. Edit only with planner approval.
 const VOICE = {
@@ -54,12 +53,26 @@ const VOICE = {
 } as const;
 
 const SESSION_KEY = 'aquador_concierge_thread';
+const LIVE_SESSION_KEY = 'aquador_live_agent_session';
+const VISITOR_ID_KEY = 'aquador_live_visitor_id';
 
 export type Message = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+};
+
+type LiveSession = {
+  id: string;
+  visitorId: string;
+};
+
+type LiveChatMessage = {
+  id: string;
+  sender_type: 'visitor' | 'admin' | 'system';
+  content: string;
+  created_at: string;
 };
 
 const messageSchema = z.object({
@@ -76,6 +89,15 @@ function newId(): string {
     return crypto.randomUUID();
   }
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function getVisitorId(): string {
+  let visitorId = localStorage.getItem(VISITOR_ID_KEY);
+  if (!visitorId) {
+    visitorId = newId();
+    localStorage.setItem(VISITOR_ID_KEY, visitorId);
+  }
+  return visitorId;
 }
 
 function seedGreeting(): Message {
@@ -137,9 +159,11 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
   const [isRequestingAgent, setIsRequestingAgent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [liveSession, setLiveSession] = useState<LiveSession | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const seenLiveMessageIds = useRef<Set<string>>(new Set());
 
   // Hydrate from sessionStorage on mount (client-only). Wrap in try/catch —
   // sessionStorage throws in private-browsing modes; degrade to in-memory.
@@ -151,6 +175,14 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
         const result = threadSchema.safeParse(parsed);
         if (result.success && result.data.length > 0) {
           setMessages(result.data as Message[]);
+        }
+      }
+
+      const liveRaw = localStorage.getItem(LIVE_SESSION_KEY);
+      if (liveRaw) {
+        const parsed = JSON.parse(liveRaw) as Partial<LiveSession>;
+        if (typeof parsed.id === 'string' && typeof parsed.visitorId === 'string') {
+          setLiveSession({ id: parsed.id, visitorId: parsed.visitorId });
         }
       }
     } catch {
@@ -169,6 +201,55 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
       // ignore. private browsing
     }
   }, [messages, hydrated]);
+
+  useEffect(() => {
+    if (!liveSession || !hydrated) return;
+
+    let active = true;
+    const loadLiveMessages = async () => {
+      try {
+        const params = new URLSearchParams({
+          sessionId: liveSession.id,
+          visitorId: liveSession.visitorId,
+        });
+        const response = await fetch(`/api/live-chat/messages?${params.toString()}`);
+        if (response.status === 404) {
+          localStorage.removeItem(LIVE_SESSION_KEY);
+          if (active) setLiveSession(null);
+          return;
+        }
+        if (!response.ok) return;
+
+        const payload = await response.json() as { messages?: LiveChatMessage[] };
+        const nextMessages = (payload.messages ?? [])
+          .filter((message) => message.sender_type !== 'visitor')
+          .filter((message) => {
+            if (seenLiveMessageIds.current.has(message.id)) return false;
+            seenLiveMessageIds.current.add(message.id);
+            return true;
+          })
+          .map<Message>((message) => ({
+            id: `live-${message.id}`,
+            role: 'assistant',
+            content: message.content,
+            timestamp: new Date(message.created_at).getTime(),
+          }));
+
+        if (active && nextMessages.length > 0) {
+          setMessages((prev) => [...prev, ...nextMessages]);
+        }
+      } catch {
+        // Polling is best-effort; the next interval can recover.
+      }
+    };
+
+    loadLiveMessages();
+    const interval = window.setInterval(loadLiveMessages, 3000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [hydrated, liveSession]);
 
   // Auto-scroll to the bottom as new tokens arrive or new turns append.
   useEffect(() => {
@@ -212,7 +293,7 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       const trimmed = input.trim();
-      if (!trimmed || isStreaming) return;
+      if (!trimmed || isStreaming || isRequestingAgent) return;
 
       const userMessage: Message = {
         id: newId(),
@@ -220,6 +301,33 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
         content: trimmed,
         timestamp: Date.now(),
       };
+
+      if (liveSession) {
+        setMessages((prev) => [...prev, userMessage]);
+        setInput('');
+        setError(null);
+
+        try {
+          const response = await fetch('/api/live-chat/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sessionId: liveSession.id,
+              visitorId: liveSession.visitorId,
+              content: trimmed,
+            }),
+          });
+
+          if (!response.ok) {
+            const payload = await response.json().catch(() => null) as { error?: string } | null;
+            throw new Error(payload?.error || 'live agent message failed');
+          }
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'live agent message failed');
+        }
+        return;
+      }
+
       const placeholder: Message = {
         id: newId(),
         role: 'assistant',
@@ -320,43 +428,39 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
         setIsStreaming(false);
       }
     },
-    [cartSummary, input, isStreaming, messages],
+    [cartSummary, input, isRequestingAgent, isStreaming, liveSession, messages],
   );
 
   const requestLiveAgent = useCallback(async () => {
     if (isRequestingAgent) return;
     setIsRequestingAgent(true);
     try {
-      const supabase = createClient();
-      const visitorIdKey = 'aquador_live_visitor_id';
-      let visitorId = localStorage.getItem(visitorIdKey);
-      if (!visitorId) {
-        visitorId = newId();
-        localStorage.setItem(visitorIdKey, visitorId);
+      if (liveSession) {
+        toast({ title: 'Live agent already requested', variant: 'success' });
+        return;
       }
 
-      const { data: session, error: sessionError } = await supabase
-        .from('live_chat_sessions')
-        .insert({
-          visitor_id: visitorId,
-          visitor_name: null,
-          status: 'waiting',
-        })
-        .select('id')
-        .single();
-
-      if (sessionError || !session) throw sessionError ?? new Error('Missing session');
-
-      await supabase.from('live_chat_messages').insert({
-        session_id: session.id,
-        sender_type: 'system',
-        content: 'A visitor requested a live agent from the AI desk.',
+      const visitorId = getVisitorId();
+      const response = await fetch('/api/live-chat/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visitorId }),
       });
+
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'live agent request failed');
+
+      const nextLiveSession = {
+        id: payload.id as string,
+        visitorId: payload.visitorId as string,
+      };
+      setLiveSession(nextLiveSession);
+      localStorage.setItem(LIVE_SESSION_KEY, JSON.stringify(nextLiveSession));
 
       await fetch('/api/live-chat/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: session.id }),
+        body: JSON.stringify({ sessionId: nextLiveSession.id }),
       });
 
       setMessages((prev) => [
@@ -364,7 +468,7 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
         {
           id: newId(),
           role: 'assistant',
-          content: 'A live agent request is in. The desk has been notified.',
+          content: 'A live agent request is in. Keep this drawer open and write your message here.',
           timestamp: Date.now(),
         },
       ]);
@@ -374,7 +478,7 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
     } finally {
       setIsRequestingAgent(false);
     }
-  }, [isRequestingAgent, toast]);
+  }, [isRequestingAgent, liveSession, toast]);
 
   return (
     <Drawer
@@ -457,7 +561,7 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
               onChange={(event) => setInput(event.target.value)}
               placeholder={VOICE.inputPlaceholder}
               autoComplete="off"
-              disabled={isStreaming}
+              disabled={isStreaming || isRequestingAgent}
               className="w-full bg-bg border border-border-strong rounded-[8px] py-3 px-4 text-[15px] font-body text-fg placeholder:text-fg-muted/60 outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg transition-shadow duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
@@ -467,7 +571,7 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
             size="md"
             aria-label="Send message"
             isLoading={isStreaming}
-            disabled={!input.trim() || isStreaming}
+            disabled={!input.trim() || isStreaming || isRequestingAgent}
           >
             <Send aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" />
           </Button>
@@ -480,9 +584,10 @@ export default function AiConciergeDrawer({ isOpen, onClose }: AiConciergeDrawer
             size="md"
             onClick={requestLiveAgent}
             isLoading={isRequestingAgent}
+            disabled={!!liveSession}
             leadingIcon={<MessageCircle aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" />}
           >
-            Speak with a live agent
+            {liveSession ? 'Live agent requested' : 'Speak with a live agent'}
           </Button>
         </div>
 

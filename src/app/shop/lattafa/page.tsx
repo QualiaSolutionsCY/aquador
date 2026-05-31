@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { getProductsByCategory, getAllProductBrands } from '@/lib/supabase/product-service';
+import { getProductsByCategory, getAllProductBrands, collapseToFragranceCards } from '@/lib/supabase/product-service';
 import { CATEGORY_OPTIONS } from '@/lib/constants';
 import ProductGrid from '@/components/storefront/ProductGrid';
 import ShopGridFallback from '@/components/storefront/ShopGridFallback';
@@ -29,11 +29,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function LattafaPage() {
-  const [products, brandOptions] = await Promise.all([
+interface LattafaPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function LattafaPage({ searchParams }: LattafaPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const [lattafaRows, brandOptions] = await Promise.all([
     getProductsByCategory('lattafa-original'),
     getAllProductBrands(),
   ]);
+  // One card per fragrance; size variants live on the product page.
+  const products = collapseToFragranceCards(lattafaRows);
 
   if (products.length === 0) {
     return (
@@ -80,6 +87,7 @@ export default async function LattafaPage() {
           brandOptions={brandOptions}
           categoryOptions={CATEGORY_OPTIONS}
           categorySlug="lattafa-original"
+          searchParams={resolvedSearchParams}
         />
       </Suspense>
     </main>

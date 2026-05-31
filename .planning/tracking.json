@@ -40,7 +40,7 @@
   "phase": 4,
   "phase_name": "Handoff",
   "total_phases": 4,
-  "status": "shipped",
+  "status": "handed_off",
   "wave": 1,
   "tasks_done": 3,
   "tasks_total": 3,
@@ -53,20 +53,20 @@
   },
   "blockers": [],
   "session_started_at": "2026-05-15T11:06:08.461Z",
-  "last_updated": "2026-05-18T05:53:28Z",
-  "last_pushed_at": "2026-05-18T05:53:28Z",
-  "last_commit": "e5faadb",
+  "last_updated": "2026-05-25T13:37:21.059Z",
+  "last_pushed_at": "2026-05-24T12:01:12Z",
+  "last_commit": "fcafc33",
   "build_count": 18,
   "deploy_count": 1,
   "deployed_url": "https://www.aquadorcy.com",
-  "notes": "",
+  "notes": "Fixed live-agent chat flow and product image sizing",
   "submitted_by": "",
   "lifetime": {
-    "tasks_completed": 56,
+    "tasks_completed": 57,
     "phases_completed": 17,
     "milestones_completed": 3,
     "total_phases": 12,
     "last_closed_milestone": 3
   },
-  "report_seq": 1
+  "report_seq": 3
 }

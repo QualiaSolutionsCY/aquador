@@ -5,7 +5,6 @@ import { ArrowLeft, PackageCheck } from 'lucide-react';
 import {
   getAllProductSlugs,
   getProductBySlug,
-  getProductOrdersCount,
   getProductVariantGroup,
   getRelatedProducts,
 } from '@/lib/supabase/product-service';
@@ -106,9 +105,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const [relatedProducts, ordersCount, productVariants] = await Promise.all([
+  const [relatedProducts, productVariants] = await Promise.all([
     getRelatedProducts(product.id, product.category, 6),
-    getProductOrdersCount(product.id, 30),
     getProductVariantGroup(product),
   ]);
 
@@ -185,7 +183,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       <main className="min-h-screen bg-bg pb-24 pt-24 text-fg md:pb-0 md:pt-28 lg:pt-32">
         <article>
-          <div className="mx-auto max-w-[var(--container-full)]">
+          <div className="mx-auto max-w-[96rem]">
           <div className="px-[var(--page-px)]">
             <nav className="mb-8" aria-label="Breadcrumb">
               <Link
@@ -198,12 +196,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </nav>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12">
-            <div className="min-w-0 px-[var(--page-px)]">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.45fr)_minmax(22rem,0.75fr)] lg:gap-14">
+            <div className="min-w-0 px-[var(--page-px)] lg:pr-0">
               <ProductGallery images={buildImageList(product)} productName={product.name} />
             </div>
 
-            <aside className="flex min-w-0 flex-col gap-6 px-[var(--page-px)] py-10 lg:sticky lg:top-28 lg:self-start lg:py-0">
+            <aside className="flex min-w-0 flex-col gap-4 px-[var(--page-px)] pt-4 pb-10 lg:gap-6 lg:sticky lg:top-28 lg:self-start lg:py-0 lg:pl-0">
               <header>
                 {product.brand && (
                   <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
@@ -217,7 +215,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
               <div className="border-y border-border-dark bg-bg-alt/60 py-5">
                 <div className="flex items-center justify-between gap-4 border-b border-border px-0 pb-5">
-                  <SocialProof ordersCount={ordersCount} />
+                  <SocialProof />
                   <span className="hidden font-micro uppercase tracking-[0.12em] text-[length:var(--font-size-micro)] text-fg-muted sm:inline">
                     {inStock ? 'Ready to pack' : 'Resting'}
                   </span>

@@ -25,6 +25,25 @@ export function isDisallowedSampleSize(size: string | null | undefined): boolean
   return (size || '').trim().toLowerCase() === '2ml';
 }
 
+function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function plainTextToHtml(input: string): string {
+  return input
+    .replace(/\r/g, '')
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
 // Tag allowlist for rich-text product descriptions. The admin Tiptap editor
 // only emits these tags, but we sanitize defensively in case a legacy
 // description carries something else (or an admin account gets compromised).
@@ -38,6 +57,9 @@ const ALLOWED_TAGS = new Set([
 
 export function sanitizeDescriptionHtml(input: string | null | undefined): string {
   if (!input) return '';
+  if (!/<[a-zA-Z][\s\S]*>/i.test(input)) {
+    return plainTextToHtml(input);
+  }
   // Strip script/style blocks entirely (content + tags).
   let html = input
     .replace(/<script[\s\S]*?<\/script>/gi, '')
