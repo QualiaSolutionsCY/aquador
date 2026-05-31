@@ -20,7 +20,7 @@ const qas: QA[] = [
       <>
         Orders placed before 16:00 ship the same day from Nicosia. Nicosia
         and Limassol typically arrive in one to two working days, the rest
-        of the island in two to three. Shipping is six euros, free on any
+        of the island in two to three. Shipping is three euros, free on any
         order over thirty five euros.
       </>
     ),
@@ -31,8 +31,8 @@ const qas: QA[] = [
       <>
         Yes, to all twenty seven EU member states by DHL Express. Greece,
         Italy, and Germany typically arrive in five working days, the Baltics
-        and Scandinavia closer to seven. EU shipping is twelve euros, free
-        on any order over one hundred euros. We do not ship outside the EU
+        and Scandinavia closer to seven. Shipping is three euros, free on any
+        order over thirty five euros. We do not ship outside the EU
         at present.
       </>
     ),

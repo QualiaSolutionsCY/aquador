@@ -159,7 +159,7 @@ export function ProductActions({ product, variants = [product] }: ProductActions
         </div>
       ) : null}
 
-      <div className="hidden md:block">
+      <div>
         <Button
           size="lg"
           onClick={handleAddToCart}

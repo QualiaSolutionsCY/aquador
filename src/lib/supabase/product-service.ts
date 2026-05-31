@@ -6,9 +6,15 @@ import type { Product, ProductCategory } from './types';
 import { categories } from '../categories';
 import { slugify } from '../utils';
 import { isDisallowedSampleSize } from '@/lib/product-description';
+import { getVariantBaseId, collapseToFragranceCards } from './variants';
 
 // Re-export categories since they're static
 export { categories };
+
+// Re-export the pure variant-collapsing helper so listing pages can import it
+// alongside the data fetchers. Implementation lives in ./variants (no React /
+// Supabase imports) so it stays unit-testable without a server runtime.
+export { collapseToFragranceCards };
 
 /** Escape PostgREST special characters in search queries */
 function escapePostgrestQuery(query: string): string {
@@ -27,20 +33,12 @@ function filterPublicProducts<T extends { size: string | null }>(products: T[] |
   return (products || []).filter((product) => !isDisallowedSampleSize(product.size));
 }
 
-const VARIANT_SUFFIXES = ['-100ml', '-50ml', '-essence-oil', '-body-lotion'] as const;
 const VARIANT_ORDER: Record<string, number> = {
   'perfume:50ml': 0,
   'perfume:100ml': 1,
   'essence-oil:10ml': 2,
   'body-lotion:150ml': 3,
 };
-
-function getVariantBaseId(id: string): string {
-  return VARIANT_SUFFIXES.reduce(
-    (base, suffix) => base.endsWith(suffix) ? base.slice(0, -suffix.length) : base,
-    id,
-  );
-}
 
 function getVariantSortKey(product: Pick<Product, 'product_type' | 'size'>): number {
   return VARIANT_ORDER[`${product.product_type}:${product.size}`] ?? 99;
@@ -84,7 +82,9 @@ async function fetchShopProducts(): Promise<Product[]> {
     return [];
   }
 
-  return filterPublicProducts(data);
+  // One card per fragrance — fold size variants into the cheapest (50ml, €29.99)
+  // representative so the grid shows the entry price, not the larger sizes.
+  return collapseToFragranceCards(filterPublicProducts(data));
 }
 
 export const getShopProducts = unstable_cache(
@@ -245,7 +245,8 @@ async function fetchPerfumeProductsByCategory(category: string): Promise<Product
     return [];
   }
 
-  return filterPublicProducts(data);
+  // One card per fragrance (cheapest variant kept) — size is chosen on the PDP.
+  return collapseToFragranceCards(filterPublicProducts(data));
 }
 
 export const getPerfumeProductsByCategory = unstable_cache(

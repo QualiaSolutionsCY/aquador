@@ -26,7 +26,10 @@ export function StickyATC({
   const [elevated, setElevated] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setElevated(window.scrollY > 80);
+    // Reveal the sticky bar only after the shopper scrolls past the gallery,
+    // so the primary Add to bag stays the inline one up near the image and
+    // product info. The bar then slides up as a persistent CTA further down.
+    const onScroll = () => setElevated(window.scrollY > 420);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -35,7 +38,8 @@ export function StickyATC({
   return (
     <div
       data-elevated={elevated}
-      className="storefront-sticky-atc fixed bottom-0 inset-x-0 z-40 border-t border-border-dark bg-bg transition-shadow duration-[var(--duration-base)] md:hidden"
+      aria-hidden={!elevated}
+      className="storefront-sticky-atc fixed bottom-0 inset-x-0 z-40 translate-y-full border-t border-border-dark bg-bg transition-transform duration-[var(--duration-base)] data-[elevated=true]:translate-y-0 md:hidden"
     >
       <div className="flex items-center justify-between gap-4 px-4 py-3">
         <div className="min-w-0">

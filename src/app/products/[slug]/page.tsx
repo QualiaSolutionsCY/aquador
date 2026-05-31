@@ -201,7 +201,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <ProductGallery images={buildImageList(product)} productName={product.name} />
             </div>
 
-            <aside className="flex min-w-0 flex-col gap-6 px-[var(--page-px)] py-10 lg:sticky lg:top-28 lg:self-start lg:py-0 lg:pl-0">
+            <aside className="flex min-w-0 flex-col gap-4 px-[var(--page-px)] pt-4 pb-10 lg:gap-6 lg:sticky lg:top-28 lg:self-start lg:py-0 lg:pl-0">
               <header>
                 {product.brand && (
                   <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
