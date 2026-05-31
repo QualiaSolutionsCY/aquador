@@ -7,7 +7,7 @@ See: .planning/PROJECT.md
 Phase: 4 of 4 — Handoff
 Status: shipped
 Assigned to: Last activity: 2026-05-15 — Project initialized
-Last activity: 2026-05-17 — shipped (phase 4)
+Last activity: 2026-05-31 — Fix: collapse size variants to one card per fragrance on shop/category/lattafa grids
 
 Progress: [██████████] 100%
 
@@ -23,6 +23,6 @@ Progress: [██████████] 100%
 None.
 
 ## Session
-Last session: 2026-05-17
+Last session: 2026-05-31
 Last worked by: Last activity: 2026-05-15 — Project initialized
 Resume: —
