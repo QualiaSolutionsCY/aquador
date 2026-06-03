@@ -18,6 +18,7 @@
  * (CART-03 reframing in phase plan).
  */
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import {
@@ -31,7 +32,8 @@ import {
 } from '@/components/ui';
 import { TrustBar } from '@/components/storefront/TrustBar';
 import { formatPrice } from '@/lib/currency';
-import { FREE_SHIPPING_THRESHOLD, DELIVERY_FEE } from '@/lib/constants';
+import { FREE_SHIPPING_THRESHOLD, DELIVERY_FEE, GREECE_DELIVERY_FEE } from '@/lib/constants';
+import { SHIPPING_DESTINATIONS, type ShippingDestination } from '@/lib/shipping';
 import { useCart } from './CartProvider';
 import CartItem from './CartItem';
 import CheckoutButton from './CheckoutButton';
@@ -40,6 +42,7 @@ export default function CartDrawer() {
   const router = useRouter();
   const { cart, isCartOpen, closeCart, subtotal } = useCart();
   const isEmpty = cart.items.length === 0;
+  const [destination, setDestination] = useState<ShippingDestination>('cy-eu');
 
   const handleReadCollection = () => {
     closeCart();
@@ -117,15 +120,48 @@ export default function CartDrawer() {
               </span>
             </div>
 
+            <div>
+              <p className="mb-2 font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
+                Ship to
+              </p>
+              <div
+                className="grid grid-cols-2 gap-2"
+                role="radiogroup"
+                aria-label="Shipping destination"
+              >
+                {SHIPPING_DESTINATIONS.map((option) => {
+                  const isSelected = destination === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setDestination(option.id)}
+                      aria-pressed={isSelected}
+                      className={[
+                        'min-h-11 rounded-sm border px-3 py-2 font-micro text-[11px] uppercase tracking-[0.05em] transition-colors',
+                        isSelected
+                          ? 'border-fg bg-fg text-bg'
+                          : 'border-border-strong bg-bg text-fg hover:border-fg',
+                      ].join(' ')}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <p className="font-body text-[length:var(--font-size-body-sm)] text-fg-muted">
-              {subtotal >= FREE_SHIPPING_THRESHOLD
-                ? `Free shipping over ${formatPrice(FREE_SHIPPING_THRESHOLD)}.`
-                : `${formatPrice(DELIVERY_FEE)} delivery. Add ${formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} for free shipping.`}
+              {destination === 'greece'
+                ? `${formatPrice(GREECE_DELIVERY_FEE)} delivery to Greece.`
+                : subtotal >= FREE_SHIPPING_THRESHOLD
+                  ? `Free shipping over ${formatPrice(FREE_SHIPPING_THRESHOLD)}.`
+                  : `${formatPrice(DELIVERY_FEE)} delivery. Add ${formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} for free shipping.`}
             </p>
 
             <TrustBar variant="compact" />
 
-            <CheckoutButton />
+            <CheckoutButton destination={destination} />
           </DrawerFooter>
         )}
       </DrawerContent>

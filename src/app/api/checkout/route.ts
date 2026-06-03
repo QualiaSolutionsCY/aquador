@@ -5,7 +5,8 @@ import { z } from 'zod';
 import { CURRENCY_CODE, toCents } from '@/lib/currency';
 import { formatApiError } from '@/lib/api-utils';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { getProductTypeLabel, SHIPPING_COUNTRIES, FREE_SHIPPING_THRESHOLD, DELIVERY_FEE } from '@/lib/constants';
+import { getProductTypeLabel } from '@/lib/constants';
+import { resolveShipping } from '@/lib/shipping';
 import { getStripe } from '@/lib/stripe';
 import { cartItemSchema, validateCartPrices } from '@/lib/validation/cart';
 import { ACS_CHECKPOINT_OPTIONS } from '@/lib/acs-checkpoints';
@@ -14,6 +15,7 @@ export const maxDuration = 10;
 
 const checkoutSchema = z.object({
   items: z.array(cartItemSchema).min(1, 'Cart is empty'),
+  destination: z.enum(['cy-eu', 'greece']).optional(),
 });
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -85,9 +87,12 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    // Calculate subtotal for shipping threshold
+    // Resolve shipping from the chosen destination. Greece is a flat fee; Cyprus
+    // & EU keep the free-over-threshold / flat-fee-under rule. The destination
+    // also restricts the allowed address countries so the address always matches
+    // the amount charged.
     const subtotal = verifiedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const shippingAmount = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : toCents(DELIVERY_FEE);
+    const shipping = resolveShipping(result.data.destination ?? 'cy-eu', subtotal);
 
     const metadata: Stripe.MetadataParam = {
       itemCount: verifiedItems.length.toString(),
@@ -110,7 +115,7 @@ export async function POST(request: NextRequest) {
       success_url: `${BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${BASE_URL}/checkout/cancel`,
       shipping_address_collection: {
-        allowed_countries: [...SHIPPING_COUNTRIES],
+        allowed_countries: shipping.allowedCountries,
       },
       phone_number_collection: { enabled: true },
       custom_fields: [
@@ -137,10 +142,10 @@ export async function POST(request: NextRequest) {
           shipping_rate_data: {
             type: 'fixed_amount',
             fixed_amount: {
-              amount: shippingAmount,
+              amount: shipping.amountCents,
               currency: CURRENCY_CODE,
             },
-            display_name: shippingAmount === 0 ? 'Free shipping' : 'Standard delivery',
+            display_name: shipping.displayName,
             delivery_estimate: {
               minimum: {
                 unit: 'business_day',

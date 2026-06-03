@@ -5,9 +5,14 @@ import { Loader2 } from 'lucide-react';
 import { track } from '@vercel/analytics';
 import * as Sentry from '@sentry/nextjs';
 import { Button, useToast } from '@/components/ui';
+import type { ShippingDestination } from '@/lib/shipping';
 import { useCart } from './CartProvider';
 
-export default function CheckoutButton() {
+export default function CheckoutButton({
+  destination = 'cy-eu',
+}: {
+  destination?: ShippingDestination;
+}) {
   const { cart } = useCart();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +56,7 @@ export default function CheckoutButton() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ items: cart.items }),
+        body: JSON.stringify({ items: cart.items, destination }),
         signal: abortController.signal,
       });
 
@@ -86,7 +91,7 @@ export default function CheckoutButton() {
       setIsLoading(false);
       abortControllerRef.current = null;
     }
-  }, [cart.items, isProcessing, toast]);
+  }, [cart.items, isProcessing, toast, destination]);
 
   const isDisabled = isLoading || isProcessing || cart.items.length === 0;
 

@@ -31,8 +31,11 @@ export const SHIPPING_COUNTRIES = [
 /**
  * Shipping configuration
  */
-export const FREE_SHIPPING_THRESHOLD = 35; // EUR — free shipping at or above this order subtotal
-export const DELIVERY_FEE = 3; // EUR — flat delivery fee for orders below the free-shipping threshold
+export const FREE_SHIPPING_THRESHOLD = 35; // EUR — free shipping at or above this order subtotal (Cyprus & EU)
+export const DELIVERY_FEE = 3; // EUR — flat delivery fee for Cyprus & EU orders below the free-shipping threshold
+export const GREECE_DELIVERY_FEE = 15; // EUR — flat delivery fee for every order shipped to Greece
+
+export type ShippingCountry = (typeof SHIPPING_COUNTRIES)[number];
 
 /**
  * Cart configuration constants
