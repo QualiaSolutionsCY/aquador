@@ -6,6 +6,7 @@ import { formatPrice, escapeHtml } from '@/lib/utils';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getStripe } from '@/lib/stripe';
 import { getProductsByIds } from '@/lib/supabase/product-service';
+import { decrementProductStock } from '@/lib/supabase/admin-service';
 import { formatAcsCheckpoint } from '@/lib/acs-checkpoints';
 import { calculatePrice, type PerfumeVolume } from '@/lib/perfume/pricing';
 
@@ -614,6 +615,29 @@ export async function POST(request: NextRequest) {
 
       // Persist order + customer to Supabase
       const { isNewOrder } = await persistOrder(session, items, shippingAddress, orderTags, customerPhone);
+
+      // Atomically decrement product stock — exactly once per paid order.
+      // `isNewOrder` is true only on the FIRST delivery of a given session's
+      // webhook (orders upsert with ignoreDuplicates), so this is the
+      // idempotency guard: duplicate deliveries never double-decrement.
+      // Custom-perfume lines have no products row and are skipped. The
+      // decrement failing must NEVER fail the webhook — payment already
+      // succeeded — so each call is awaited independently and logged.
+      if (isNewOrder) {
+        await Promise.all(
+          items
+            .filter((item) => item.productId && item.productType !== 'custom-perfume')
+            .map(async (item) => {
+              const ok = await decrementProductStock(item.productId as string, item.quantity);
+              if (!ok) {
+                Sentry.captureMessage('Stock decrement failed — possible oversell', {
+                  level: 'warning',
+                  extra: { sessionId: session.id, productId: item.productId, qty: item.quantity },
+                });
+              }
+            }),
+        );
+      }
 
       // Send confirmation email to customer + notification to store (only for new orders)
       if (customerEmail) {

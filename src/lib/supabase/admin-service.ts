@@ -644,6 +644,41 @@ export async function deleteProduct(
   }
 }
 
+/**
+ * Atomically decrement one product's stock by `qty` for a paid order.
+ *
+ * Calls the row-locking `decrement_product_stock` RPC
+ * (20260617120000_decrement_product_stock.sql) with the service-role client so
+ * the webhook can write without a cookie session. The RPC returns false when
+ * the row is missing or the requested quantity would oversell; we surface that
+ * boolean unchanged. Any thrown/RPC error is logged via the Sentry breadcrumb
+ * pattern and returns false — the caller (Stripe webhook) treats false as
+ * "log a possible oversell" and never fails the webhook, since payment has
+ * already succeeded.
+ *
+ * This is the only place the `decrement_product_stock` RPC name appears outside
+ * the webhook wiring.
+ */
+export async function decrementProductStock(id: string, qty: number): Promise<boolean> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('decrement_product_stock', {
+      p_id: id,
+      p_qty: qty,
+    });
+
+    if (error) {
+      reportSafe('decrementProductStock rpc', error, { id, qty });
+      return false;
+    }
+
+    return data === true;
+  } catch (err) {
+    reportSafe('decrementProductStock unexpected', err, { id, qty });
+    return false;
+  }
+}
+
 // -----------------------------------------------------------------------------
 // Orders namespace (consumed by Task 2, exposed here per plan §35 serialization)
 // -----------------------------------------------------------------------------

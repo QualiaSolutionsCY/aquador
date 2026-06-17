@@ -16,6 +16,7 @@ const mockSupabaseSingle = jest.fn();
 const mockFetch = jest.fn();
 const mockConstructEvent = jest.fn();
 const mockSessionsRetrieve = jest.fn();
+const mockDecrementProductStock = jest.fn();
 
 // Mock Stripe
 jest.mock('stripe', () => {
@@ -41,6 +42,12 @@ jest.mock('@/lib/supabase/admin', () => ({
 // Mock product service
 jest.mock('@/lib/supabase/product-service', () => ({
   getProductsByIds: (...args: unknown[]) => mockGetProductsByIds(...args),
+}));
+
+// Mock admin service — also avoids the `import 'server-only'` directive at the
+// top of admin-service.ts, which would otherwise throw under jsdom/node jest.
+jest.mock('@/lib/supabase/admin-service', () => ({
+  decrementProductStock: (...args: unknown[]) => mockDecrementProductStock(...args),
 }));
 
 // Mock Sentry
@@ -239,6 +246,9 @@ describe('Stripe Webhook Handler', () => {
       ok: true,
       json: async () => ({ id: 'email_sent' }),
     });
+
+    // Default: stock decrement succeeds.
+    mockDecrementProductStock.mockResolvedValue(true);
   });
 
   describe('Signature Verification', () => {
@@ -446,6 +456,116 @@ describe('Stripe Webhook Handler', () => {
 
       expect(response2.status).toBe(200);
       expect(mockFetch).not.toHaveBeenCalled(); // No emails on duplicate
+    });
+  });
+
+  describe('Stock Decrement on Paid Orders', () => {
+    it('decrements once per standard cart line on a new order', async () => {
+      const twoLineSession: Stripe.Checkout.Session = {
+        ...mockCheckoutSession,
+        metadata: {
+          items: JSON.stringify([
+            { pid: 'prod_1', vid: 'var_1', qty: 2 },
+            { pid: 'prod_2', vid: 'var_2', qty: 3 },
+          ]),
+        },
+      };
+
+      mockConstructEvent.mockReturnValue({
+        id: 'evt_two_line',
+        type: 'checkout.session.completed',
+        data: { object: twoLineSession },
+      } as Stripe.Event);
+
+      mockGetProductsByIds.mockResolvedValue([
+        { id: 'prod_1', name: 'Perfume One', price: 29.99, sale_price: null, product_type: 'perfume' },
+        { id: 'prod_2', name: 'Perfume Two', price: 35.0, sale_price: null, product_type: 'perfume' },
+      ]);
+
+      const request = createMockRequest(JSON.stringify({}));
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(mockDecrementProductStock).toHaveBeenCalledTimes(2);
+      expect(mockDecrementProductStock).toHaveBeenCalledWith('prod_1', 2);
+      expect(mockDecrementProductStock).toHaveBeenCalledWith('prod_2', 3);
+    });
+
+    it('does NOT decrement on a duplicate webhook (isNewOrder false)', async () => {
+      // orders upsert returns empty array => duplicate => isNewOrder false.
+      mockSupabaseFrom.mockImplementation((table: string) => {
+        if (table === 'orders') {
+          return {
+            upsert: jest.fn().mockReturnValue({
+              select: jest.fn().mockResolvedValue({ data: [], error: null }),
+            }),
+          };
+        }
+        if (table === 'customers') {
+          return {
+            upsert: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({ data: { id: 'cust_dup' }, error: null }),
+              }),
+            }),
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({ data: null, error: null }),
+              }),
+            }),
+            insert: jest.fn().mockResolvedValue({ data: null, error: null }),
+            update: jest.fn().mockResolvedValue({ data: null, error: null }),
+          };
+        }
+        return { select: mockSupabaseSelect, insert: mockSupabaseInsert, update: mockSupabaseUpdate };
+      });
+
+      const request = createMockRequest(JSON.stringify({}));
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(mockDecrementProductStock).not.toHaveBeenCalled();
+    });
+
+    it('does NOT decrement for a custom-perfume line (no products row)', async () => {
+      const customSession: Stripe.Checkout.Session = {
+        ...mockCheckoutSession,
+        metadata: {
+          productType: 'custom-perfume',
+          perfumeName: 'My Special Blend',
+          topNote: 'Bergamot',
+          heartNote: 'Rose',
+          baseNote: 'Sandalwood',
+          volume: '50ml',
+        },
+      };
+
+      mockConstructEvent.mockReturnValue({
+        id: 'evt_custom_stock',
+        type: 'checkout.session.completed',
+        data: { object: customSession },
+      } as Stripe.Event);
+
+      const request = createMockRequest(JSON.stringify({}));
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(mockDecrementProductStock).not.toHaveBeenCalled();
+    });
+
+    it('logs a possible oversell but still returns 200 when decrement fails', async () => {
+      const Sentry = jest.requireMock('@sentry/nextjs');
+      mockDecrementProductStock.mockResolvedValue(false);
+
+      const request = createMockRequest(JSON.stringify({}));
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(mockDecrementProductStock).toHaveBeenCalledWith('prod_1', 2);
+      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+        'Stock decrement failed — possible oversell',
+        expect.objectContaining({ level: 'warning' }),
+      );
     });
   });
 

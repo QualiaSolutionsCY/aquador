@@ -543,6 +543,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      decrement_product_stock: {
+        Args: {
+          p_id: string
+          p_qty: number
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       admin_role: "admin" | "super_admin"
