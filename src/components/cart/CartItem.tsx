@@ -36,7 +36,10 @@ export default function CartItem({ item }: CartItemProps) {
     }
   };
 
+  const atMax = item.maxQuantity !== undefined && item.quantity >= item.maxQuantity;
+
   const handleIncrease = () => {
+    if (atMax) return;
     updateQuantity(item.variantId, item.quantity + 1);
   };
 
@@ -88,9 +91,15 @@ export default function CartItem({ item }: CartItemProps) {
             size="sm"
             variant="ghost"
             onClick={handleIncrease}
+            disabled={atMax}
             icon={<Plus strokeWidth={1.5} />}
           />
         </div>
+        {atMax ? (
+          <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
+            Max in stock
+          </p>
+        ) : null}
       </div>
 
       {/* Right column: remove (top) + line price (bottom). */}

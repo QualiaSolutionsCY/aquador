@@ -1,59 +1,5 @@
 import type { Cart, CartItem, CartAction } from '@/types/cart';
-
-// Replicate the cart reducer logic for testing
-function cartReducer(state: Cart, action: CartAction): Cart {
-  switch (action.type) {
-    case 'ADD_ITEM': {
-      const existingIndex = state.items.findIndex(
-        (item) => item.variantId === action.payload.variantId
-      );
-
-      if (existingIndex >= 0) {
-        const newItems = [...state.items];
-        newItems[existingIndex] = {
-          ...newItems[existingIndex],
-          quantity: newItems[existingIndex].quantity + action.payload.quantity,
-        };
-        return { ...state, items: newItems };
-      }
-
-      return { ...state, items: [...state.items, action.payload] };
-    }
-
-    case 'REMOVE_ITEM':
-      return {
-        ...state,
-        items: state.items.filter((item) => item.variantId !== action.payload.variantId),
-      };
-
-    case 'UPDATE_QUANTITY': {
-      if (action.payload.quantity <= 0) {
-        return {
-          ...state,
-          items: state.items.filter((item) => item.variantId !== action.payload.variantId),
-        };
-      }
-
-      return {
-        ...state,
-        items: state.items.map((item) =>
-          item.variantId === action.payload.variantId
-            ? { ...item, quantity: action.payload.quantity }
-            : item
-        ),
-      };
-    }
-
-    case 'CLEAR_CART':
-      return { items: [] };
-
-    case 'HYDRATE':
-      return action.payload;
-
-    default:
-      return state;
-  }
-}
+import { cartReducer } from '../cart-reducer';
 
 const createTestItem = (overrides: Partial<CartItem> = {}): CartItem => ({
   productId: 'test-product',
@@ -192,6 +138,56 @@ describe('Cart Reducer', () => {
       const newState = cartReducer(initialState, action);
 
       expect(newState).toEqual(hydratedState);
+    });
+  });
+
+  describe('stock cap (maxQuantity)', () => {
+    it('caps a new line at maxQuantity when adding more than is in stock', () => {
+      const item = createTestItem({ quantity: 10, maxQuantity: 3 });
+      const action: CartAction = { type: 'ADD_ITEM', payload: item };
+
+      const newState = cartReducer(initialState, action);
+
+      expect(newState.items[0].quantity).toBe(3);
+    });
+
+    it('does not let repeated adds push an existing line past maxQuantity', () => {
+      const item = createTestItem({ quantity: 2, maxQuantity: 3 });
+      const stateWithItem: Cart = { items: [item] };
+      const action: CartAction = {
+        type: 'ADD_ITEM',
+        payload: { ...item, quantity: 5 },
+      };
+
+      const newState = cartReducer(stateWithItem, action);
+
+      expect(newState.items[0].quantity).toBe(3);
+    });
+
+    it('clamps UPDATE_QUANTITY to maxQuantity', () => {
+      const item = createTestItem({ quantity: 1, maxQuantity: 4 });
+      const stateWithItem: Cart = { items: [item] };
+      const action: CartAction = {
+        type: 'UPDATE_QUANTITY',
+        payload: { variantId: item.variantId, quantity: 99 },
+      };
+
+      const newState = cartReducer(stateWithItem, action);
+
+      expect(newState.items[0].quantity).toBe(4);
+    });
+
+    it('leaves quantity unbounded when no maxQuantity is set', () => {
+      const item = createTestItem({ quantity: 1 });
+      const stateWithItem: Cart = { items: [item] };
+      const action: CartAction = {
+        type: 'UPDATE_QUANTITY',
+        payload: { variantId: item.variantId, quantity: 50 },
+      };
+
+      const newState = cartReducer(stateWithItem, action);
+
+      expect(newState.items[0].quantity).toBe(50);
     });
   });
 });

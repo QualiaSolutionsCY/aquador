@@ -74,6 +74,7 @@ export function ProductActions({ product, variants = [product] }: ProductActions
       productId: selectedProduct.id,
       variantId: `${selectedProduct.id}-${selectedProduct.product_type}-${selectedProduct.size}`,
       quantity: 1,
+      maxQuantity: stock ?? undefined,
       name: selectedProduct.name,
       image: selectedProduct.image,
       price: selectedPrice,

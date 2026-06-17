@@ -4,6 +4,12 @@ export interface CartItem {
   productId: string;
   variantId: string;
   quantity: number;
+  /**
+   * Units available in stock for this product. When set, the cart caps the
+   * line quantity here so a shopper can never hold more than what's sellable.
+   * Undefined = no client-side cap known (server checkout still enforces it).
+   */
+  maxQuantity?: number;
   name: string;
   image: string;
   price: number;

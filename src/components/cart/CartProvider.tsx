@@ -3,21 +3,19 @@
 import { createContext, useContext, useReducer, useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
 import { z } from 'zod';
 import * as Sentry from '@sentry/nextjs';
-import type { Cart, CartItem, CartAction, CartContextType } from '@/types/cart';
+import type { Cart, CartItem, CartContextType } from '@/types/cart';
 import { calculateSubtotal } from '@/lib/currency';
 import { CART_DEBOUNCE_MS } from '@/lib/constants';
+import { cartReducer, initialCart } from './cart-reducer';
 
 const CART_STORAGE_KEY = 'aquador_cart';
-
-const initialCart: Cart = {
-  items: [],
-};
 
 // Zod schema for cart validation
 const CartItemSchema = z.object({
   productId: z.string(),
   variantId: z.string(),
   quantity: z.number().int().positive(),
+  maxQuantity: z.number().int().positive().optional(),
   name: z.string(),
   image: z.string(),
   price: z.number().nonnegative(),
@@ -35,60 +33,6 @@ const CartItemSchema = z.object({
 const CartSchema = z.object({
   items: z.array(CartItemSchema),
 });
-
-function cartReducer(state: Cart, action: CartAction): Cart {
-  switch (action.type) {
-    case 'ADD_ITEM': {
-      const existingIndex = state.items.findIndex(
-        (item) => item.variantId === action.payload.variantId
-      );
-
-      if (existingIndex >= 0) {
-        const newItems = [...state.items];
-        newItems[existingIndex] = {
-          ...newItems[existingIndex],
-          quantity: newItems[existingIndex].quantity + action.payload.quantity,
-        };
-        return { ...state, items: newItems };
-      }
-
-      return { ...state, items: [...state.items, action.payload] };
-    }
-
-    case 'REMOVE_ITEM':
-      return {
-        ...state,
-        items: state.items.filter((item) => item.variantId !== action.payload.variantId),
-      };
-
-    case 'UPDATE_QUANTITY': {
-      if (action.payload.quantity <= 0) {
-        return {
-          ...state,
-          items: state.items.filter((item) => item.variantId !== action.payload.variantId),
-        };
-      }
-
-      return {
-        ...state,
-        items: state.items.map((item) =>
-          item.variantId === action.payload.variantId
-            ? { ...item, quantity: action.payload.quantity }
-            : item
-        ),
-      };
-    }
-
-    case 'CLEAR_CART':
-      return initialCart;
-
-    case 'HYDRATE':
-      return action.payload;
-
-    default:
-      return state;
-  }
-}
 
 const CartContext = createContext<CartContextType | null>(null);
 

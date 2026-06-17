@@ -122,6 +122,29 @@ export async function validateCartPrices(items: CartItem[]): Promise<{
       continue;
     }
 
+    // Stock gate (authoritative — the UI hides the buy button, but a stale
+    // cart or a direct API call must still be rejected here).
+    // `in_stock` null is treated as available, matching the storefront default.
+    if (product.in_stock === false) {
+      errors.push({
+        productId: item.productId,
+        reason: 'Out of stock',
+      });
+      continue;
+    }
+
+    const available = product.stock_quantity ?? null;
+    if (available !== null && item.quantity > available) {
+      errors.push({
+        productId: item.productId,
+        reason:
+          available <= 0
+            ? 'Out of stock'
+            : `Only ${available} in stock for "${product.name}"`,
+      });
+      continue;
+    }
+
     // Always use catalog price (sale price takes precedence)
     const catalogPrice = Number(product.sale_price ?? product.price);
     correctedItems.push({
