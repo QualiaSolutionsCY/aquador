@@ -25,6 +25,7 @@ export function buildDefaults(product: Product | null): ProductFormValues {
     price: product?.price ?? 0,
     sale_price: product?.sale_price ?? '',
     in_stock: product?.in_stock ?? true,
+    stock_quantity: product?.stock_quantity ?? 0,
     description: product?.description ?? '',
     image: product?.image ?? '',
     images: product?.images ?? [],
@@ -54,7 +55,9 @@ export function toPayload(values: ProductFormValues, productId?: string) {
     image: values.image,
     images: values.images,
     tags: mergedTags.length > 0 ? Array.from(new Set(mergedTags)) : null,
-    in_stock: values.in_stock,
+    stock_quantity: values.stock_quantity,
+    // Availability flag is derived from the manual count — never a separate toggle.
+    in_stock: values.stock_quantity > 0,
     is_active: values.is_active,
   };
 }

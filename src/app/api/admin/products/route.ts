@@ -50,7 +50,8 @@ const productBodySchema = z.object({
   sale_price: z.number().min(0).nullable().optional(),
   image: z.string().url('Primary image must be a valid URL'),
   images: z.array(z.string().url('Each image must be a valid URL')).max(10),
-  in_stock: z.boolean(),
+  in_stock: z.boolean().optional(),
+  stock_quantity: z.number().int().min(0),
   is_active: z.boolean(),
   tags: z.array(z.string().min(1).max(40)).max(20).nullable().optional(),
 }).superRefine((body, ctx) => {
@@ -105,7 +106,9 @@ function bodyToProductRow(body: ProductBody): Database['public']['Tables']['prod
     sale_price: body.sale_price ?? null,
     image: body.image.trim(),
     images: body.images.map((u) => u.trim()).filter(Boolean),
-    in_stock: body.in_stock,
+    stock_quantity: body.stock_quantity,
+    // Availability flag is derived from the manual count — ignore any client in_stock.
+    in_stock: body.stock_quantity > 0,
     is_active: body.is_active,
     tags: body.tags && body.tags.length > 0 ? body.tags.map((t) => t.trim()).filter(Boolean) : null,
   };

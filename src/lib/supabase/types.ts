@@ -309,6 +309,7 @@ export type Database = {
           product_type: Database["public"]["Enums"]["product_type"]
           sale_price: number | null
           size: string
+          stock_quantity: number
           tags: string[] | null
           updated_at: string | null
         }
@@ -328,6 +329,7 @@ export type Database = {
           product_type: Database["public"]["Enums"]["product_type"]
           sale_price?: number | null
           size: string
+          stock_quantity?: number
           tags?: string[] | null
           updated_at?: string | null
         }
@@ -347,6 +349,7 @@ export type Database = {
           product_type?: Database["public"]["Enums"]["product_type"]
           sale_price?: number | null
           size?: string
+          stock_quantity?: number
           tags?: string[] | null
           updated_at?: string | null
         }

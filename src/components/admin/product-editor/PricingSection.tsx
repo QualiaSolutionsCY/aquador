@@ -1,27 +1,26 @@
 'use client';
 
 /**
- * PricingSection — price (EUR), sale price (optional), in_stock switch.
+ * PricingSection — price (EUR), sale price (optional), stock quantity.
  *
  * Numeric inputs use `valueAsNumber` so react-hook-form delivers actual
  * numbers to Zod (avoids string-vs-number validation issues).
+ *
+ * Stock is a manual integer count. The `in_stock` availability flag is
+ * derived from it at serialization time (in_stock = stock_quantity > 0) —
+ * there is no separate toggle.
  */
 
-import type { Control, UseFormRegister, FieldErrors } from 'react-hook-form';
-import { Controller } from 'react-hook-form';
+import type { UseFormRegister, FieldErrors } from 'react-hook-form';
 import { Input } from '@/components/ui/Input';
-import { Switch } from '@/components/ui/Switch';
 import type { ProductFormValues } from './schema';
 
 interface PricingSectionProps {
   register: UseFormRegister<ProductFormValues>;
-  control: Control<ProductFormValues>;
   errors: FieldErrors<ProductFormValues>;
 }
 
-const labelClass = 'font-micro text-[12px] uppercase tracking-[0.05em] text-fg-muted';
-
-export function PricingSection({ register, control, errors }: PricingSectionProps) {
+export function PricingSection({ register, errors }: PricingSectionProps) {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       <Input
@@ -48,24 +47,19 @@ export function PricingSection({ register, control, errors }: PricingSectionProp
         })}
       />
 
-      <div className="flex items-center justify-between gap-4 md:col-span-2">
-        <div>
-          <span className={labelClass}>In stock</span>
-          <p className="mt-1 font-body text-[13px] text-fg-muted">
-            Storefront hides the buy button when off.
-          </p>
-        </div>
-        <Controller
-          control={control}
-          name="in_stock"
-          render={({ field }) => (
-            <Switch
-              checked={field.value}
-              onCheckedChange={field.onChange}
-              aria-label="In stock"
-            />
-          )}
+      <div className="md:col-span-2">
+        <Input
+          label="Stock quantity"
+          type="number"
+          step="1"
+          min="0"
+          placeholder="0"
+          error={errors.stock_quantity?.message}
+          {...register('stock_quantity', { valueAsNumber: true })}
         />
+        <p className="mt-1 font-body text-[13px] text-fg-muted">
+          0 = out of stock. Storefront shows &ldquo;Only X left&rdquo; at 5 or fewer.
+        </p>
       </div>
     </div>
   );

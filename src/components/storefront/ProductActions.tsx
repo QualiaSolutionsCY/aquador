@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui';
+import { Badge } from '@/components/ui/Badge';
 import { useCart } from '@/components/cart/CartProvider';
 import { formatPrice } from '@/lib/currency';
 import StickyATC from './StickyATC';
@@ -13,6 +14,7 @@ export interface ProductActionsProps {
   variants?: Product[];
 }
 
+const LOW_STOCK_THRESHOLD = 5;
 const VALID_SIZES = new Set(['10ml', '50ml', '100ml', '150ml']);
 const TYPE_LABELS: Record<ProductType, string> = {
   perfume: 'Perfume',
@@ -47,6 +49,8 @@ export function ProductActions({ product, variants = [product] }: ProductActions
   const selectedType = getProductType(selectedProduct);
   const selectedPrice = getDisplayPrice(selectedProduct);
   const inStock = selectedProduct.in_stock ?? true;
+  const stock = selectedProduct.stock_quantity ?? null;
+  const isLowStock = inStock && stock !== null && stock > 0 && stock <= LOW_STOCK_THRESHOLD;
   const ctaLabel = inStock ? 'Add to bag' : 'Out of stock';
 
   const variantsByType = useMemo(() => {
@@ -92,6 +96,9 @@ export function ProductActions({ product, variants = [product] }: ProductActions
         <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
           {TYPE_LABELS[selectedType]} · {selectedProduct.size}
         </p>
+        {isLowStock ? (
+          <Badge variant="warning">Only {stock} left</Badge>
+        ) : null}
       </div>
 
       {availableVariants.length > 1 ? (

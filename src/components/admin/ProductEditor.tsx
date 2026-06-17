@@ -124,7 +124,7 @@ export default function ProductEditor({ product, mode }: ProductEditorProps) {
         <BasicsSection register={register} control={control} errors={errors} />
       </EditorSection>
       <EditorSection title="Pricing" caption="Per-unit pricing. Sale price overrides on the storefront when set.">
-        <PricingSection register={register} control={control} errors={errors} />
+        <PricingSection register={register} errors={errors} />
       </EditorSection>
       <EditorSection title="Description" caption="Rich text — bold, italic, headings, lists.">
         <DescriptionSection control={control} errors={errors} />

@@ -25,6 +25,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     product_type: 'perfume',
     sale_price: null,
     size: '50ml',
+    stock_quantity: 99,
     tags: null,
     updated_at: '2026-01-01T00:00:00Z',
     ...overrides,

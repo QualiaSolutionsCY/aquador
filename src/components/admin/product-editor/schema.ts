@@ -61,6 +61,10 @@ export const productFormSchema = z.object({
     .union([z.number().min(0, 'Sale price must be ≥ 0'), z.nan(), z.literal('')])
     .optional(),
   in_stock: z.boolean(),
+  stock_quantity: z
+    .number({ error: 'Stock quantity must be a number' })
+    .int('Whole number only')
+    .min(0, 'Stock must be ≥ 0'),
 
   description: z.string().min(1, 'Description is required'),
 

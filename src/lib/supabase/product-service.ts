@@ -22,7 +22,7 @@ function escapePostgrestQuery(query: string): string {
 }
 
 /** Explicit column selection for product queries (avoids select(*) overhead) */
-const PRODUCT_COLUMNS = 'id, name, description, price, sale_price, image, images, category, product_type, gender, brand, size, tags, in_stock, is_active, created_at, updated_at' as const;
+const PRODUCT_COLUMNS = 'id, name, description, price, sale_price, image, images, category, product_type, gender, brand, size, tags, in_stock, stock_quantity, is_active, created_at, updated_at' as const;
 const PRODUCT_LIST_REVALIDATE_SECONDS = 60;
 
 function hasPublicSupabaseEnv(): boolean {
