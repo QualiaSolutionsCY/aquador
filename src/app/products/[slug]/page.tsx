@@ -7,6 +7,7 @@ import {
   getProductBySlug,
   getProductVariantGroup,
   getRelatedProducts,
+  isLattafaProduct,
 } from '@/lib/supabase/product-service';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import ProductGallery from '@/components/storefront/ProductGallery';
@@ -224,7 +225,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   <ProductActions product={product} variants={productVariants} />
                   <p className="mt-4 flex items-center gap-2 font-body text-[length:var(--font-size-body-sm)] text-fg-muted">
                     <PackageCheck aria-hidden className="h-4 w-4 text-accent-deep" strokeWidth={1.5} />
-                    {inStock ? 'Prepared from the Nicosia desk.' : 'This bottle is resting before the next release.'}
+                    {inStock ? 'Prepared in our Nicosia store.' : 'This bottle is resting before the next release.'}
                   </p>
                 </div>
               </div>
@@ -239,7 +240,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             heartNotes={notes.heartNotes}
             baseNotes={notes.baseNotes}
             fragranceFamily={getFragranceFamily(product)}
-            description={product.description ?? plainDescription}
+            description={isLattafaProduct(product) ? undefined : (product.description ?? plainDescription)}
           />
 
           <RelatedCarousel products={relatedProducts} />

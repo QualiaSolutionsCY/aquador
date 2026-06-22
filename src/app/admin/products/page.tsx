@@ -258,6 +258,14 @@ export default function ProductsPage() {
     return params;
   }, [searchParams]);
 
+  // Carry the current list URL (page + filters) into the editor so Back/Cancel/Save
+  // return to the exact page the user came from instead of resetting to page 1.
+  const listReturnTo = `/admin/products${
+    searchParams.toString() ? `?${searchParams.toString()}` : ''
+  }`;
+  const editHref = (id: string) =>
+    `/admin/products/${id}?return=${encodeURIComponent(listReturnTo)}`;
+
   function pageHref(page: number) {
     const params = new URLSearchParams(currentQuery.toString());
     params.set('page', String(page));
@@ -372,7 +380,7 @@ export default function ProductsPage() {
             <Eye className="h-4 w-4" strokeWidth={1.5} />
           </a>
           <Link
-            href={`/admin/products/${row.id}`}
+            href={editHref(row.id)}
             className="inline-flex h-8 w-8 items-center justify-center rounded-sm text-fg-muted hover:bg-bg-alt hover:text-fg transition-colors"
             title="Edit"
             onClick={(e) => e.stopPropagation()}
@@ -518,7 +526,7 @@ export default function ProductsPage() {
         loading={loading}
         emptyText="No products match your filters."
         toolbar={toolbar}
-        onRowClick={(row) => router.push(`/admin/products/${row.id}`)}
+        onRowClick={(row) => router.push(editHref(row.id))}
       />
 
       {totalPages > 1 ? (

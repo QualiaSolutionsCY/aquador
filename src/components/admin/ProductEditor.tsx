@@ -11,7 +11,7 @@
  */
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -36,6 +36,9 @@ interface ProductEditorProps {
 
 export default function ProductEditor({ product, mode }: ProductEditorProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Where the list sent us from (page + filters). Falls back to the bare list.
+  const returnTo = searchParams.get('return') || '/admin/products';
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [deleting, setDeleting] = useState(false);
@@ -62,7 +65,11 @@ export default function ProductEditor({ product, mode }: ProductEditorProps) {
         }
         toast({ title: 'Product saved', variant: 'success' });
         if (mode === 'create' && json.product?.id) router.push(`/admin/products/${json.product.id}`);
-        else router.refresh();
+        else {
+          // Return to the list at the page/filters we came from, not page 1.
+          router.push(returnTo);
+          router.refresh();
+        }
       } catch (err) {
         toast({
           title: 'Save failed',
@@ -88,7 +95,7 @@ export default function ProductEditor({ product, mode }: ProductEditorProps) {
         return;
       }
       toast({ title: 'Product deleted', variant: 'success' });
-      router.push('/admin/products');
+      router.push(returnTo);
       router.refresh();
     } catch (err) {
       toast({
@@ -104,7 +111,7 @@ export default function ProductEditor({ product, mode }: ProductEditorProps) {
     <form onSubmit={onSubmit} className="space-y-8">
       <header className="flex items-center gap-3">
         <Link
-          href="/admin/products"
+          href={returnTo}
           aria-label="Back to products"
           className="inline-flex h-9 w-9 items-center justify-center rounded-sm text-fg-muted transition-colors hover:bg-bg-alt hover:text-fg"
         >
@@ -164,7 +171,7 @@ export default function ProductEditor({ product, mode }: ProductEditorProps) {
             type="button"
             variant="secondary"
             size="md"
-            onClick={() => router.push('/admin/products')}
+            onClick={() => router.push(returnTo)}
             disabled={isPending}
           >
             Cancel

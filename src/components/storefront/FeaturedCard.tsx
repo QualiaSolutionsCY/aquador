@@ -43,8 +43,6 @@ import type { Product } from '@/lib/supabase/types';
 
 export type FeaturedEmphasis = 'hero-portrait' | 'hero-wide' | 'medium' | 'small';
 
-const LOW_STOCK_THRESHOLD = 5;
-
 export interface FeaturedCardProps {
   product: Product;
   index: number;
@@ -142,8 +140,6 @@ export default function FeaturedCard({
 
   const isHero = emphasis === 'hero-portrait' || emphasis === 'hero-wide';
   const inStock = product.in_stock ?? true;
-  const stock = product.stock_quantity ?? null;
-  const isLowStock = inStock && stock !== null && stock > 0 && stock <= LOW_STOCK_THRESHOLD;
   const isOnSale = !!product.sale_price && inStock;
   const displayPrice = product.sale_price || product.price;
 
@@ -205,12 +201,6 @@ export default function FeaturedCard({
           {isOnSale && (
             <Badge variant="accent" className="absolute right-3 top-3">
               Sale
-            </Badge>
-          )}
-
-          {isLowStock && (
-            <Badge variant="warning" className="absolute left-3 top-3">
-              Only {stock} left
             </Badge>
           )}
 

@@ -15,8 +15,6 @@ interface ProductCardProps {
   variant?: 'default' | 'compact';
 }
 
-const LOW_STOCK_THRESHOLD = 5;
-
 function extractFragranceNotes(tags: string[] | null): string[] {
   if (!tags) return [];
   return tags
@@ -35,8 +33,6 @@ function plainDescription(description: string): string {
 
 export function ProductCard({ product, priority = false, variant = 'default' }: ProductCardProps) {
   const inStock = product.in_stock ?? true;
-  const stock = product.stock_quantity ?? null;
-  const isLowStock = inStock && stock !== null && stock > 0 && stock <= LOW_STOCK_THRESHOLD;
   const salePrice = product.sale_price;
   const isOnSale = !!salePrice && inStock;
   const displayPrice = salePrice || product.price;
@@ -102,12 +98,6 @@ export function ProductCard({ product, priority = false, variant = 'default' }: 
         {isOnSale ? (
           <Badge variant="accent" className="absolute right-3 top-3 z-20">
             Sale
-          </Badge>
-        ) : null}
-
-        {isLowStock ? (
-          <Badge variant="warning" className="absolute left-3 top-3 z-20">
-            Only {stock} left
           </Badge>
         ) : null}
 
