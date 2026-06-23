@@ -53,20 +53,23 @@
   },
   "blockers": [],
   "session_started_at": "2026-05-15T11:06:08.461Z",
-  "last_updated": "2026-05-25T13:37:21.059Z",
-  "last_pushed_at": "2026-05-24T12:01:12Z",
-  "last_commit": "fcafc33",
+  "last_updated": "2026-06-23T10:29:31.241Z",
+  "last_pushed_at": "2026-06-17T16:12:51Z",
+  "last_commit": "5042fa8",
   "build_count": 18,
   "deploy_count": 1,
   "deployed_url": "https://www.aquadorcy.com",
-  "notes": "Fixed live-agent chat flow and product image sizing",
+  "notes": "Oversell race fixed via workflow: atomic decrement_product_stock RPC (FOR UPDATE lock), webhook decrements once per paid order gated on isNewOrder. 3 adversarial reviewers PASS, 66 tests. Migration applied to prod, deployed. Commit 6f85b09.",
   "submitted_by": "",
   "lifetime": {
-    "tasks_completed": 57,
+    "tasks_completed": 60,
     "phases_completed": 17,
     "milestones_completed": 3,
     "total_phases": 12,
-    "last_closed_milestone": 3
+    "last_closed_milestone": 3,
+    "updates_completed": 0
   },
-  "report_seq": 3
+  "report_seq": 4,
+  "profile": "strict",
+  "lifecycle": "build"
 }
