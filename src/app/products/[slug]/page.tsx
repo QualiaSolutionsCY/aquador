@@ -7,7 +7,6 @@ import {
   getProductBySlug,
   getProductVariantGroup,
   getRelatedProducts,
-  isLattafaProduct,
 } from '@/lib/supabase/product-service';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import ProductGallery from '@/components/storefront/ProductGallery';
@@ -240,7 +239,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             heartNotes={notes.heartNotes}
             baseNotes={notes.baseNotes}
             fragranceFamily={getFragranceFamily(product)}
-            description={isLattafaProduct(product) ? undefined : (product.description ?? plainDescription)}
+            description={product.description ?? plainDescription}
           />
 
           <RelatedCarousel products={relatedProducts} />

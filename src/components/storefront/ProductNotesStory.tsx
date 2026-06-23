@@ -107,6 +107,12 @@ export function ProductNotesStory({
   fragranceFamily,
   description,
 }: ProductNotesStoryProps) {
+  // When the product carries a real admin description, render it verbatim and
+  // skip the auto-woven opening/heart/drydown narrative. That generated prose
+  // reads as nonsense whenever the notes data is weak (e.g. Lattafa originals,
+  // whose notes are just the brand/category), so the authored copy wins.
+  const hasDescription = Boolean(description && description.trim());
+
   const familyLine = fragranceFamily
     ? `A ${fragranceFamily.toLowerCase()} composition, read top to base.`
     : 'A composition read top to base.';
@@ -130,45 +136,48 @@ export function ProductNotesStory({
           <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.08em] text-fg-muted">
             02 / Notes
           </p>
-          <h2 className="mt-6 font-display text-[length:var(--font-h1)] leading-[1.1] tracking-[-0.01em] text-fg italic">
-            {familyLine}
-          </h2>
-          {description ? (
+          {hasDescription ? (
             <div
               className="mt-6 font-body text-[length:var(--font-size-body-lg)] leading-relaxed text-fg-muted prose prose-sm max-w-none prose-p:my-3 prose-headings:font-display prose-headings:text-fg prose-headings:tracking-tight prose-strong:text-fg prose-em:text-fg-muted prose-ul:my-3 prose-ol:my-3 prose-li:my-1"
-              dangerouslySetInnerHTML={{ __html: sanitizeDescriptionHtml(description) }}
+              dangerouslySetInnerHTML={{ __html: sanitizeDescriptionHtml(description as string) }}
             />
-          ) : null}
+          ) : (
+            <h2 className="mt-6 font-display text-[length:var(--font-h1)] leading-[1.1] tracking-[-0.01em] text-fg italic">
+              {familyLine}
+            </h2>
+          )}
         </Reveal>
 
-        <div className="mt-12 grid gap-10 md:mt-16 md:gap-12">
-          <Reveal delayMs={80}>
-            <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.08em] text-fg-muted">
-              The opening
-            </p>
-            <p className="mt-3 font-body text-[length:var(--font-size-body-lg)] leading-relaxed text-fg">
-              {opening}
-            </p>
-          </Reveal>
+        {!hasDescription ? (
+          <div className="mt-12 grid gap-10 md:mt-16 md:gap-12">
+            <Reveal delayMs={80}>
+              <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.08em] text-fg-muted">
+                The opening
+              </p>
+              <p className="mt-3 font-body text-[length:var(--font-size-body-lg)] leading-relaxed text-fg">
+                {opening}
+              </p>
+            </Reveal>
 
-          <Reveal delayMs={160}>
-            <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.08em] text-fg-muted">
-              The heart
-            </p>
-            <p className="mt-3 font-body text-[length:var(--font-size-body-lg)] leading-relaxed text-fg">
-              {heart}
-            </p>
-          </Reveal>
+            <Reveal delayMs={160}>
+              <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.08em] text-fg-muted">
+                The heart
+              </p>
+              <p className="mt-3 font-body text-[length:var(--font-size-body-lg)] leading-relaxed text-fg">
+                {heart}
+              </p>
+            </Reveal>
 
-          <Reveal delayMs={240}>
-            <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.08em] text-fg-muted">
-              The drydown
-            </p>
-            <p className="mt-3 font-body text-[length:var(--font-size-body-lg)] leading-relaxed text-fg">
-              {drydown}
-            </p>
-          </Reveal>
-        </div>
+            <Reveal delayMs={240}>
+              <p className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.08em] text-fg-muted">
+                The drydown
+              </p>
+              <p className="mt-3 font-body text-[length:var(--font-size-body-lg)] leading-relaxed text-fg">
+                {drydown}
+              </p>
+            </Reveal>
+          </div>
+        ) : null}
 
       </div>
     </section>
