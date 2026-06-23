@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { LockKeyhole, RotateCcw, ShieldCheck, Truck, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -6,9 +7,9 @@ export interface TrustBarProps {
   className?: string;
 }
 
-const TRUST_ITEMS: Array<{ icon: LucideIcon; label: string }> = [
+const TRUST_ITEMS: Array<{ icon: LucideIcon; label: string; href?: string }> = [
   { icon: Truck, label: 'Free shipping over €35' },
-  { icon: RotateCcw, label: 'No returns' },
+  { icon: RotateCcw, label: 'Returns policy', href: '/shipping#returns' },
   { icon: ShieldCheck, label: 'Authenticity guaranteed' },
   { icon: LockKeyhole, label: 'Secure payment, encrypted' },
 ];
@@ -28,7 +29,7 @@ export function TrustBar({ variant = 'inline', className }: TrustBarProps) {
           className,
         )}
       >
-        {TRUST_ITEMS.map(({ icon: Icon, label }) => (
+        {TRUST_ITEMS.map(({ icon: Icon, label, href }) => (
           <div
             key={label}
             className="flex min-h-12 items-center gap-3 border-b border-border px-4 py-3 last:border-b-0 sm:[&:nth-last-child(-n+2)]:border-b-0 sm:[&:nth-child(odd)]:border-r"
@@ -39,9 +40,18 @@ export function TrustBar({ variant = 'inline', className }: TrustBarProps) {
               strokeWidth={1.5}
               className="shrink-0 text-accent-deep"
             />
-            <span className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
-              {label}
-            </span>
+            {href ? (
+              <Link
+                href={href}
+                className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted underline underline-offset-2 transition-colors hover:text-fg"
+              >
+                {label}
+              </Link>
+            ) : (
+              <span className="font-micro text-[length:var(--font-size-micro)] uppercase tracking-[0.05em] text-fg-muted">
+                {label}
+              </span>
+            )}
           </div>
         ))}
       </div>
@@ -56,7 +66,7 @@ export function TrustBar({ variant = 'inline', className }: TrustBarProps) {
         className,
       )}
     >
-      {TRUST_ITEMS.map(({ icon: Icon, label }, index) => (
+      {TRUST_ITEMS.map(({ icon: Icon, label, href }, index) => (
         <span key={label} className="contents">
           {index > 0 && (
             <span
@@ -71,7 +81,16 @@ export function TrustBar({ variant = 'inline', className }: TrustBarProps) {
               strokeWidth={1.5}
               className="shrink-0 text-fg-muted"
             />
-            {label}
+            {href ? (
+              <Link
+                href={href}
+                className="underline underline-offset-2 transition-colors hover:text-fg"
+              >
+                {label}
+              </Link>
+            ) : (
+              label
+            )}
           </span>
         </span>
       ))}
