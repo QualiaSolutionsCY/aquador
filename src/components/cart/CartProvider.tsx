@@ -19,7 +19,7 @@ const CartItemSchema = z.object({
   name: z.string(),
   image: z.string(),
   price: z.number().nonnegative(),
-  size: z.enum(['10ml', '50ml', '100ml', '150ml']),
+  size: z.enum(['10ml', '50ml', '55ml', '60ml', '85ml', '100ml', '150ml', '200ml']),
   productType: z.enum(['perfume', 'essence-oil', 'body-lotion']),
   customPerfume: z.object({
     name: z.string(),

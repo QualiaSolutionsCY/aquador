@@ -33,7 +33,7 @@ export const PRODUCT_GENDERS = [
   { value: 'unisex', label: 'Unisex' },
 ] as const;
 
-export const PRODUCT_SIZES = ['10ml', '50ml', '60ml', '100ml', '150ml', '200ml'] as const;
+export const PRODUCT_SIZES = ['10ml', '50ml', '55ml', '60ml', '85ml', '100ml', '150ml', '200ml'] as const;
 
 export const productFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200),

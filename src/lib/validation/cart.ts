@@ -16,7 +16,7 @@ export const cartItemSchema = z.object({
   variantId: z.string()
     .min(1, 'Variant ID is required')
     .regex(
-      /^(?:[a-z0-9-]+-(?:perfume|essence-oil|body-lotion)-(?:10ml|50ml|100ml|150ml)|custom-[a-z0-9-]+-perfume-(?:50ml|100ml))$/,
+      /^(?:[a-z0-9-]+-(?:perfume|essence-oil|body-lotion)-(?:10ml|50ml|55ml|60ml|85ml|100ml|150ml|200ml)|custom-[a-z0-9-]+-perfume-(?:50ml|100ml))$/,
       'Variant ID must match pattern {productId}-{productType}-{size}'
     ),
   quantity: z.number()
@@ -28,7 +28,7 @@ export const cartItemSchema = z.object({
     .max(200, 'Product name too long'),
   image: z.string().min(1, 'Product image is required'),
   price: z.number().positive('Price must be positive'),
-  size: z.enum(['10ml', '50ml', '100ml', '150ml'] as const, {
+  size: z.enum(['10ml', '50ml', '55ml', '60ml', '85ml', '100ml', '150ml', '200ml'] as const, {
     message: 'Invalid product size',
   }),
   productType: z.enum(['perfume', 'essence-oil', 'body-lotion'] as const, {

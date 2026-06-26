@@ -15,7 +15,7 @@ export interface ProductActionsProps {
 }
 
 const LOW_STOCK_THRESHOLD = 5;
-const VALID_SIZES = new Set(['10ml', '50ml', '100ml', '150ml']);
+const VALID_SIZES = new Set(['10ml', '50ml', '55ml', '60ml', '85ml', '100ml', '150ml', '200ml']);
 const TYPE_LABELS: Record<ProductType, string> = {
   perfume: 'Perfume',
   'essence-oil': 'Essence Oil',
